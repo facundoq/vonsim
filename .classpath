@@ -1,0 +1,12 @@
+<classpath>
+  <classpathentry kind="src" path="src\main\scala"/>
+  <classpathentry kind="src" path="src\test\scala"/>
+  <classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
+  <classpathentry kind="lib" path="C:\Users\Claudia Del Gobbo\.ivy2\cache\org.scalactic\scalactic_2.11\bundles\scalactic_2.11-2.2.6.jar"/>
+  <classpathentry kind="lib" path="C:\Users\Claudia Del Gobbo\.ivy2\cache\com.beachape\enumeratum_2.11\jars\enumeratum_2.11-1.4.8.jar"/>
+  <classpathentry kind="lib" path="C:\Users\Claudia Del Gobbo\.ivy2\cache\com.beachape\enumeratum-macros_2.11\jars\enumeratum-macros_2.11-1.4.8.jar"/>
+  <classpathentry kind="lib" path="C:\Users\Claudia Del Gobbo\.ivy2\cache\org.scalatest\scalatest_2.11\bundles\scalatest_2.11-2.2.6.jar"/>
+  <classpathentry kind="lib" path="C:\Users\Claudia Del Gobbo\.ivy2\cache\org.scala-lang.modules\scala-xml_2.11\bundles\scala-xml_2.11-1.0.2.jar"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="output" path="bin"/>
+</classpath>
