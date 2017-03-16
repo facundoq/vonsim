@@ -36,7 +36,7 @@ object WorkflowParser extends Parsers {
   def statement: Parser[WorkflowAST] = positioned {
     val exit = EXIT() ^^ (_ => Exit)
     val readInput = READINPUT() ~ rep(identifier ~ COMMA()) ~ identifier ^^ {
-      case read ~ inputs ~ IDENTIFIER(lastInput) => ReadInput(inputs.map(_._1.str) ++ List(lastInput))
+    case read ~ inputs ~ IDENTIFIER(lastInput) => ReadInput(inputs.map(_._1.str) ++ List(lastInput))
     }
     val callService = CALLSERVICE() ~ literal ^^ {
       case call ~ LITERAL(serviceName) => CallService(serviceName)

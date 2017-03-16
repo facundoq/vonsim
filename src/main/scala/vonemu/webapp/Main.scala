@@ -20,6 +20,8 @@ import vonemu.assembly.Token
 import vonemu.assembly.LexerError
 import scala.util.parsing.input.OffsetPosition
 import vonemu.assembly.VonemuPosition
+import vonemu.assembly.Parser
+import vonemu.assembly.EMPTY
 
 object Main extends JSApp {
 
@@ -53,7 +55,7 @@ class EditorUI(base: HTMLElement) {
   var code: TextArea = null
 
   def defaultCode =
-    """mov ax, bx
+"""mov ax, bx
 MOV ax, bx
 mov  AX, bX
    mov  ax, bx
@@ -61,16 +63,27 @@ mov  ax, bx
 mov     ax, bx
 mov  ax   , bx
 mov  ax,bx
-add ax, bx
+hola: mov ax, bx
+mov [bx],ax
 mov ax, 2
 mov ax, -25
 mov ax, 25AH
 mov ax, 25Ah
 mov ax, 10001111B
+not ax
+add ax, bx
+add ax, 3
+add ax, 26h
+jc hola
 org 1000
 
 
+JMP HOLA
+JC HOLA
+CALL HOLA
+RET
 NOP
+HLT
 END
 """
 
@@ -98,10 +111,20 @@ END
   def compile(): Unit = {
     val codeString = code.value
     val instructions = codeString.split("\n")
-    var result = instructions map { Lexer(_) }
-    val fixedResult=fixLineNumbers(result)
-    val stringResults = fixedResult.map(_.toString())
-    console.textContent = stringResults.mkString("\n")
+    var optionTokens = instructions map { Lexer(_) }
+    val fixedTokens=Lexer.fixLineNumbers(optionTokens)
+    console.textContent = "Tokens:\n"
+    console.textContent += fixedTokens.map(_.toString()).mkString("\n")
+    
+    if (fixedTokens.count(_.isRight)==fixedTokens.length){
+      console.textContent += "\nAST:\n"
+      val tokens= (fixedTokens map {_.right.get}) filter {t => !(t.length == 1 && t(0)==EMPTY())}
+      
+      val asts= tokens map {Parser(_)}
+      console.textContent += asts.mkString("\n")  
+    }
+    
+    
     //printLineNumbers(fixedResult)
 
   }
@@ -118,21 +141,6 @@ END
       println()
     })
   }
-  def fixLineNumbers(a: Array[Either[LexerError, List[Token]]])={
-    a.indices.map(i => {
-      var eitherList = a(i)
-      if (eitherList.isRight) {
-        var list = eitherList.right.get
-        var fixedList = list.map(token => {
-          var p = new VonemuPosition(i+1, token.pos.column, "")
-          token.pos=p
-          token
-        })
-        Right(fixedList)
-      }else{
-        eitherList
-      }
-    }).toArray
-  }
+  
 
 }

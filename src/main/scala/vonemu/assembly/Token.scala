@@ -2,16 +2,75 @@ package vonemu.assembly
 
 import scala.util.parsing.input.Positional
 
-sealed trait Token extends Positional
+
+//.runtime.{universe => ru}
+/*
+ * Missing:
+ * 
+ * IO
+ * in
+ * out
+ * 
+ * Interrupt
+ * cli
+ * sti
+ * iret
+ * int N
+ * 
+ * Stack
+ * pop
+ * push
+ * popf
+ * pushf
+ * 
+ * SP 
+ */
+
+object Token{
+  
+  def special = List(COMMA(),NEWLINE(),EMPTY())
+  def keyword= List( END(),NOP(),RET(),HLT())
+  def ops = List(ORG(),MOV(),CMP())++binaryArithmetic++unaryArithmetic
+  def binaryArithmetic = List(ADD(),ADC(),SUB(),SBB(),OR(),XOR(),AND())
+  def unaryArithmetic = List(INC(),DEC(),NOT())
+  def registers:List[RegisterToken] = lRegisters++hRegisters++xRegisters
+  def lRegisters =List(AL(),BL(),CL(),DL())
+  def hRegisters =List(AH(),BH(),CH(),DH())
+  def xRegisters =List(AX(),BX(),CX(),DX())
+  def inputOutput= List(IN(),OUT())
+  def jump= List(JMP(),CALL())++conditionalJump
+  def conditionalJump=List(JC(),JNC(),JZ(),JNZ(),JO(),JNO(),JS(),JNS())
+  
+//  def brackets = List(OPENBRACKET(),CLOSEBRACKET())
+ 
+}
 
 
 
-case class IDENTIFIER(str: String) extends Token
-case class LITERALSTRING(str: String) extends Token
-case class LITERALINTEGER(v: Int) extends Token
-case class COMMA() extends Token
-case class NEWLINE() extends Token
-case class EMPTY() extends Token
+sealed trait Token extends Positional with Product with Serializable
+
+case class UNKNOWN() extends Token
+
+sealed trait Value extends Token
+sealed trait Mutable extends Value
+
+sealed trait Literal extends Token
+case class LABEL(str: String) extends Literal 
+case class IDENTIFIER(str: String) extends Literal with Mutable
+case class INDIRECTBX() extends Literal with Mutable
+case class LITERALSTRING(str: String) extends Literal with Value
+case class LITERALINTEGER(v: Int) extends Literal with Value
+
+sealed trait IO extends Token
+case class IN() extends IO
+case class OUT() extends IO
+
+sealed trait Special extends Token
+case class COMMA() extends Special 
+case class NEWLINE() extends Special 
+case class EMPTY() extends Special
+//case class OPENBRACKET() extends Special
+//case class CLOSEBRACKET() extends Special
 
 trait InstructionToken extends Token
 case class RET() extends InstructionToken
@@ -20,31 +79,41 @@ case class MOV() extends InstructionToken
 case class NOP() extends InstructionToken
 case class END() extends InstructionToken
 case class ORG() extends InstructionToken
+case class HLT() extends InstructionToken
 
-case class ADD() extends InstructionToken
-case class ADC() extends InstructionToken
-case class SUB() extends InstructionToken
-case class SBB() extends InstructionToken
-case class NOR() extends InstructionToken
-case class OR() extends InstructionToken
-case class XOR() extends InstructionToken
-case class CMP() extends InstructionToken
-case class DEC() extends InstructionToken
-case class INC() extends InstructionToken
+trait ArithmeticOp extends Token
+
+trait BinaryArithmeticOp extends ArithmeticOp
+case class ADD() extends BinaryArithmeticOp
+case class ADC() extends BinaryArithmeticOp
+case class SUB() extends BinaryArithmeticOp
+case class SBB() extends BinaryArithmeticOp
+case class NOR() extends BinaryArithmeticOp
+case class AND() extends BinaryArithmeticOp
+case class OR() extends BinaryArithmeticOp
+case class XOR() extends BinaryArithmeticOp
+case class CMP() extends BinaryArithmeticOp
+trait UnaryArithmeticOp extends ArithmeticOp
+case class DEC() extends UnaryArithmeticOp
+case class INC() extends UnaryArithmeticOp
+case class NOT() extends UnaryArithmeticOp
 
 trait JumpInstructionToken extends InstructionToken
 case class JMP() extends JumpInstructionToken
-case class JC() extends JumpInstructionToken
-case class JNC() extends JumpInstructionToken
-case class JS() extends JumpInstructionToken
-case class JNS() extends JumpInstructionToken
-case class JO() extends JumpInstructionToken
-case class JNO() extends JumpInstructionToken
-case class JZ() extends JumpInstructionToken
-case class JNZ() extends JumpInstructionToken
 case class CALL() extends JumpInstructionToken
 
-trait RegisterToken extends Token
+trait ConditionalJumpToken extends JumpInstructionToken 
+case class JC() extends ConditionalJumpToken
+case class JNC() extends ConditionalJumpToken
+case class JS() extends ConditionalJumpToken
+case class JNS() extends ConditionalJumpToken
+case class JO() extends ConditionalJumpToken
+case class JNO() extends ConditionalJumpToken
+case class JZ() extends ConditionalJumpToken
+case class JNZ() extends ConditionalJumpToken
+
+
+trait RegisterToken extends Token with Mutable with Value
 case class AX() extends RegisterToken
 case class BX() extends RegisterToken
 case class CX() extends RegisterToken
