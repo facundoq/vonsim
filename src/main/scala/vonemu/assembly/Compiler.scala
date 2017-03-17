@@ -1,5 +1,9 @@
 package vonemu.assembly
 
+import vonemu.assembly.lexer.Lexer
+import vonemu.assembly.parser.Parser
+import vonemu.assembly.parser.Instruction
+
 
 sealed trait CompilationError
 

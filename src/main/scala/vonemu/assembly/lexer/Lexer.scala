@@ -1,8 +1,16 @@
-package vonemu.assembly
+package vonemu.assembly.lexer
 
 import scala.util.parsing.combinator.RegexParsers
-import scala.util.parsing.input.Positional
 import scala.util.parsing.input.Position
+
+//import Parsers.{Parsers => Lexer}
+
+
+import vonemu.assembly.lexer._
+import scala.Left
+import scala.Right
+import vonemu.assembly.LexerError
+import vonemu.assembly.Location
 
 class VonemuPosition(var line:Int, var column:Int,val lineContents:String) extends Position  {
   

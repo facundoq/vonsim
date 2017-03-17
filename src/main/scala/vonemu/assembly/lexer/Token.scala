@@ -1,4 +1,4 @@
-package vonemu.assembly
+package vonemu.assembly.lexer
 
 import scala.util.parsing.input.Positional
 
@@ -7,7 +7,7 @@ import scala.util.parsing.input.Positional
 /*
  * Missing:
  * WORD PTR | BYTE PTR
- * ?
+ * dup in variable definition
  * 
  * 
  * Issues:

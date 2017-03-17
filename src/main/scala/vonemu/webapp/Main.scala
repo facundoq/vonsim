@@ -12,16 +12,16 @@ import scala.scalajs.js.annotation.JSExport
 import scalatags.JsDom.all._
 import org.scalajs.dom.html._
 import org.scalajs.dom.raw.HTMLElement
-import vonemu.parsercombinators.compiler.WorkflowCompiler
-import vonemu.assembly.Lexer
+
+
 import java.awt.Event
 import scala.util.parsing.input.Position
-import vonemu.assembly.Token
+
 import vonemu.assembly.LexerError
 import scala.util.parsing.input.OffsetPosition
-import vonemu.assembly.VonemuPosition
-import vonemu.assembly.Parser
-import vonemu.assembly.EMPTY
+import vonemu.assembly.lexer.VonemuPosition
+import vonemu.assembly.parser.Parser
+import vonemu.assembly.lexer._
 
 object Main extends JSApp {
 

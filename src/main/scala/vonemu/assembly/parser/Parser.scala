@@ -1,7 +1,14 @@
-package vonemu.assembly
+package vonemu.assembly.parser
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
+import vonemu.assembly.lexer._
+import scala.Left
+import scala.Right
+
+import vonemu.assembly.ParserError
+import vonemu.assembly.Location
+
 
 object Parser extends Parsers {
   override type Elem = Token
