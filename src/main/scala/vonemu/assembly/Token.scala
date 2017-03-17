@@ -7,23 +7,11 @@ import scala.util.parsing.input.Positional
 /*
  * Missing:
  * 
- * IO
- * in
- * out
+ * variables
  * 
- * Interrupt
- * cli
- * sti
- * iret
- * int N
  * 
- * Stack
- * pop
- * push
- * popf
- * pushf
  * 
- * SP 
+ * 
  */
 
 object Token{
@@ -33,13 +21,16 @@ object Token{
   def ops = List(ORG(),MOV(),CMP())++binaryArithmetic++unaryArithmetic
   def binaryArithmetic = List(ADD(),ADC(),SUB(),SBB(),OR(),XOR(),AND())
   def unaryArithmetic = List(INC(),DEC(),NOT())
-  def registers:List[RegisterToken] = lRegisters++hRegisters++xRegisters
+  def registers:List[RegisterToken] = lRegisters++hRegisters++xRegisters++List(SP())
   def lRegisters =List(AL(),BL(),CL(),DL())
   def hRegisters =List(AH(),BH(),CH(),DH())
   def xRegisters =List(AX(),BX(),CX(),DX())
   def inputOutput= List(IN(),OUT())
   def jump= List(JMP(),CALL())++conditionalJump
   def conditionalJump=List(JC(),JNC(),JZ(),JNZ(),JO(),JNO(),JS(),JNS())
+  def interrupt = List(CLI(),STI(),IRET(),INT())
+  def stack = List(PUSH(),POP())
+  def flagsStack = List(PUSHF(),POPF())
   
 //  def brackets = List(OPENBRACKET(),CLOSEBRACKET())
  
@@ -54,16 +45,29 @@ case class UNKNOWN() extends Token
 sealed trait Value extends Token
 sealed trait Mutable extends Value
 
+sealed trait IORegister
+
+sealed trait IOAddress
+
 sealed trait Literal extends Token
 case class LABEL(str: String) extends Literal 
-case class IDENTIFIER(str: String) extends Literal with Mutable
+case class IDENTIFIER(str: String) extends Literal with Mutable with IOAddress
 case class INDIRECTBX() extends Literal with Mutable
 case class LITERALSTRING(str: String) extends Literal with Value
-case class LITERALINTEGER(v: Int) extends Literal with Value
+case class LITERALINTEGER(v: Int) extends Literal with Value with IOAddress
 
-sealed trait IO extends Token
-case class IN() extends IO
-case class OUT() extends IO
+sealed trait Interrupt extends InstructionToken
+case class CLI() extends Interrupt
+case class STI() extends Interrupt
+case class IRET() extends Interrupt
+case class INT() extends Interrupt
+
+sealed trait StackInstruction extends InstructionToken
+case class PUSH() extends StackInstruction
+case class POP() extends StackInstruction
+sealed trait StackFlagsInstruction extends InstructionToken
+case class PUSHF() extends StackFlagsInstruction
+case class POPF() extends StackFlagsInstruction
 
 sealed trait Special extends Token
 case class COMMA() extends Special 
@@ -81,7 +85,11 @@ case class END() extends InstructionToken
 case class ORG() extends InstructionToken
 case class HLT() extends InstructionToken
 
-trait ArithmeticOp extends Token
+sealed trait IOToken extends InstructionToken
+case class IN() extends IOToken
+case class OUT() extends IOToken
+
+trait ArithmeticOp extends InstructionToken
 
 trait BinaryArithmeticOp extends ArithmeticOp
 case class ADD() extends BinaryArithmeticOp
@@ -114,18 +122,24 @@ case class JNZ() extends ConditionalJumpToken
 
 
 trait RegisterToken extends Token with Mutable with Value
-case class AX() extends RegisterToken
-case class BX() extends RegisterToken
-case class CX() extends RegisterToken
-case class DX() extends RegisterToken
-case class AL() extends RegisterToken
-case class BL() extends RegisterToken
-case class CL() extends RegisterToken
-case class DL() extends RegisterToken
-case class AH() extends RegisterToken
-case class BH() extends RegisterToken
-case class CH() extends RegisterToken
-case class DH() extends RegisterToken
+case class SP() extends RegisterToken
+trait FullRegisterToken extends RegisterToken
+case class AX() extends FullRegisterToken with IORegister
+case class BX() extends FullRegisterToken
+case class CX() extends FullRegisterToken
+case class DX() extends FullRegisterToken with IOAddress
+trait LowRegisterToken extends RegisterToken
+case class AL() extends LowRegisterToken with IORegister
+case class BL() extends LowRegisterToken
+case class CL() extends LowRegisterToken
+case class DL() extends LowRegisterToken
+trait HighRegisterToken extends RegisterToken
+case class AH() extends HighRegisterToken
+case class BH() extends HighRegisterToken
+case class CH() extends HighRegisterToken
+case class DH() extends HighRegisterToken
+
+
 
 
 

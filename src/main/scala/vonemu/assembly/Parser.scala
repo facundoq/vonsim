@@ -28,19 +28,40 @@ object Parser extends Parsers {
     (label ~ instruction) ^^{case LABEL(l) ~ (o:Instruction) => LabeledInstruction(l,o)}
   }
   def instruction = positioned{
-    zeroary | org | mov | jump  | arithmetic
+    zeroary | org | mov | jump  | arithmetic | cmp | io | intn | stack
   }
-  def arithmetic: Parser[Instruction] = positioned {
+  def arithmetic= positioned {
     binaryArithmetic | unaryArithmetic 
   }
+  
   def binaryArithmetic: Parser[Instruction] = positioned {
-    (ADD() ~ mutable ~ COMMA() ~ value) ^^ { case ( (o:BinaryArithmeticOp) ~ (m:Mutable) ~ _ ~ (v:Value)) => BinaryArithmetic(o,m,v)}
+    (binary ~ mutable ~ COMMA() ~ value) ^^ { case ( (o:BinaryArithmeticOp) ~ (m:Mutable) ~ _ ~ (v:Value)) => BinaryArithmetic(o,m,v)}
   }
+  def binary= (Token.binaryArithmetic map tokenAsParser) reduceLeft(_ | _)
+  
   def unaryArithmetic: Parser[Instruction] = positioned {
-    (NOT() ~ mutable) ^^ { case ( (o:UnaryArithmeticOp) ~ (m:Mutable)) => UnaryArithmetic(o,m)}      
+    (unary ~ mutable) ^^ { case ( (o:UnaryArithmeticOp) ~ (m:Mutable)) => UnaryArithmetic(o,m)}      
+  }
+  def unary = (Token.unaryArithmetic map tokenAsParser) reduceLeft(_ | _)
+  
+  
+  def io = positioned {
+    ((IN() | OUT()) ~ (AL() | AX()) ~ COMMA() ~ (ioaddress)) ^^ { case ( (o:IOToken) ~ (m:IORegister) ~ _ ~ (a:IOAddress)) => IO(o,m,a)} 
+  }
+  
+  def cmp = positioned {
+    (CMP() ~ (value) ~ COMMA() ~ (value)) ^^ { case ( CMP() ~ (v1:Value) ~ _ ~ (v2:Value)) => Cmp(v1,v2)} 
+  }
+  
+  
+  def intn= positioned {
+    (INT() ~ literalInteger ) ^^ {case o ~ LITERALINTEGER(v) => IntN(v)}
   }
   def org= positioned {
     (ORG() ~ literalInteger ) ^^ {case o ~ LITERALINTEGER(v) => Org(v)}
+  }
+  def stack= positioned {
+    ((PUSH() | POP()) ~ fullRegister ) ^^ {case (o:StackInstruction) ~ (t:FullRegisterToken) => Stack(o,t)}
   }
   
   def mov= positioned {
@@ -52,7 +73,12 @@ object Parser extends Parsers {
     val ret = RET() ^^ (_ => Ret())
     val nop = NOP() ^^ (_ => Nop())
     val hlt = HLT() ^^ (_ => Hlt())
-    end | ret | nop | hlt
+    val cli = CLI() ^^ (_ => Cli())
+    val sti = STI() ^^ (_ => Sti())
+    val iret = IRET() ^^ (_ => IRet())
+    val pushf = PUSHF() ^^ (_ => Pushf())
+    val popf = POPF() ^^ (_ => Popf())
+    end | ret | nop | hlt | cli | sti | iret | pushf | popf
   }
   
   def jump = jmp | conditionalJump | call
@@ -91,6 +117,13 @@ object Parser extends Parsers {
   }
    private def value = positioned{
     mutable | literalInteger
+  }
+  
+  private def fullRegister = positioned{
+    (Token.xRegisters map tokenAsParser) reduceLeft(_ | _)
+  }
+  private def ioaddress = positioned{
+    identifier | literalInteger | DX()
   }
   
   

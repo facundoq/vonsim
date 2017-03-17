@@ -74,6 +74,13 @@ not ax
 add ax, bx
 add ax, 3
 add ax, 26h
+adc ax, 26h
+xor ax, 26h
+cmp ax, 26h
+mov ax,sp
+in al,PIC
+in al,123
+out ax,dx
 jc hola
 org 1000
 
@@ -85,6 +92,15 @@ RET
 NOP
 HLT
 END
+CLI
+StI
+ret
+pushf
+popf
+push Ax
+pop bx
+pop CX
+int 4
 """
 
   def setupUI() = {
