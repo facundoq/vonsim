@@ -55,7 +55,19 @@ class EditorUI(base: HTMLElement) {
   var code: TextArea = null
 
   def defaultCode =
-"""mov ax, bx
+"""
+org 1000h
+asd: db "hola"
+zzz: db "chau"
+intlist: db 1,2,3,4
+intlist2: dw 1,2,3,4
+complex: db 10000000B,2,34h,4
+uninitialized: db ?
+uninitialized2: dW ?
+
+
+org 2000h
+mov ax, bx
 MOV ax, bx
 mov  AX, bX
    mov  ax, bx

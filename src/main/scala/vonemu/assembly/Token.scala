@@ -6,12 +6,12 @@ import scala.util.parsing.input.Positional
 //.runtime.{universe => ru}
 /*
  * Missing:
- * 
- * variables
- * 
- * 
+ * WORD PTR | BYTE PTR
+ * ?
  * 
  * 
+ * Issues:
+ * 1000B gets parsed correctly as literalInteger(1000)
  */
 
 object Token{
@@ -31,6 +31,7 @@ object Token{
   def interrupt = List(CLI(),STI(),IRET(),INT())
   def stack = List(PUSH(),POP())
   def flagsStack = List(PUSHF(),POPF())
+  def varType = List(DB(),DW())
   
 //  def brackets = List(OPENBRACKET(),CLOSEBRACKET())
  
@@ -48,11 +49,11 @@ sealed trait Mutable extends Value
 sealed trait IORegister
 
 sealed trait IOAddress
+case class LABEL(str: String) extends Special
+case class INDIRECTBX() extends Mutable
+case class IDENTIFIER(str: String) extends Mutable with IOAddress
 
 sealed trait Literal extends Token
-case class LABEL(str: String) extends Literal 
-case class IDENTIFIER(str: String) extends Literal with Mutable with IOAddress
-case class INDIRECTBX() extends Literal with Mutable
 case class LITERALSTRING(str: String) extends Literal with Value
 case class LITERALINTEGER(v: Int) extends Literal with Value with IOAddress
 
@@ -69,10 +70,15 @@ sealed trait StackFlagsInstruction extends InstructionToken
 case class PUSHF() extends StackFlagsInstruction
 case class POPF() extends StackFlagsInstruction
 
+sealed trait VarType extends Token
+case class DW() extends VarType 
+case class DB() extends VarType
+
 sealed trait Special extends Token
 case class COMMA() extends Special 
 case class NEWLINE() extends Special 
 case class EMPTY() extends Special
+case class UNINITIALIZED() extends Special
 //case class OPENBRACKET() extends Special
 //case class CLOSEBRACKET() extends Special
 

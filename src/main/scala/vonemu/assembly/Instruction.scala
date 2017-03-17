@@ -30,6 +30,8 @@ case class BinaryArithmetic(op:BinaryArithmeticOp,m:Mutable,v:Value) extends Ari
 case class UnaryArithmetic(op:UnaryArithmeticOp,m:Mutable) extends Arithmetic
 case class Cmp(m:Value,v:Value) extends Arithmetic
 
+case class VarDef(label:String,t:VarType,values:List[Int]) extends Instruction
+
 trait Jump extends Instruction
 case class UnconditionalJump(label:String) extends Jump
 case class Call(label:String) extends Jump

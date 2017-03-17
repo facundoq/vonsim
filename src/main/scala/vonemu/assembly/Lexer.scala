@@ -24,7 +24,7 @@ object Lexer extends RegexParsers {
   }
   
   def tokens: Parser[List[Token]] = {
-    phrase( rep1(comma | indirectbx |  label | flagsStack | stack | keyword | literal 
+    phrase( rep1(comma | uninitialized | indirectbx | varType |  label | flagsStack | stack | keyword | literal 
         | ops | io | interrupt |  register | jumps | identifier )) ^^ { rawTokens =>
       rawTokens
     }
@@ -45,6 +45,7 @@ def io=orall (Token.inputOutput map tokenParserSpace)
 def interrupt=orall (Token.interrupt map tokenParser2)
 def stack = orall (Token.stack map tokenParserSpace)
 def flagsStack = orall (Token.flagsStack map tokenParser2)
+def varType = orall (Token.varType map tokenParserSpace)
 
 def tokenParser(t:Token,literal:String) = positioned {s"(?i)${literal.toLowerCase}".r ^^^ t}
 def tokenParser2(t:Token) = tokenParser(t,t.toString)
@@ -87,6 +88,7 @@ def literalstring = positioned {
 //}
 
 def comma = positioned { "," ^^^ COMMA() }
+def uninitialized = positioned { "?" ^^^ UNINITIALIZED() }
 def indirectbx = positioned{"""(?i)\[bx\]""".r ^^^ INDIRECTBX()}
 //def indirectbx = positioned{"""(?i)\Q[BX]\E""".r ^^^ INDIRECTBX()}
 //def brackets = openBracket | closeBracket 

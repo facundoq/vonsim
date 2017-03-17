@@ -28,7 +28,7 @@ object Parser extends Parsers {
     (label ~ instruction) ^^{case LABEL(l) ~ (o:Instruction) => LabeledInstruction(l,o)}
   }
   def instruction = positioned{
-    zeroary | org | mov | jump  | arithmetic | cmp | io | intn | stack
+    zeroary | org | mov | jump  | arithmetic | cmp | io | intn | stack | vardef 
   }
   def arithmetic= positioned {
     binaryArithmetic | unaryArithmetic 
@@ -89,6 +89,19 @@ object Parser extends Parsers {
   def call = positioned {
     (CALL() ~ identifier ) ^^ {case CALL() ~ IDENTIFIER(i) => Call(i)}
   }
+  def vardef = positioned {
+    val ints= (label ~ (DB() | DW() ) ~ varDefInts  )  ^^ {
+      case LABEL(id)~ (t:VarType) ~ (v:List[LITERALINTEGER]) => VarDef(id,t,v.map(_.v))}
+    val str = (label ~ DB() ~ literalString ) ^^ {case LABEL(id)~ DB() ~ LITERALSTRING(s) => VarDef(id,DB(),stringToIntList(s))}
+    val empty = (label ~ (DB() | DW() ) ~ UNINITIALIZED()) ^^ {case LABEL(id)~ (t:VarType) ~ UNINITIALIZED() => VarDef(id,t,List())}
+    str | ints | empty
+  }
+  
+  def stringToIntList(s:String)=s.map( (c:Char) => c.charValue().toInt).toList
+  
+  def varDefInts = rep1sep(literalInteger, COMMA())
+  
+  
   def conditionalJump = positioned {
     (conditionalJumpTokens  ~ identifier ) ^^ {case (o:ConditionalJumpToken) ~ IDENTIFIER(i) => ConditionalJump(o,i)}
   }
