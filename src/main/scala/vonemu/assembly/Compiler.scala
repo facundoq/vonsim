@@ -4,6 +4,7 @@ import vonemu.assembly.lexer.Lexer
 import vonemu.assembly.parser.Parser
 import vonemu.assembly.parser.Instruction
 import vonemu.assembly.lexer.EMPTY
+import vonemu.assembly.lexer.Token
 
 sealed trait CompilationError
 
@@ -15,23 +16,33 @@ case class Location(line: Int, column: Int) {
 }
 
 object Compiler {
-  def apply(code: String): Either[List[CompilationError], List[Instruction]] = {
+//  def apply(code: String): Either[List[CompilationError], List[Instruction]] = {
+//    val instructions = code.split("\n")
+//    var optionTokens = instructions map { Lexer(_) }
+//    val fixedTokens = Lexer.fixLineNumbers(optionTokens)
+//
+//    if (fixedTokens.count(_.isRight) == fixedTokens.length) {
+//      val tokens = (fixedTokens map { _.right.get }) filter { t => !(t.length == 1 && t(0) == EMPTY()) }
+//
+//      val asts = tokens map { Parser(_) }
+//      if (asts.count(_.isRight) == asts.length) {
+//        Right(asts.map(v => v.right.get).toList)
+//      }else{
+//        Left(asts.filter(_.isLeft).map(v => v.left.get).toList)  
+//      }
+//    } else {
+//      Left(fixedTokens.filter(_.isLeft).map(v => v.left.get).toList)
+//    }
+//  }
+  def apply(code: String): List[Either[CompilationError,Instruction]] = {
     val instructions = code.split("\n")
     var optionTokens = instructions map { Lexer(_) }
     val fixedTokens = Lexer.fixLineNumbers(optionTokens)
-
-    if (fixedTokens.count(_.isRight) == fixedTokens.length) {
-      val tokens = (fixedTokens map { _.right.get }) filter { t => !(t.length == 1 && t(0) == EMPTY()) }
-
-      val asts = tokens map { Parser(_) }
-      if (asts.count(_.isRight) == asts.length) {
-        Right(asts.map(v => v.right.get).toList)
-      }else{
-        Left(asts.filter(_.isLeft).map(v => v.left.get).toList)  
-      }
-    } else {
-      Left(fixedTokens.filter(_.isLeft).map(v => v.left.get).toList)
+    def parseValidTokens(t:Either[LexerError,List[Token]]):Either[CompilationError,Instruction]={
+      if (t.isLeft) Left(t.left.get) else Parser(t.right.get.toSeq)
     }
+    
+    fixedTokens map parseValidTokens toList
   }
 }
   

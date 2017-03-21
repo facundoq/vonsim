@@ -13,22 +13,16 @@ import scalatags.JsDom.all._
 import org.scalajs.dom.html._
 import org.scalajs.dom.raw.HTMLElement
 
-
 import java.awt.Event
 import scala.util.parsing.input.Position
+import vonemu.webapp.MainUI
 
-import vonemu.assembly.LexerError
-import scala.util.parsing.input.OffsetPosition
-import vonemu.assembly.lexer.VonemuPosition
-import vonemu.assembly.parser.Parser
-import vonemu.assembly.lexer._
 
 object Main extends JSApp {
 
   def main(): Unit = {
-    val ui = new EditorUI(document.body)
-    ui.setupUI()
-    //document.body.appendChild(pre(gencode).render)
+    val ui = new MainUI(defaultCode)
+    document.body.appendChild(ui.root)
   }
 
   def gencode() = {
@@ -45,17 +39,9 @@ object Main extends JSApp {
 
     lexeritems ++ lexerdefsstr
   }
-
-}
-
-class EditorUI(base: HTMLElement) {
-
-  var console: Element = null
-  var compileButton: Button = null
-  var code: TextArea = null
-
+  
   def defaultCode =
-"""
+    """
 org 1000h
 asd: db "hola"
 zzz: db "chau"
@@ -115,60 +101,10 @@ pop CX
 int 4
 """
 
-  def setupUI() = {
-    code = textarea(width := "50%", rows := 10).render
-    code.value = defaultCode
-    code.onchange = (e: dom.Event) => compile()
-    code.onkeyup = (e: dom.Event) => compile()
-    compileButton = button("Compile").render
-    compileButton.onclick = (e: dom.MouseEvent) => compile()
-
-    console = pre("", style := "width=100%").render
-
-    this.base.appendChild(
-      div(
-        h1("VonEmu"),
-        p("Code"),
-        div(code),
-        div(compileButton),
-        p("Console"),
-        div(console)).render)
-    compile()
-  }
-
-  def compile(): Unit = {
-    val codeString = code.value
-    val instructions = codeString.split("\n")
-    var optionTokens = instructions map { Lexer(_) }
-    val fixedTokens=Lexer.fixLineNumbers(optionTokens)
-    console.textContent = "Tokens:\n"
-    console.textContent += fixedTokens.map(_.toString()).mkString("\n")
-    
-    if (fixedTokens.count(_.isRight)==fixedTokens.length){
-      console.textContent += "\nAST:\n"
-      val tokens= (fixedTokens map {_.right.get}) filter {t => !(t.length == 1 && t(0)==EMPTY())}
-      
-      val asts= tokens map {Parser(_)}
-      console.textContent += asts.mkString("\n")  
-    }
-    
-    
-    //printLineNumbers(fixedResult)
-
-  }
-  def printLineNumbers(a: Array[Either[LexerError, List[Token]]]) {
-    a.indices.foreach(i => {
-      val eitherList = a(i)
-      print(s"line ${i+1}: ")
-      if (eitherList.isRight) {
-        val list = eitherList.right.get
-        list.foreach(token => {
-          print(token.pos + " " + token + ", ")
-        })
-      }
-      println()
-    })
-  }
-  
-
 }
+
+
+
+
+
+  

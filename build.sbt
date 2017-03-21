@@ -1,6 +1,6 @@
 enablePlugins(ScalaJSPlugin)
 
-name := "VonEmu"
+name := "VonSim"
 
 scalaVersion := "2.11.6"
 
