@@ -1,5 +1,5 @@
 <projectDescription>
-  <name>VonEmu</name>
+  <name>VonSim</name>
   <buildSpec>
     <buildCommand>
       <name>org.scala-ide.sdt.core.scalabuilder</name>

@@ -71,13 +71,14 @@ class MainUI(defaultCode:String) extends VonSimUI {
 }
 
 class ControlsUI() extends VonSimUI {
-  val loadButton: Button = button("Load Program").render
-  val resetButton: Button = button("Reset computer").render
-  val runAllButton: Button = button("Run all").render
-  val runOneButton: Button = button("Run one").render
+  val loadButton= button("Load Program").render
+  val resetButton= button("Reset computer")
+  val runAllButton= button("Run all")
+  val runOneButton= button("Run one")
   val root=div(id:="controls",
                   loadButton,resetButton,runAllButton,runOneButton).render
 }
+
 class MainboardUI() extends VonSimUI {
   val cpuUI = new CpuUI()
   val memoryUI = new MemoryUI()
