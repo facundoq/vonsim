@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Lato');
-
+/*
+Palette:
+http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++ 
+ 
+ */
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -47,38 +51,91 @@ table {
 
 
 body { 
-  font-family: 'Lato',sans-serif;
-  color: #000;
-/*   text-align: center; */
+  
+}
+
+#pagewrap{
+	height:100vh;
+	display: -webkit-flex; 
+    display: flex;
+    flex-flow: column;
+    font-family: 'Lato',sans-serif;
+}
+
+.flexcolumns{
+	display: -webkit-flex; 
+    display: flex;
+    -webkit-justify-content:center; /* Safari */
+    justify-content:center;
+    -webkit-align-items: stretch; /* Safari */
+  align-items:         stretch; 
+   align-items: center;
+}
+
+.flexrows{
+    display: -webkit-flex; 
+    display: flex;
+    flex-flow: column;
+}
+
+header{
+	flex: 0 1 auto;
+    
+    text-align: Left;
+    font-size: 3em;
+    background-color: #34bbfc;
+/*  border-bottom: 8px #34bbfc solid; */
+    
+    padding:10px;
+    display: -webkit-flex; /* Safari */
+	display: flex;
+  -webkit-justify-content: start; /* Safari */
+  justify-content:         start;
+  -webkit-align-items: stretch; /* Safari */
+  align-items:         stretch; 
+   align-items: center;
 }
 
 
 #main{
-  display: -webkit-flex; Safari
+  flex: 1 1 auto;
+  display: -webkit-flex; 
   display: flex;
-  -webkit-justify-content: space-around; Safari
+  -webkit-justify-content: space-around; 
   justify-content:         space-around;
-  -webkit-align-items: stretch; Safari
+  -webkit-align-items: stretch; 
   align-items:         stretch;
   text-align:center;    
-  font-family: 'Lato',sans-serif;
+  
   width:100%;
-  height:90vh;
-  padding-top: 10px;
-  
-  
+  box-sizing: content-box;
 }
 #mainboard,#editor{
-	  border-radius:25px;
-	  flex: 0 0 46%;
-      height:80vh;
-      padding:20px;
-      margin:auto;
-
+	  flex: 0 0 50%;
+	  box-sizing: border-box;
+	  overflow-y:auto;
 }
+
+#editor {
+    background:gray;
+    color:black;   
+    height:100%
+}
+.textEditor{
+    
+    padding: 5px;
+    font-family: 'monospace';
+    box-sizing: border-box;
+    width : 100%;
+    min-height: 50em;
+    height: 100%;    
+}
+
 #mainboard{
-	background-image: url("img/circuit_tile2.jpg");
+    padding:10px 20px;
+	background-image: url("img/circuit_tile20.png");
 	background-repeat: repeat;
+
 	
 	display: -webkit-flex; /* Safari */
   display: flex;
@@ -90,17 +147,25 @@ body {
   align-items:         stretch;
 }
 #controls{
-	display: -webkit-flex; /* Safari */
+	flex: 0 1 auto;
+  display: -webkit-flex; /* Safari */
   display: flex;
   -webkit-justify-content: space-around; /* Safari */
   justify-content:         space-around;
   -webkit-align-items: stretch; /* Safari */
   align-items:         stretch;
+  background-color: #A9E3FFBB;
+  padding:5px;
+/*   border-radius:5px; */
+/*   width:100%; */
+  
 }
-#devices{
 
+#devices{
+  flex: 1 1 auto;
   display: -webkit-flex; /* Safari */
   display: flex;
+  
   -webkit-justify-content: space-around; /* Safari */
   justify-content:         space-around;
   -webkit-align-items: stretch; /* Safari */
@@ -109,63 +174,70 @@ body {
 }
 
 #cpu {
-    background: #88aadd;
-}
-#memory {
-	background: #aaddaa;
-	max-height:500px;
-    overflow-y:scroll;
+    background-color: #A9E3FF;
+    max-height:500px;
 }
 
- #cpu, #memory{
+#cpuicon, #memoryicon, #iomemoryicon,#devicesicon{
+	height:32px;
+	width:32px;
+	padding-right: 0.3em;
+}
+
+#cpu, .memory{
     padding:20px 20px;
     margin:10px 10px;
-        border-radius: 25px;
+    border-radius: 10px;
+}
+
+.memory {
+/*  background: #aaddaa; */
+    background-color:#A9E3FF;
+    max-height:500px;
+    padding-bottom: 50px;
+}
+
+#console{
+    overflow-y:scroll;
+    background-color: #A9E3FF;
+    border-radius: 25px;
 }
 
 
-
-.memoryTable,.registerTable{
-    margin:10px;
+.memoryTable table,.registerTable table{
+	margin:10px;
     padding: 5px;
     border: solid thin; 
     border-collapse: collapse; 
-    font-family: 'monospace';       
+    font-family: 'monospace';
+}
+.memoryTable{
+    height:100%;
+    overflow-y:scroll;       
 }
 
-#editor {
-    background:gray;
-    color:black;   
+.bitTable{
+	display:inline-block;
 }
-.textEditor{
-	
-	padding: 5px;
-	font-family: 'monospace';
-	width : 90%;
-	min-height: 30em;
-	height: 100%;
+.bitTable td, .bitTable th{
+  border: 1px solid black;
+  padding:1px;
+  
 }
-
 .registerTable td, .registerTable th,.memoryTable td, .memoryTable th {
   border: 1px solid black;
 }
-header{
-	font-family: 'Lato',sans-serif;
-	text-align: Left;
-	font-size: 3em;
-	background-color: #34bbfc;
-/* 	border-bottom: 8px #34bbfc solid; */
-	
-	padding:10px;
-    display: -webkit-flex; /* Safari */
-  display: flex;
-  -webkit-justify-content: start; /* Safari */
-  justify-content:         start;
-  -webkit-align-items: stretch; /* Safari */
-  align-items:         stretch;	
-   align-items: center;
+.registerTable{
+	padding:1px;
+    margin: 4px auto;
 }
-
+.cpuElement{
+	border-radius:5px;
+	border:1px solid;
+	padding: 4px;
+	margin: 4px;
+	text-align: center;
+}
 
 #title{
     font-size:0.8em;
@@ -175,4 +247,12 @@ header{
     width:64px;
 /*     height:64px; */
     padding-right: 20px;
+}
+h2{
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+h3{
+    font-size: 1.25em;
+    margin-bottom: 10px;
 }
