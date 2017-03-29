@@ -17,3 +17,9 @@ project/plugins/project/
 .worksheet
 .cache_main
 .cache_tests
+
+#eclipse stuff
+.classpath                                  
+.project                                    
+.settings/org.eclipse.core.resources.prefs  
+.settings/org.scala-ide.sdt.core.prefs   
