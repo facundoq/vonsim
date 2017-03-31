@@ -24,7 +24,8 @@ object Main extends JSApp {
   def main(): Unit = {
     val ui = new MainUI(defaultCode)
     document.body.appendChild(ui.root)
-    setTimeout(1000)({ui.editorUI.editor.resize(true)
+    ui.editorUI.editor.resize(true)
+    setTimeout(2000)({ui.editorUI.editor.resize(true)
       })
     
     

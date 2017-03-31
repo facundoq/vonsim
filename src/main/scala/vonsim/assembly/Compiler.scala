@@ -38,13 +38,23 @@ object Compiler {
 //  }
   def apply(code: String): List[Either[CompilationError,Instruction]] = {
     val instructions = code.split("\n")
-    var optionTokens = instructions map { Lexer(_) }
+    var optionTokens = instructions map { Lexer(_) } 
     val fixedTokens = Lexer.fixLineNumbers(optionTokens)
+    val fixedTokensNoEmpty = fixedTokens.filter(p => {
+      if ((p.isRight) && (p.right.get.length==1 && p.right.get.last==EMPTY)){
+        
+        false
+      }else{
+        true
+      }
+      
+    })
+    
     def parseValidTokens(t:Either[LexerError,List[Token]]):Either[CompilationError,Instruction]={
       if (t.isLeft) Left(t.left.get) else Parser(t.right.get.toSeq)
     }
     
-    fixedTokens map parseValidTokens toList
+    fixedTokensNoEmpty map parseValidTokens toList
   }
 }
   

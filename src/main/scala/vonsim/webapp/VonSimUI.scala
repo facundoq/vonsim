@@ -22,6 +22,9 @@ import scala.scalajs.js.annotation.JSName
 import vonsim.assembly.Location
 import vonsim.assembly.ParserError
 
+import scala.scalajs.js.timers.SetTimeoutHandle
+import scala.scalajs.js.timers._
+
 
 abstract class VonSimUI {
   def root: HTMLElement
@@ -30,7 +33,7 @@ abstract class VonSimUI {
 
 class MainUI(defaultCode: String) extends VonSimUI {
 
-  val editorUI = new EditorUI(defaultCode)
+  val editorUI = new EditorUI(defaultCode,() => compile())
   val mainboardUI = new MainboardUI()
   val sim = div(id := "main",
     editorUI.root,
@@ -59,10 +62,6 @@ class MainUI(defaultCode: String) extends VonSimUI {
     val instructions=Compiler(codeString)
     //mainboardUI.console.textContent=instructions.mkString("\n")
     val errors=instructions.filter(_.isLeft).map(_.left.get)
-    
-    
-    println(errors)
-    val errorLines= errors.map(_.location.line.toDouble-1).toJSArray    
     val annotations=errors.map(e => {
       e match{
         case LexerError(l:Location,m:String) => Annotation(l.line.toDouble-1,l.column.toDouble,m,"Lexer Error")
@@ -73,8 +72,12 @@ class MainUI(defaultCode: String) extends VonSimUI {
     val a =annotations.toJSArray//.map(_.asInstanceOf[Annotation])
     println(a)
     s.setAnnotations(a)
-    val rows=s.getLength()
-    //(0 until rows).foreach(l=> s.addGutterDecoration(l, "ace_error "))
+    
+    println(errors)
+    val errorLines= errors.map(_.location.line.toDouble-1).toJSArray
+    val rows=s.getLength().toInt
+    (0 until rows).foreach(l=> s.removeGutterDecoration(l, "ace_error "))
+    errorLines.foreach(l=> s.addGutterDecoration(l, "ace_error "))
     
   }
 
@@ -209,7 +212,7 @@ class DevicesUI() extends VonSimUI {
 
 }
 
-class EditorUI(defaultCode: String) extends VonSimUI {
+class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
 
   //document.body.appendChild(div(id:="aceEditor","asdasdasdasdasd").render)
 
@@ -231,7 +234,30 @@ class EditorUI(defaultCode: String) extends VonSimUI {
   val root = div(id := "editor"
       ,container
     ).render
-    
+   
+  var keystrokes = 0
+  def keyTyped(){
+      keystrokes+=1
+      println("keyTyped"+keystrokes)
+      setTimeout(1000)({act()})
+  }
+  
+  def act(){
+      keystrokes-=1
+      println("act"+keystrokes)
+      if (keystrokes == 0){
+        println("onchanged"+keystrokes)
+        onchange()
+      }       
+  }
+  val eventListener: js.Function1[js.Any,js.Any]= (a:js.Any) => keyTyped().asInstanceOf[js.Any]
+  
+  editor.getSession().on("change", eventListener)
+  
+//  container.onkeydown = (e: dom.KeyboardEvent) => {
+//    println("keydown")
+//    keyTyped()
+//  }
   
   
 }

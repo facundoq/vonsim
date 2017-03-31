@@ -110,8 +110,14 @@ header{
   width:100%;
   box-sizing: content-box;
 }
+#mainboard{
+	flex: 0 0 60%;
+}
+
+#editor{
+	flex: 0 0 40%;
+}	
 #mainboard,#editor{
-	  flex: 0 0 50%;
 	  box-sizing: border-box;
 	  overflow-y:auto;
 }
@@ -142,24 +148,25 @@ header{
 	display: -webkit-flex; /* Safari */
   display: flex;
   flex-direction:column;
+   
   -webkit-justify-content: flex-start; /* Safari */
   justify-content:         flex-start;
   
-  -webkit-align-items: stretch; /* Safari */
-  align-items:         stretch;
+/*   -webkit-align-items: stretch; Safari */
+/*   align-items:         stretch; */
 }
 #controls{
-	flex: 0 1 auto;
+  flex: 0 1 auto;
   display: -webkit-flex; /* Safari */
   display: flex;
-  -webkit-justify-content: space-around; /* Safari */
-  justify-content:         space-around;
-  -webkit-align-items: stretch; /* Safari */
-  align-items:         stretch;
-  background-color: #A9E3FFBB;
+/*   -webkit-justify-content: space-around; Safari */
+/*   justify-content:         space-around; */
+/*   -webkit-align-items: stretch; */
+/*   align-items:         stretch; */
+/*   background-color: #A9E3FF; */
   padding:5px;
-/*   border-radius:5px; */
-/*   width:100%; */
+  border-radius:5px; 
+  width:100%; 
   
 }
 
@@ -170,8 +177,9 @@ header{
   
   -webkit-justify-content: space-around; /* Safari */
   justify-content:         space-around;
-  -webkit-align-items: stretch; /* Safari */
-  align-items:         stretch;
+  
+  flex-wrap: wrap;
+  -webkit-flex-wrap: wrap; /* Safari 6.1+ */
   
 }
 
@@ -251,10 +259,10 @@ header{
     padding-right: 20px;
 }
 h2{
-    font-size: 1.5em;
+    font-size: 1.25em;
     margin-bottom: 10px;
 }
 h3{
-    font-size: 1.25em;
+    font-size: 1.125em;
     margin-bottom: 10px;
 }
