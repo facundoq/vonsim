@@ -119,16 +119,18 @@ header{
 #editor {
     background:gray;
     color:black;   
-    height:100%
+    height:100%;
 }
-.textEditor{
+.ace_editor{
+	height:100%;
+}
+#aceEditor{
     
     padding: 5px;
     font-family: 'monospace';
     box-sizing: border-box;
     width : 100%;
-    min-height: 50em;
-    height: 100%;    
+    height:100%;
 }
 
 #mainboard{

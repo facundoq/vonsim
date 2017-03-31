@@ -1,7 +1,7 @@
-package vonemu.assembly.parser
+package vonsim.assembly.parser
 
 import scala.util.parsing.input.Positional
-import vonemu.assembly.lexer._
+import vonsim.assembly.lexer._
 
 trait Instruction extends Positional with Product with Serializable
 

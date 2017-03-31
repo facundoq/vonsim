@@ -1,13 +1,13 @@
-package vonemu.assembly.parser
+package vonsim.assembly.parser
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
-import vonemu.assembly.lexer._
+import vonsim.assembly.lexer._
 import scala.Left
 import scala.Right
 
-import vonemu.assembly.ParserError
-import vonemu.assembly.Location
+import vonsim.assembly.ParserError
+import vonsim.assembly.Location
 
 
 object Parser extends Parsers {

@@ -1,12 +1,14 @@
-package vonemu.assembly
+package vonsim.assembly
 
-import vonemu.assembly.lexer.Lexer
-import vonemu.assembly.parser.Parser
-import vonemu.assembly.parser.Instruction
-import vonemu.assembly.lexer.EMPTY
-import vonemu.assembly.lexer.Token
+import vonsim.assembly.lexer.Lexer
+import vonsim.assembly.parser.Parser
+import vonsim.assembly.parser.Instruction
+import vonsim.assembly.lexer.EMPTY
+import vonsim.assembly.lexer.Token
 
-sealed trait CompilationError
+sealed trait CompilationError{
+  def location:Location
+}
 
 case class LexerError(location: Location, msg: String) extends CompilationError
 case class ParserError(location: Location, msg: String) extends CompilationError

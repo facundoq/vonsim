@@ -1,4 +1,4 @@
-package mazes.webapp
+package vonsim.webapp
 
 // tutorial https://www.scala-js.org/tutorial/basic/
 // canvas https://github.com/vmunier/scalajs-simple-canvas-game/blob/master/src/main/scala/simplegame/SimpleCanvasGame.scala
@@ -15,7 +15,8 @@ import org.scalajs.dom.raw.HTMLElement
 
 import java.awt.Event
 import scala.util.parsing.input.Position
-import vonemu.webapp.MainUI
+import scala.scalajs.js.timers._
+
 
 
 object Main extends JSApp {
@@ -23,6 +24,10 @@ object Main extends JSApp {
   def main(): Unit = {
     val ui = new MainUI(defaultCode)
     document.body.appendChild(ui.root)
+    setTimeout(1000)({ui.editorUI.editor.resize(true)
+      })
+    
+    
   }
 
   def gencode() = {

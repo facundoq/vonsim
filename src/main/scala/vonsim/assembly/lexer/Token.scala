@@ -1,14 +1,12 @@
-package vonemu.assembly.lexer
+package vonsim.assembly.lexer
 
 import scala.util.parsing.input.Positional
 
-
-//.runtime.{universe => ru}
 /*
  * Missing:
  * WORD PTR | BYTE PTR
  * dup in variable definition
- * 
+ * EQU definitions
  * 
  * Issues:
  * 1000B gets parsed correctly as literalInteger(1000)
