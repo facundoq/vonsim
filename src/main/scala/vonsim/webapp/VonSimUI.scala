@@ -48,7 +48,7 @@ class MainUI(defaultCode: String) extends VonSimUI {
 //  editorUI.root.onkeyup = (e: dom.Event) => compile()
   
   root.onkeydown = (e: dom.KeyboardEvent) => {
-    println("Pressed " + e.keyCode + " " + e.ctrlKey)
+    //println("Pressed " + e.keyCode + " " + e.ctrlKey)
     if ((e.ctrlKey || e.metaKey) && e.keyCode == 83) {
       e.preventDefault()
       compile()
@@ -71,10 +71,10 @@ class MainUI(defaultCode: String) extends VonSimUI {
       
     })
     val a =annotations.toJSArray//.map(_.asInstanceOf[Annotation])
-    println(a)
+    //println(a)
     s.setAnnotations(a)
     
-    println(errors)
+//    println(errors)
     val errorLines= errors.map(_.location.line.toDouble-1).toJSArray
     val rows=s.getLength().toInt
     (0 until rows).foreach(l=> s.removeGutterDecoration(l, "ace_error "))
@@ -99,12 +99,15 @@ class MainUI(defaultCode: String) extends VonSimUI {
 }
 
 class ControlsUI() extends VonSimUI {
-  val loadButton = button("Load Program").render
-  val resetButton = button("Reset computer")
-  val runAllButton = button("Run all")
+  val quickButton = button("Quick run",title:="Reset, Load and Run")
+  val resetButton = button("Reset")
+  val loadButton = button("Load").render
+  val runPauseButton = button("Run/Pause")
   val runOneButton = button("Run one")
-  val root = div(id := "controls",
-    loadButton, resetButton, runAllButton, runOneButton).render
+  val root = div(id := "controls"
+    ,span(cls:="controlSection",quickButton)  
+    ,span(cls:="controlSection",resetButton, loadButton, runPauseButton, runOneButton)
+    ).render
 }
 
 class MainboardUI() extends VonSimUI {
@@ -221,13 +224,14 @@ class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
   //val code: TextArea = textarea(cls := "textEditor").render
   //code.value = defaultCode
   val editor = webapp.myace.edit()
-  println(editor.container)
+//  println(editor.container)
   editor.setTheme("ace/theme/monokai")
   editor.getSession().setMode("ace/mode/assembly_x86")
   editor.setValue(defaultCode)
   editor.getSession().setUseSoftTabs(true)
   editor.getSession().setUseWorker(false)
   editor.renderer.setShowGutter(true)
+  
   
   val container=div(id:="aceEditor").render
   container.appendChild(editor.container)
@@ -239,15 +243,15 @@ class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
   var keystrokes = 0
   def keyTyped(){
       keystrokes+=1
-      println("keyTyped"+keystrokes)
+//      println("keyTyped"+keystrokes)
       setTimeout(1000)({act()})
   }
   
   def act(){
       keystrokes-=1
-      println("act"+keystrokes)
+//      println("act"+keystrokes)
       if (keystrokes == 0){
-        println("onchanged"+keystrokes)
+//        println("onchanged"+keystrokes)
         onchange()
       }       
   }

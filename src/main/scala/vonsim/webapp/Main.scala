@@ -4,6 +4,7 @@ package vonsim.webapp
 // canvas https://github.com/vmunier/scalajs-simple-canvas-game/blob/master/src/main/scala/simplegame/SimpleCanvasGame.scala
 
 import scala.scalajs.js.JSApp
+import scala.scalajs.js
 import org.scalajs.dom
 import org.scalajs.dom.Element
 
@@ -17,18 +18,57 @@ import java.awt.Event
 import scala.util.parsing.input.Position
 import scala.scalajs.js.timers._
 
-
+import dom.ext._
+import scala.scalajs
+            .concurrent
+            .JSExecutionContext
+            .Implicits
+            .queue
 
 object Main extends JSApp {
 
+  def getParameters()={
+    val parametersTuple=dom.window.location.search
+                   .substring(1)
+                   .split("&")
+                   .map(js.URIUtils.decodeURIComponent)
+                   .map(q => q.split("="))
+                   .map { q => (q(0),q(1)) }
+    parametersTuple.toMap
+  }
   def main(): Unit = {
-    val ui = new MainUI(defaultCode)
+    val codeURLKey="url"
+    val parameters = getParameters()
+
+    if (parameters.keySet.contains(codeURLKey)){
+      val url=parameters(codeURLKey)
+      val headers=Map("crossDomain" -> "true"
+      ,"Access-Control-Allow-Origin" -> "*"
+      , "dataType"-> "text")
+      
+      val promise=Ajax.get(url,timeout=5000,headers=headers,responseType="text")
+      promise.onSuccess{ 
+        case xhr =>
+          initializeUI(xhr.responseText)
+      }
+      promise.onFailure{
+        case xhr =>
+          initializeUI(defaultCode)
+          dom.window.alert("Could not load URL "+url+"\n")
+      }
+      
+    }else{
+      initializeUI(defaultCode)
+    }
+    
+    
+  }
+  def initializeUI(initialCode:String){
+    val ui = new MainUI(initialCode)
     document.body.appendChild(ui.root)
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)
       })
-    
-    
   }
 
   def gencode() = {
@@ -45,67 +85,7 @@ object Main extends JSApp {
 
     lexeritems ++ lexerdefsstr
   }
-  
-  def defaultCode =
-    """
-org 1000h
-asd: db "hola"
-zzz: db "chau"
-intlist: db 1,2,3,4
-intlist2: dw 1,2,3,4
-complex: db 10000000B,2,34h,4
-uninitialized: db ?
-uninitialized2: dW ?
-
-
-org 2000h
-mov ax, bx
-MOV ax, bx
-mov  AX, bX
-   mov  ax, bx
-mov  ax, bx   
-mov     ax, bx
-mov  ax   , bx
-mov  ax,bx
-hola: mov ax, bx
-mov [bx],ax
-mov ax, 2
-mov ax, -25
-mov ax, 25AH
-mov ax, 25Ah
-mov ax, 10001111B
-not ax
-add ax, bx
-add ax, 3
-add ax, 26h
-adc ax, 26h
-xor ax, 26h
-cmp ax, 26h
-mov ax,sp
-in al,PIC
-in al,123
-out ax,dx
-jc hola
-org 1000
-
-
-JMP HOLA
-JC HOLA
-CALL HOLA
-RET
-NOP
-HLT
-END
-CLI
-StI
-ret
-pushf
-popf
-push Ax
-pop bx
-pop CX
-int 4
-"""
+  def defaultCode = ""
 
 }
 
