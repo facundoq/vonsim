@@ -55,7 +55,8 @@ class MainUI(defaultCode: String) extends VonSimUI {
     }
 
   }
-
+  compile()
+  
   def compile() {
     val s=editorUI.editor.getSession()
     val codeString = editorUI.editor.getValue()
@@ -222,7 +223,7 @@ class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
   val editor = webapp.myace.edit()
   println(editor.container)
   editor.setTheme("ace/theme/monokai")
-  editor.getSession().setMode("ace/mode/javascript")
+  editor.getSession().setMode("ace/mode/assembly_x86")
   editor.setValue(defaultCode)
   editor.getSession().setUseSoftTabs(true)
   editor.getSession().setUseWorker(false)
