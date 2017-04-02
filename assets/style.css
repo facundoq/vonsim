@@ -159,8 +159,8 @@ header{
   flex: 0 1 auto;
   display: -webkit-flex; /* Safari */
   display: flex;
-/*   -webkit-justify-content: space-around; Safari */
-/*   justify-content:         space-around; */
+  -webkit-justify-content: space-between; 
+  justify-content:         space-between;
 /*   -webkit-align-items: stretch; */
 /*   align-items:         stretch; */
 /*   background-color: #A9E3FF; */
@@ -170,6 +170,12 @@ header{
 }
 .controlSection{
 	margin: 0px 10px;
+}
+#controls img{
+	height:32px;
+}
+#resetButton{
+	
 }
 
 #devices{

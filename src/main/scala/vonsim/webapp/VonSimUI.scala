@@ -40,9 +40,9 @@ class MainUI(defaultCode: String) extends VonSimUI {
     mainboardUI.root).render
 
   val root = div(id := "pagewrap",
-    header(img(id := "icon", src := "img/icon2.png"),
-      h1(id := "title", "a simplified intel 8088 simulator")),
-    sim).render
+    header(img(id := "icon", src := "img/icon2.png")
+           ,h1(id := "title", "a simplified intel 8088 simulator"))
+      ,sim).render
     
 //  editorUI.root.onchange = (e: dom.Event) => compile()
 //  editorUI.root.onkeyup = (e: dom.Event) => compile()
@@ -99,14 +99,29 @@ class MainUI(defaultCode: String) extends VonSimUI {
 }
 
 class ControlsUI() extends VonSimUI {
-  val quickButton = button("Quick run",title:="Reset, Load and Run")
-  val resetButton = button("Reset")
-  val loadButton = button("Load").render
-  val runPauseButton = button("Run/Pause")
-  val runOneButton = button("Run one")
+  val quickButton = button(
+      img(src:="img/icons/quickrun.svg",alt:="Quick run")
+      ,title:="F1: Reset simulator, loads program into memory, runs until cpu stops."
+      ,id:="quickButton")
+  val resetButton = button(
+      img(src:="img/icons/loop2.svg",alt:="Reset")
+      ,title:="F2: Reset cpu state and memory."
+      ,id:="resetButton")
+  val loadButton = button(
+      img(src:="img/icons/download3.svg",alt:="Load")
+      ,title:="F3: Load program into memory."
+      ,id:="loadButton").render
+
+  val runOneButton = button(img(src:="img/icons/step.svg",alt:="Step")
+      ,title:="F4: Execute a single instruction."
+      ,id:="runOneButton")
+  val runPauseButton = button(img(src:="img/icons/play3.svg",alt:="Run")
+      , title:="F5:Run program until cpu stops."
+      ,id:="runPauseButton")
+      
   val root = div(id := "controls"
     ,span(cls:="controlSection",quickButton)  
-    ,span(cls:="controlSection",resetButton, loadButton, runPauseButton, runOneButton)
+    ,span(cls:="controlSection",resetButton, loadButton, runOneButton,runPauseButton)
     ).render
 }
 
@@ -244,7 +259,7 @@ class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
   def keyTyped(){
       keystrokes+=1
 //      println("keyTyped"+keystrokes)
-      setTimeout(1000)({act()})
+      setTimeout(500)({act()})
   }
   
   def act(){
