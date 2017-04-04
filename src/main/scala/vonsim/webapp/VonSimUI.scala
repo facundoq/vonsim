@@ -227,7 +227,7 @@ class DevicesUI() extends VonSimUI {
   val root = div(id := "iomemory", cls := "memory",
     div(cls := "flexcolumns",
       img(id := "devicesicon", src := "img/iconsets/bw/printer.png"), h2("Devices")),
-    div(cls := "memoryTable", "asd")).render
+       "some pretty devices plz here").render
 
 }
 
@@ -275,7 +275,7 @@ class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
   editor.getSession().on("change", eventListener)
   
 //  container.onkeydown = (e: dom.KeyboardEvent) => {
-//    println("keydown")
+ //    println("keydown")
 //    keyTyped()
 //  }
   
