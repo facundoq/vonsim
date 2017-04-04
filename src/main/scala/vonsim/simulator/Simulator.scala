@@ -1,10 +1,15 @@
 package vonsim.simulator
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 import scala.util.Random
+import com.sun.org.apache.bcel.internal.generic.ArithmeticInstruction
+import Simulator._
 
 object Simulator{
 
+  type Word = Byte
+  type DWord = (Byte,Byte)
   type IOMemoryAddress = Byte
   def maxMemorySize=0x4000 // in bytes
   def maxInstructions=1000000 // max number of instructions to execute
@@ -13,138 +18,19 @@ object Simulator{
   def Empty()={
 		  new Simulator(new CPU(),new Memory(),Map[Int,InstructionInfo]())
   }
+  implicit class WordInt(i: Int) {
+    def asDWord:DWord = (( (i / 256) % 256).toByte, (i % 256).toByte)
+    def asWord:Word=(i%256).toByte
+    
+  }
+  
+  implicit class BetterWord(w: DWord) {
+    def toInt:Int= w._1+w._2*256
+    
+    
+  }
 
 }
-
-trait UnaryOperand
-
-trait UnaryOperandUpdatable extends UnaryOperand
-
-trait MemoryOperand extends UnaryOperandUpdatable 
-
-case class MemoryAddress(address:Int) extends MemoryOperand
-case class IndirectMemoryAddress(r:IndirectRegister) extends MemoryOperand
-
-trait DirectOperand extends UnaryOperand
-case class Value(v:Int) extends DirectOperand
-
-
-trait Register extends UnaryOperandUpdatable
-
-trait FullRegister extends Register
-trait HalfRegister extends Register
-trait HighRegister extends HalfRegister
-trait LowRegister extends HalfRegister
-
-trait IORegister
-trait IndirectRegister 
-
-case object AX extends FullRegister with IORegister
-case object BX extends FullRegister with IndirectRegister 
-case object CX extends FullRegister 
-case object DX extends FullRegister 
-
-case object AH extends HighRegister
-case object BH extends HighRegister 
-case object CH extends HighRegister 
-case object DH extends HighRegister
-
-case object AL extends LowRegister with IORegister
-case object BL extends LowRegister 
-case object CL extends LowRegister 
-case object DL extends LowRegister
-
-trait ALUOp
-trait ALUOpBinary extends ALUOp
-trait ALUOpUnary extends ALUOp
-trait ALUOpCompare extends ALUOp
-
-case object CMP extends ALUOpCompare
-trait ArithmeticOpBinary extends ALUOpBinary
-case object ADD extends ArithmeticOpBinary
-case object ADC extends ArithmeticOpBinary
-case object SBB extends ArithmeticOpBinary
-
-trait ArithmeticOpUnary extends ALUOpUnary
-case object INC extends ArithmeticOpUnary
-case object DEC extends ArithmeticOpUnary
-
-trait LogicalOpBinary extends ALUOpBinary
-case object XOR extends LogicalOpBinary
-case object OR extends LogicalOpBinary
-case object AND extends LogicalOpBinary
-
-trait LogicalOpUnary extends ALUOpUnary
-case object NOT extends LogicalOpUnary
-case object NEG extends LogicalOpUnary
-
-
-
-trait BinaryOperands{
-  def o1:UnaryOperand
-  def o2:UnaryOperand
-}
-case class FullRegisterRegister(o1:FullRegister,o2:FullRegister) extends BinaryOperands
-case class HalfRegisterRegister(o1:HalfRegister,o2:HalfRegister) extends BinaryOperands
-
-case class HalfRegisterMemory(o1:HalfRegister,o2:MemoryOperand) extends BinaryOperands
-case class MemoryHalfRegister(o1:MemoryOperand,o2:HalfRegister) extends BinaryOperands
-case class FullRegisterMemory(o1:FullRegister,o2:MemoryOperand) extends BinaryOperands
-case class MemoryFullRegister(o1:MemoryOperand,o2:FullRegister) extends BinaryOperands
-
-case class HalfRegisterDirect(o1:HalfRegister,o2:DirectOperand) extends BinaryOperands
-case class FullRegisterDirect(o1:FullRegister,o2:DirectOperand) extends BinaryOperands
-case class MemoryDirect(o1:MemoryOperand,o2:DirectOperand) extends BinaryOperands
-
-trait Instruction
-case object Hlt extends Instruction
-case object Nop extends Instruction
-
-
-case class Mov(binaryOperands:BinaryOperands) extends Instruction
-case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends Instruction
-case class ALUCmp(op:ALUOpCompare,opbinaryOperands:BinaryOperands) extends Instruction
-case class ALUUnary(op:ALUOpUnary,unaryOperands:UnaryOperandUpdatable) extends Instruction
-
-
-trait StackInstruction extends Instruction
-case class Push(r:FullRegister) extends StackInstruction
-case class Pop(r:FullRegister) extends StackInstruction
-case object Popf extends StackInstruction
-case object Pushf extends StackInstruction
-
-trait InterruptInstruction extends Instruction
-case object Sti extends InterruptInstruction
-case object Cli extends InterruptInstruction
-case object Iret extends InterruptInstruction
-case class  IntN(v:DirectOperand) extends InterruptInstruction
-
-
-trait JumpInstruction extends Instruction{
-  def m:MemoryAddress
-}
-
-case class Call(m:MemoryAddress) extends JumpInstruction
-case class Jump(m:MemoryAddress) extends JumpInstruction
-
-trait Condition
-
-case object JC extends Condition
-case object JNC extends Condition
-case object JS extends Condition
-case object JNS extends Condition
-case object JZ extends Condition
-case object JNZ extends Condition
-case object JO extends Condition
-case object JNO extends Condition
-case class ConditionalJump(m:MemoryAddress,c:Condition) extends JumpInstruction
-
-trait IOInstruction extends Instruction
-
-
-case class In(r:IORegister,a:Simulator.IOMemoryAddress) extends IOInstruction
-case class Out(r:IORegister,a:Simulator.IOMemoryAddress) extends IOInstruction
-
 
 class ALU{
   var o1=0
@@ -153,22 +39,66 @@ class ALU{
 }
 
 class CPU{
+  
   //gp registers
   var sp=Simulator.maxMemorySize
   var ip=0x2000
+  var halted=false
   val alu=new ALU()
+  var registers=mutable.Map[FullRegister,DWord](AX -> (0,0),BX ->(0,0),CX -> (0,0),DX -> (0,0))
+  
+  def reset(){
+    ip=0x2000
+    sp=Simulator.maxMemorySize
+    halted=false
+    registers=mutable.Map[FullRegister,DWord](AX -> (0,0),BX ->(0,0),CX -> (0,0),DX -> (0,0))
+  }
+  
+  
+  def get(r:FullRegister):DWord={
+    registers(r)  
+  }
+  def set(r:FullRegister,v:DWord){
+    registers(r)=v
+  }
+ 
+  def get(r:HalfRegister):Word={
+    r match{
+      case r:LowRegister => get(r)
+      case r:HighRegister => get(r)
+    }
+  }
+  def get(r:LowRegister):Word=get(r.full)._1
+  def get(r:HighRegister):Word=get(r.full)._2
+  
+  def set(r:LowRegister,v:Word) { set(r.full,(v,get(r.high))) }
+  def set(r:HighRegister,v:Word){ set(r.full,(get(r.low),v)) }
       
 }
 
-class Memory{
-  
-  val values=Array.ofDim[Byte](Simulator.maxMemorySize)
+class Memory{  
+  val values=Array.ofDim[Word](Simulator.maxMemorySize)
   new Random().nextBytes(values)
+  
+  def getByte(address:Int)={
+    values(address)
+  }
+  def getBytes(address:Int):DWord={
+    (values(address),values(address+1))
+  }
+  def setByte(address:Int,v:Word){
+    values(address)=v
+  }
+  def setBytes(address:Int,v:DWord){
+    values(address)=v._1
+    values(address+1)=v._2
+  }
+  
+  
+  
 }
 
-class InstructionInfo(val line:Int,val instruction:Instruction){
-   
-}
+class InstructionInfo(val line:Int,val instruction:Instruction){}
 
 class Simulator(val cpu:CPU, val memory:Memory, val instructions:Map[Int,InstructionInfo]) {
    
@@ -198,17 +128,68 @@ class Simulator(val cpu:CPU, val memory:Memory, val instructions:Map[Int,Instruc
    }
    
    def step()={
-     val instruction=currentInstruction()
-     if (instruction.isRight){
-       execute(instruction.right.get.instruction)
-       cpu.ip+=Simulator.instructionSize 
+     val instructionInfo=currentInstruction()
+     if (instructionInfo.isRight){
+       val instruction= instructionInfo.right.get.instruction
+       execute(instruction)
+       if (!instruction.isInstanceOf[IpModifyingInstruction]){
+         cpu.ip+=Simulator.instructionSize
+       }
      }
-     instruction
+     instructionInfo
    }
    
    def execute(i:Instruction){
+     i match{
+       case Nop => {}
+       case Hlt => {cpu.halted=true}
+       case Jump(m) => { cpu.ip=m.address }
+       case Call(m) => { 
+           val ra=push(cpu.ip+Simulator.instructionSize)
+           cpu.ip=m.address 
+       }
+       case Ret => { 
+           val ra=pop()
+           cpu.ip=ra.toInt 
+       }
+       case Mov(os) =>{
+           update(os.o1,get(os.o2))
+       }
+       
+       case _ => {
+         error("fuck")
+       }
+     }
      
    }
+   
+   def push(v:Int){
+     cpu.sp-=2
+     memory.setBytes(cpu.sp, v.asDWord)
+   }
+   def push(v:DWord){
+     cpu.sp-=2
+     memory.setBytes(cpu.sp, v)
+   }
+   def pop()={
+     val v=memory.getBytes(cpu.sp)
+     cpu.sp+=2
+     v
+   }
+   
+   def get(o:FullRegisterDirect)={
+     (getDWord(o.o1),getDWord(o.o2))     
+   }
+   def update(o:FullRegisterDirect,v:DWord){
+     cpu.set(o.o1,v)
+   }
+   
+  
+   def getDWord(o:FullRegister)=cpu.get(o)
+   def getDWord(o:Value)=o.v.asDWord
+   
+   def getWord(o:HalfRegister):Word=cpu.get(o)
+   def getWord(o:Value):Word=o.v.asWord
    
   
 }
