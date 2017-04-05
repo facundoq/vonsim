@@ -1,26 +1,30 @@
 package vonsim.simulator
 
-class UnaryOperand
+sealed class UnaryOperand
 
-trait WordOperand
-trait DWordOperand
+sealed trait WordOperand
+sealed trait DWordOperand
 
 class UnaryOperandUpdatable extends UnaryOperand
 
+
 class MemoryOperand extends UnaryOperandUpdatable 
 
-case class MemoryAddress(address:Int) extends MemoryOperand with DWordOperand with WordOperand
-case class IndirectMemoryAddress(r:IndirectRegister) extends MemoryOperand with DWordOperand with WordOperand
+case class DWordMemoryAddress(address:Int) extends MemoryOperand with DWordOperand 
+case class WordMemoryAddress(address:Int) extends MemoryOperand with WordOperand
+
+case object DWordIndirectMemoryAddress extends MemoryOperand  with DWordOperand 
+case object WordIndirectMemoryAddress extends MemoryOperand with WordOperand
 
 class DirectOperand extends UnaryOperand
-case class DWordValue(v:Int) extends DirectOperand
-case class WordValue(v:Int) extends DirectOperand
+case class DWordValue(v:Int) extends DirectOperand with DWordOperand
+case class WordValue(v:Int) extends DirectOperand with WordOperand
 
 class Register extends UnaryOperandUpdatable
 
-class FullRegister extends Register
+class FullRegister extends Register with DWordOperand
 
-class HalfRegister extends Register{
+class HalfRegister extends Register with WordOperand{
    
   def full={
     this match{
@@ -77,42 +81,18 @@ case object BL extends LowRegister
 case object CL extends LowRegister 
 case object DL extends LowRegister
 
-class ALUOp
-class ALUOpBinary extends ALUOp
-class ALUOpUnary extends ALUOp
-class ALUOpCompare extends ALUOp
-
-case object CMP extends ALUOpCompare
-class ArithmeticOpBinary extends ALUOpBinary
-case object ADD extends ArithmeticOpBinary
-case object ADC extends ArithmeticOpBinary
-case object SBB extends ArithmeticOpBinary
-
-class ArithmeticOpUnary extends ALUOpUnary
-case object INC extends ArithmeticOpUnary
-case object DEC extends ArithmeticOpUnary
-
-class LogicalOpBinary extends ALUOpBinary
-case object XOR extends LogicalOpBinary
-case object OR extends LogicalOpBinary
-case object AND extends LogicalOpBinary
-
-class LogicalOpUnary extends ALUOpUnary
-case object NOT extends LogicalOpUnary
-case object NEG extends LogicalOpUnary
-
 
 
 abstract class BinaryOperands{
   
 }
 
-abstract class WordBinaryOperands{
+class WordBinaryOperands extends BinaryOperands{
   def o1:WordOperand
   def o2:WordOperand
 }
 
-abstract class DWordBinaryOperands{
+abstract class DWordBinaryOperands extends BinaryOperands{
   def o1:DWordOperand
   def o2:DWordOperand
 }

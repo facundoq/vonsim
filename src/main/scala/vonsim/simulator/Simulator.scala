@@ -35,7 +35,20 @@ object Simulator{
 class ALU{
   var o1=0
   var o2=0
+  var res=0
   var op:ALUOp=CMP
+  
+  var carry=false
+  var sign=false
+  var overflow=false
+  var zero=false
+  
+  def reset(){
+     carry=false
+     sign=false
+     zero=false
+     overflow=false
+  }
 }
 
 class CPU{
@@ -64,15 +77,18 @@ class CPU{
  
   def get(r:HalfRegister):Word={
     r match{
-      case r:LowRegister => get(r)
-      case r:HighRegister => get(r)
+      case r:LowRegister => get(r.full)._1
+      case r:HighRegister => get(r.full)._2
     }
   }
-  def get(r:LowRegister):Word=get(r.full)._1
-  def get(r:HighRegister):Word=get(r.full)._2
   
-  def set(r:LowRegister,v:Word) { set(r.full,(v,get(r.high))) }
-  def set(r:HighRegister,v:Word){ set(r.full,(get(r.low),v)) }
+  
+  def set(r:HalfRegister,v:Word){
+    r match{
+      case r:LowRegister => set(r.full,(v,get(r.high))) 
+      case r:HighRegister => set(r.full,(get(r.low),v)) 
+    }
+  }
       
 }
 
@@ -143,17 +159,23 @@ class Simulator(val cpu:CPU, val memory:Memory, val instructions:Map[Int,Instruc
      i match{
        case Nop => {}
        case Hlt => {cpu.halted=true}
-       case Jump(m) => { cpu.ip=m.address }
-       case Call(m) => { 
+       case Jump(address) => { cpu.ip=address }
+       case Call(address) => { 
            val ra=push(cpu.ip+Simulator.instructionSize)
-           cpu.ip=m.address 
+           cpu.ip=address 
        }
        case Ret => { 
            val ra=pop()
            cpu.ip=ra.toInt 
        }
-       case Mov(os) =>{
-           update(os.o1,get(os.o2))
+       case Mov(os:WordBinaryOperands) =>{
+            update(os.o1,get(os.o2))
+       }
+       case Mov(os:DWordBinaryOperands) =>{
+            update(os.o1,get(os.o2))
+       }
+       case ALUBinary(op,os:WordBinaryOperands) =>{
+            update(os.o1,applyOp(op,get(os.o1),get(os.o2)))
        }
        
        case _ => {
@@ -162,6 +184,29 @@ class Simulator(val cpu:CPU, val memory:Memory, val instructions:Map[Int,Instruc
      }
      
    }
+   def applyOp(op:ALUOpBinary,v1:Word,v2:Word)={
+     cpu.alu.o1=v1.toInt
+     cpu.alu.o2=v2.toInt
+     cpu.alu.op=op
+     var res:Int=0
+     cpu.alu.reset() 
+     
+     op match {
+       case ADD => { 
+         res=v1.toInt+v2.toInt
+         cpu.alu.carry= res > 256
+         res=res % 256
+         cpu.alu.sign= res %
+         
+                                   
+       }
+     }
+     cpu.alu.res=res
+     res.asWord
+     
+     
+   }
+   
    
    def push(v:Int){
      cpu.sp-=2
@@ -176,20 +221,40 @@ class Simulator(val cpu:CPU, val memory:Memory, val instructions:Map[Int,Instruc
      cpu.sp+=2
      v
    }
-   
-   def get(o:FullRegisterDirect)={
-     (getDWord(o.o1),getDWord(o.o2))     
-   }
-   def update(o:FullRegisterDirect,v:DWord){
-     cpu.set(o.o1,v)
-   }
-   
   
-   def getDWord(o:FullRegister)=cpu.get(o)
-   def getDWord(o:Value)=o.v.asDWord
    
-   def getWord(o:HalfRegister):Word=cpu.get(o)
-   def getWord(o:Value):Word=o.v.asWord
+   def get(o:DWordOperand):DWord={
+     o match{
+       case DWordMemoryAddress(address) => memory.getBytes(address)
+       case r:FullRegister => cpu.get(r)
+       case v:DWordValue => v.v.asDWord
+       case DWordIndirectMemoryAddress => memory.getBytes( cpu.get(BX).toInt)
+     }
+   }
    
+   def update(o:DWordOperand,v:DWord){
+     o match{
+       case DWordMemoryAddress(address) => memory.setBytes(address,v)
+       case r:FullRegister => cpu.set(r,v)
+       case DWordIndirectMemoryAddress => memory.setBytes( cpu.get(BX).toInt,v)
+     }
+   }
+     
+   def get(o:WordOperand):Word={
+     o match{
+       case WordMemoryAddress(address) => memory.getByte(address)
+       case r:HalfRegister => cpu.get(r)
+       case v:DWordValue => v.v.asWord
+       case WordIndirectMemoryAddress => memory.getByte( cpu.get(BX).toInt)
+     }
+   }
+   def update(o:WordOperand,v:Word){
+     o match{
+       case WordMemoryAddress(address) => memory.setByte(address,v)
+       case r:HalfRegister => cpu.set(r,v)
+       case WordIndirectMemoryAddress => memory.setByte( cpu.get(BX).toInt,v)
+     }
+   }
+  
   
 }

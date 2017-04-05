@@ -8,7 +8,6 @@ case object Nop extends Instruction
 
 case class Mov(binaryOperands:BinaryOperands) extends Instruction
 case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends Instruction
-case class ALUCmp(op:ALUOpCompare,opbinaryOperands:BinaryOperands) extends Instruction
 case class ALUUnary(op:ALUOpUnary,unaryOperands:UnaryOperandUpdatable) extends Instruction
 
 
@@ -27,12 +26,12 @@ case class  IntN(v:DirectOperand) extends InterruptInstruction
 trait IpModifyingInstruction 
 
 abstract class JumpInstruction extends Instruction with IpModifyingInstruction{
-  def m:MemoryAddress
+  def m:Int
 }
 
-case object Ret extends JumpInstruction
-case class Call(m:MemoryAddress) extends JumpInstruction 
-case class Jump(m:MemoryAddress) extends JumpInstruction
+case object Ret extends Instruction with IpModifyingInstruction
+case class Call(m:Int) extends JumpInstruction 
+case class Jump(m:Int) extends JumpInstruction
 
 class Condition
 
@@ -44,7 +43,7 @@ case object JZ extends Condition
 case object JNZ extends Condition
 case object JO extends Condition
 case object JNO extends Condition
-case class ConditionalJump(m:MemoryAddress,c:Condition) extends JumpInstruction
+case class ConditionalJump(m:Int,c:Condition) extends JumpInstruction
 
 class IOInstruction extends Instruction
 
