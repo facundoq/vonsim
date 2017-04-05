@@ -87,7 +87,7 @@ abstract class BinaryOperands{
   
 }
 
-class WordBinaryOperands extends BinaryOperands{
+abstract class WordBinaryOperands extends BinaryOperands{
   def o1:WordOperand
   def o2:WordOperand
 }
@@ -100,15 +100,15 @@ abstract class DWordBinaryOperands extends BinaryOperands{
 case class DWordRegisterRegister(o1:FullRegister,o2:FullRegister) extends DWordBinaryOperands
 case class WordRegisterRegister(o1:HalfRegister,o2:HalfRegister) extends WordBinaryOperands
 
-case class WordRegisterMemory(o1:HalfRegister,o2:MemoryOperand) extends BinaryOperands
-case class WordMemoryRegister(o1:MemoryOperand,o2:HalfRegister) extends BinaryOperands
-case class DWordRegisterMemory(o1:FullRegister,o2:MemoryOperand) extends DWordBinaryOperands
-case class DWordMemoryRegister(o1:MemoryOperand,o2:FullRegister) extends DWordBinaryOperands
+case class WordRegisterMemory(o1:HalfRegister,o2:WordMemoryAddress) extends WordBinaryOperands
+case class WordMemoryRegister(o1:WordMemoryAddress,o2:HalfRegister) extends WordBinaryOperands
+case class DWordRegisterMemory(o1:FullRegister,o2:DWordMemoryAddress) extends DWordBinaryOperands
+case class DWordMemoryRegister(o1:DWordMemoryAddress,o2:FullRegister) extends DWordBinaryOperands
 
 case class WordRegisterDirect(o1:HalfRegister,o2:WordValue) extends WordBinaryOperands
 case class DWordRegisterDirect(o1:FullRegister,o2:DWordValue) extends DWordBinaryOperands
-case class WordMemoryDirect(o1:MemoryOperand,o2:WordValue) extends WordBinaryOperands
-case class DWordMemoryDirect(o1:MemoryOperand,o2:DWordValue) extends DWordBinaryOperands
+case class WordMemoryDirect(o1:WordMemoryAddress,o2:WordValue) extends WordBinaryOperands
+case class DWordMemoryDirect(o1:DWordMemoryAddress,o2:DWordValue) extends DWordBinaryOperands
 
 
 

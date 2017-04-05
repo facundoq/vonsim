@@ -9,7 +9,7 @@ import Simulator._
 object Simulator{
 
   type Word = Byte
-  type DWord = (Byte,Byte)
+  type DWord = (Byte,Byte) // ._1=low ._2= high
   type IOMemoryAddress = Byte
   def maxMemorySize=0x4000 // in bytes
   def maxInstructions=1000000 // max number of instructions to execute
@@ -19,17 +19,58 @@ object Simulator{
 		  new Simulator(new CPU(),new Memory(),Map[Int,InstructionInfo]())
   }
   implicit class WordInt(i: Int) {
-    def asDWord:DWord = (( (i / 256) % 256).toByte, (i % 256).toByte)
+    def asDWord:DWord = ((i % 256).toByte, ( (i / 256) % 256).toByte)
     def asWord:Word=(i%256).toByte
     
   }
   
-  implicit class BetterWord(w: DWord) {
+  implicit class BetterDWord(w: DWord) {
     def toInt:Int= w._1+w._2*256
+    def sign:Boolean= (toInt / 32768) >0
+    def h:Word=w._2
+    def l:Word=w._1
+    def +(w:DWord)={
+      
+      (w,new Flags())
+    }
+  }
+  implicit class BetterWord(w: Word) {
+    def sign:Boolean= w<0
     
-    
+    def add(v:Word)={
+     val f=new Flags()
+     
+     var res=v+w
+     if (res < -128){
+       f.c=true
+       res+=256
+     }
+     if (res > 127){
+       f.c=true
+       res-=256
+     }
+     f.s=res.toByte.sign  
+     
+     f.z= res==0
+     f.o= (v.sign == w.sign) && (v.sign!=res>0)
+         
+     (res.toByte,f)
+    }
   }
 
+}
+
+
+
+
+class Flags(var c:Boolean=false,var s:Boolean=false,var o:Boolean=false, var z:Boolean=false){
+
+  def reset(){
+     c=false
+     s=false
+     z=false
+     o=false
+  }
 }
 
 class ALU{
@@ -38,17 +79,10 @@ class ALU{
   var res=0
   var op:ALUOp=CMP
   
-  var carry=false
-  var sign=false
-  var overflow=false
-  var zero=false
+  var flags= new Flags()
   
-  def reset(){
-     carry=false
-     sign=false
-     zero=false
-     overflow=false
-  }
+  def reset(){flags.reset()}
+  
 }
 
 class CPU{
@@ -193,11 +227,7 @@ class Simulator(val cpu:CPU, val memory:Memory, val instructions:Map[Int,Instruc
      
      op match {
        case ADD => { 
-         res=v1.toInt+v2.toInt
-         cpu.alu.carry= res > 256
-         res=res % 256
-         cpu.alu.sign= res %
-         
+          
                                    
        }
      }
