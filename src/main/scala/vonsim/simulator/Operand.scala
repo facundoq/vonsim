@@ -5,7 +5,7 @@ sealed class UnaryOperand
 sealed trait WordOperand
 sealed trait DWordOperand
 
-class UnaryOperandUpdatable extends UnaryOperand
+class UnaryOperandUpdatable extends UnaryOperand 
 
 
 class MemoryOperand extends UnaryOperandUpdatable 
@@ -16,9 +16,9 @@ case class WordMemoryAddress(address:Int) extends MemoryOperand with WordOperand
 case object DWordIndirectMemoryAddress extends MemoryOperand  with DWordOperand 
 case object WordIndirectMemoryAddress extends MemoryOperand with WordOperand
 
-class DirectOperand extends UnaryOperand
-case class DWordValue(v:Int) extends DirectOperand with DWordOperand
-case class WordValue(v:Int) extends DirectOperand with WordOperand
+class InmediateOperand extends UnaryOperand
+case class DWordValue(v:Int) extends InmediateOperand with DWordOperand
+case class WordValue(v:Int) extends InmediateOperand with WordOperand
 
 class Register extends UnaryOperandUpdatable
 

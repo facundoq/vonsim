@@ -8,6 +8,7 @@ class ALUOpCompare extends ALUOp
 
 class ArithmeticOpBinary extends ALUOpBinary
 case object ADD extends ArithmeticOpBinary
+case object SUB extends ArithmeticOpBinary
 case object ADC extends ArithmeticOpBinary
 case object SBB extends ArithmeticOpBinary
 case object CMP extends ArithmeticOpBinary

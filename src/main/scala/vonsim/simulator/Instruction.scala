@@ -21,7 +21,7 @@ class InterruptInstruction extends Instruction
 case object Sti extends InterruptInstruction
 case object Cli extends InterruptInstruction
 case object Iret extends InterruptInstruction with IpModifyingInstruction
-case class  IntN(v:DirectOperand) extends InterruptInstruction
+case class  IntN(v:InmediateOperand) extends InterruptInstruction
 
 trait IpModifyingInstruction 
 
