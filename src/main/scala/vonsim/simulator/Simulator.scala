@@ -17,10 +17,6 @@ object Simulator {
   def Empty() = {
     new Simulator(new CPU(), new Memory(), Map[Int, InstructionInfo]())
   }
-  implicit class WordInt(i: Int) {
-    def asDWord: DWord = DWord( (i % 256).toByte, ((i / 256) % 256).toByte)
-    def asWord: Word = (i % 256).toByte
-  }
 
 }
 
@@ -57,21 +53,38 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
     val instructionInfo = currentInstruction()
     if (instructionInfo.isRight) {
       val instruction = instructionInfo.right.get.instruction
+      cpu.ip += Simulator.instructionSize
       execute(instruction)
-      if (!instruction.isInstanceOf[IpModifyingInstruction]) {
-        cpu.ip += Simulator.instructionSize
-      }
+      
     }
     instructionInfo
   }
 
-  def execute(i: Instruction) {
+  def execute(i: Instruction){
     i match {
       case Nop           => {}
       case Hlt           => { cpu.halted = true }
       case Jump(address) => { cpu.ip = address }
+      case ConditionalJump(address,condition) => {
+        if (cpu.alu.flags.satisfy(condition)){
+          cpu.ip = address 
+        }
+      }
+      case Push(register) => {
+        push(cpu.get(register))
+      }
+      case Pop(register) => {
+        cpu.set(register,pop())
+      }
+      case Pushf => {
+        push(cpu.alu.flags.toDWord)
+      }
+      case Popf => {
+        val f=Flags(pop())
+        cpu.alu.flags=f
+      }
       case Call(address) => {
-        val ra = push(cpu.ip + Simulator.instructionSize)
+        val ra = push(cpu.ip)
         cpu.ip = address
       }
       case Ret => {
@@ -97,8 +110,17 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
         val v=get(o)
         update(o, cpu.alu.applyOp(op, v))
       }
+      case In(reg,v) =>{
+         error("not implemented")
+      }
+      case Out(reg,v) =>{
+         error("not implemented")
+      }
+      case IntN(n) =>{
+         error("not implemented")
+      }
       case _ => {
-        error("fuck")
+        error("unknown instruction")
       }
     }
 
@@ -106,7 +128,7 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
 
   def push(v: Int) {
     cpu.sp -= 2
-    memory.setBytes(cpu.sp, v.asDWord)
+    memory.setBytes(cpu.sp, DWord(v))
   }
   def push(v: DWord) {
     cpu.sp -= 2
@@ -122,7 +144,7 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
     o match {
       case DWordMemoryAddress(address) => memory.getBytes(address)
       case r: FullRegister             => cpu.get(r)
-      case v: DWordValue               => v.v.asDWord
+      case v: DWordValue               => DWord(v.v)
       case DWordIndirectMemoryAddress  => memory.getBytes(cpu.get(BX).toInt)
     }
   }
@@ -139,7 +161,7 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
     o match {
       case WordMemoryAddress(address) => memory.getByte(address)
       case r: HalfRegister            => cpu.get(r)
-      case v: DWordValue              => v.v.asWord
+      case v: DWordValue              => Word(v.v)
       case WordIndirectMemoryAddress  => memory.getByte(cpu.get(BX).toInt)
     }
   }

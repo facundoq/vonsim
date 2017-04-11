@@ -22,48 +22,48 @@ class DWordSuite extends FunSuite {
     assert(!flags.c)
     
   }
-//  test("0+0, z=1") {
-//    val w=0.toByte
-//    val v=0.toByte
-//    val (r1,flags)= alu.arithmeticDWord(ADD,w,v)
-//    assert(r1.toInt==0)
-//    assert(flags.z)
-//    assert(!flags.s)
-//    assert(!flags.o)
-//    assert(!flags.c)
-//  }
-//  test("20+(-20)==0, z=1") {
-//    val w=20.toByte
-//    val v=(-20).toByte
-//    val (r1,flags)= alu.arithmeticDWord(ADD,w,v)
-//    assert(r1.toInt==0)
-//    assert(flags.z)
-//    assert(!flags.s)
-//    assert(!flags.o)
-//    assert(flags.c)
-//  }
-//  
-//  test("127+1==-128 ==128u, c=0,s=1,o=1") {
-//    val w=127.toByte
-//    val v=1.toByte
-//    val (r1,flags)= alu.arithmeticDWord(ADD,v,w)
-//    assertResult(r1.toInt)(-128)
-//    assert(!flags.z)
-//    assert(flags.s)
-//    assert(flags.o)
-//    assert(!flags.c)
-//  }
-//  
-//  test("127+ (-5)== 127+(251u)==122, c=1,s=0,o=0") {
-//    val w=127.toByte
-//    val v=(-5).toByte
-//    val (r1,flags)= alu.arithmeticDWord(ADD,w,v)
-//    assertResult(r1.toInt)(122)
-//    assert(!flags.z)
-//    assert(!flags.s)
-//    assert(!flags.o)
-//    assert(flags.c)
-//  }
+  test("0+0, z=1") {
+    val w=DWord(0)
+    val v=DWord(0)
+    val (r1,flags)= alu.arithmeticDWord(ADD,w,v)
+    assert(r1.toInt==0)
+    assert(flags.z)
+    assert(!flags.s)
+    assert(!flags.o)
+    assert(!flags.c)
+  }
+  test("20+(-20)==0, z=1") {
+    val w=DWord(20)
+    val v=DWord(-20)
+    val (r1,flags)= alu.arithmeticDWord(ADD,w,v)
+    assert(r1.toInt==0)
+    assert(flags.z)
+    assert(!flags.s)
+    assert(!flags.o)
+    assert(flags.c)
+  }
+  
+  test("32767+1==-32768 ==65536u, c=0,s=1,o=1") {
+    val w=DWord(32767)
+    val v=DWord(1)
+    val (r1,flags)= alu.arithmeticDWord(ADD,v,w)
+    assertResult(r1.toInt)(-32768)
+    assert(!flags.z)
+    assert(flags.s)
+    assert(flags.o)
+    assert(!flags.c)
+  }
+  
+  test("32767 + (-5) =32762 , c=1,s=0,o=0") {
+    val w=DWord(32767)
+    val v=DWord(-5)
+    val (r1,flags)= alu.arithmeticDWord(ADD,w,v)
+    assertResult(r1.toInt)(32762)
+    assert(!flags.z)
+    assert(!flags.s)
+    assert(!flags.o)
+    assert(flags.c)
+  }
   
   test("signed unsigned conversions"){ assertResult(127)(unsignedToSignedByte(127))
     assertResult(0)(signedToUnsignedShort(0))
@@ -102,14 +102,12 @@ class DWordSuite extends FunSuite {
     val x=DWord(64)
     val v=DWord(-1)
     
-
-    
-    assertResult(IndexedSeq.fill(16)(0))(z.bits)
-    assertResult(IndexedSeq(1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0))(w.bits)
-    assertResult(IndexedSeq(0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0))(x.bits)
-    assertResult(IndexedSeq(0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0))(DWord(16).bits)
-    assertResult(IndexedSeq.fill(16)(1))(v.bits)
-    assertResult(IndexedSeq(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1))(DWord(-32768).bits)
+    assertResult(IndexedSeq.fill(16)(0))(z.toBits)
+    assertResult(IndexedSeq(1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0))(w.toBits)
+    assertResult(IndexedSeq(0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0))(x.toBits)
+    assertResult(IndexedSeq(0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0))(DWord(16).toBits)
+    assertResult(IndexedSeq.fill(16)(1))(v.toBits)
+    assertResult(IndexedSeq(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1))(DWord(-32768).toBits)
     
     assertResult(-32768)(IndexedSeq(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1).toDWord.toInt)
     assertResult(65)(IndexedSeq(1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0).toDWord.toInt)
@@ -188,12 +186,12 @@ class DWordSuite extends FunSuite {
     val x=64.toByte
 
     
-    assertResult(IndexedSeq(0,0,0,0,0,0,0,0))(z.bits)
-    assertResult(IndexedSeq(1,1,1,1,1,1,1,0))(w.bits)
-    assertResult(IndexedSeq(0,0,0,0,0,0,1,0))(x.bits)
-    assertResult(IndexedSeq(0,0,0,0,1,0,0,0))(16.toByte.bits)
-    assertResult(IndexedSeq(1,1,1,1,1,1,1,1))(v.bits)
-    assertResult(IndexedSeq(0,0,0,0,0,0,0,1))(-128.toByte.bits)
+    assertResult(IndexedSeq(0,0,0,0,0,0,0,0))(z.toBits)
+    assertResult(IndexedSeq(1,1,1,1,1,1,1,0))(w.toBits)
+    assertResult(IndexedSeq(0,0,0,0,0,0,1,0))(x.toBits)
+    assertResult(IndexedSeq(0,0,0,0,1,0,0,0))(16.toByte.toBits)
+    assertResult(IndexedSeq(1,1,1,1,1,1,1,1))(v.toBits)
+    assertResult(IndexedSeq(0,0,0,0,0,0,0,1))(-128.toByte.toBits)
     
     assertResult(-128)(IndexedSeq(0,0,0,0,0,0,0,1).toByte)
     assertResult(65)(IndexedSeq(1,0,0,0,0,0,1,0).toByte)
