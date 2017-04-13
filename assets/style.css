@@ -78,15 +78,16 @@ body {
     flex-flow: column;
 }
 
-header{
+#header{
 	flex: 0 1 auto;
     
     text-align: Left;
-    font-size: 3em;
+    font-size: 2em;
     background-color: #34bbfc;
+    box-shadow: 20px 20px 5px #000000;
 /*  border-bottom: 8px #34bbfc solid; */
     
-    padding:10px;
+    
     display: -webkit-flex; /* Safari */
 	display: flex;
   -webkit-justify-content: start; /* Safari */
@@ -94,6 +95,7 @@ header{
   -webkit-align-items: stretch; /* Safari */
   align-items:         stretch; 
    align-items: center;
+   
 }
 
 
@@ -259,12 +261,16 @@ header{
 
 #title{
     font-size:0.8em;
+    padding:5px;
 }
 
 #icon{
-    width:64px;
+    width:48px;
 /*     height:64px; */
-    padding-right: 20px;
+    padding:0px;
+    margin:0px;
+    padding:4px 20px;
+    
 }
 h2{
     font-size: 1.25em;

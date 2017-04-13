@@ -40,9 +40,12 @@ class MainUI(defaultCode: String) extends VonSimUI {
     mainboardUI.root).render
 
   val root = div(id := "pagewrap",
-    header(img(id := "icon", src := "img/icon2.png")
-           ,h1(id := "title", "a simplified intel 8088 simulator"))
-      ,sim).render
+    header(
+        div(id:="header",img(id := "icon", alt:="Von Sim Icon", title:="Von Sim: a simplified intel 8088 simulator", src := "img/icon.png")
+           ,h1(id := "title", "a simplified intel 8088 simulator")
+        )
+    )
+    ,sim).render
     
 //  editorUI.root.onchange = (e: dom.Event) => compile()
 //  editorUI.root.onkeyup = (e: dom.Event) => compile()

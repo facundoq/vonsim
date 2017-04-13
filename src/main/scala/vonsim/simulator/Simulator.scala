@@ -21,7 +21,13 @@ object Simulator {
 }
 
 
-class InstructionInfo(val line: Int, val instruction: Instruction) {}
+class InstructionInfo(val line: Int, val instruction: Instruction) {
+  
+  override def toString()={
+    s"Line $line: $instruction"
+  }
+  
+}
 
 class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, InstructionInfo]) {
 
@@ -43,7 +49,7 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
     var instructions = ListBuffer(instruction)
     var counter = 0
 
-    while (counter < n && instruction.isRight && instruction.right.get.instruction != Hlt) {
+    while (counter < n && instruction.isRight && instruction.right.get.instruction != Hlt && !cpu.halted) {
       val instruction = step()
       instructions += instruction
     }
@@ -51,11 +57,14 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
 
   def step() = {
     val instructionInfo = currentInstruction()
+    println("Executing instruction: "+instructionInfo)
     if (instructionInfo.isRight) {
       val instruction = instructionInfo.right.get.instruction
       cpu.ip += Simulator.instructionSize
       execute(instruction)
       
+    }else{
+      cpu.halted=true
     }
     instructionInfo
   }
