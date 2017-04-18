@@ -79,6 +79,14 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
           cpu.ip = address 
         }
       }
+      case Call(address) => {
+        val ra = push(cpu.ip)
+        cpu.ip = address
+      }
+      case Ret => {
+        val ra = pop()
+        cpu.ip = ra.toInt
+      }
       case Push(register) => {
         push(cpu.get(register))
       }
@@ -92,19 +100,18 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
         val f=Flags(pop())
         cpu.alu.flags=f
       }
-      case Call(address) => {
-        val ra = push(cpu.ip)
-        cpu.ip = address
-      }
-      case Ret => {
-        val ra = pop()
-        cpu.ip = ra.toInt
-      }
+      
       case Mov(os: WordBinaryOperands) => {
         update(os.o1, get(os.o2))
       }
       case Mov(os: DWordBinaryOperands) => {
         update(os.o1, get(os.o2))
+      }
+      case ALUBinary(CMP, os: WordBinaryOperands) => {
+        cpu.alu.applyOp(SUB, get(os.o1), get(os.o2))
+      }
+      case ALUBinary(CMP, os: DWordBinaryOperands) => {
+        cpu.alu.applyOp(SUB, get(os.o1), get(os.o2))
       }
       case ALUBinary(op, os: WordBinaryOperands) => {
         update(os.o1, cpu.alu.applyOp(op, get(os.o1), get(os.o2)))
@@ -117,7 +124,9 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
       }
       case ALUUnary(op, o: DWordOperand) => {
         val v=get(o)
-        update(o, cpu.alu.applyOp(op, v))
+        
+        val a=cpu.alu.applyOp(op, v)
+        update(o, a)
       }
       case In(reg,v) =>{
          error("not implemented")
@@ -170,7 +179,7 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
     o match {
       case WordMemoryAddress(address) => memory.getByte(address)
       case r: HalfRegister            => cpu.get(r)
-      case v: DWordValue              => Word(v.v)
+      case v: WordValue              => Word(v.v)
       case WordIndirectMemoryAddress  => memory.getByte(cpu.get(BX).toInt)
     }
   }

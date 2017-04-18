@@ -99,7 +99,10 @@ object Word {
 
   def apply(v:Byte)= new Word(v)
   def apply(v:Int)= new Word(v.toByte)
-  
+  def apply(s:String)={
+    assert(s.length()==8)
+    new Word(unsignedToSignedByte(Integer.parseInt(s,2)).toByte)
+  }
   
 }
 class Word(var v:Byte) extends ComputerWord{
@@ -119,6 +122,16 @@ class Word(var v:Byte) extends ComputerWord{
     override def toString()=s"Word(${this.bitString})"
     def toInt=v.toInt
     def toUnsignedInt=signedToUnsignedByte(toInt)
+    
+    override def equals(a:Any)={
+      a match{
+        case a:Word => a.v == v
+        case _ => false
+      }
+    }
+    override def hashCode()={
+      v.hashCode()
+    }
 }
 
 object DWord {
@@ -129,6 +142,11 @@ object DWord {
   def apply()= new DWord(0,0)
   def apply(l:Byte,h:Byte)= new DWord(l,h)
   def apply(v:(Byte,Byte))= new DWord(v._1,v._2)
+  
+  def apply(s:String):DWord={
+    assert(s.length()==16)
+    DWord(unsignedToSignedShort(Integer.parseInt(s,2)))
+  }
   
   def apply(i:Int)= {
     var l=i & 0xFF

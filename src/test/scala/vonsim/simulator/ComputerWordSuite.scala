@@ -7,12 +7,19 @@ import ComputerWord._
 
 class DWordSuite extends FunSuite {
   val alu=new ALU()
+  
+  test("DWord creation with strings") {
+    val w=DWord("0000000100000001")
+    assertResult(257)(w.toInt)
+    val v=DWord("1111111111111111")
+    assertResult(-1)(v.toInt)
+  }
   test("Flags off when numbers are small and positive") {
     val w=DWord(300)
     val v=DWord(400)
     
     val (r1,flags)= alu.arithmeticDWord(ADD,w,v)
-    assert(r1.toInt==700)
+    assertResult(700)(r1.toInt)
     assert(!flags.z)
     assert(!flags.s)
     assert(!flags.o)
@@ -111,11 +118,22 @@ class DWordSuite extends FunSuite {
   }
 }
   class WordSuite extends FunSuite {
+    
+    
+  test("Word creation with strings") {
+    val w=Word("01000001")
+    assertResult(65)(w.toInt)
+    val v=Word("11111111")
+    assertResult(-1)(v.toInt)
+  }
+    
   val alu=new ALU()
+  
+  
   test("Flags off when numbers are small and positive") {
     val w=25.toByte
     val v=29.toByte
-    val (r1,flags)= alu.arithmetic(ADD,w,v)
+    val (r1,flags)= alu.performALUArithmetic(ADD,w,v)
     assert(r1.toInt==54)
     assert(!flags.z)
     assert(!flags.s)
@@ -126,7 +144,7 @@ class DWordSuite extends FunSuite {
   test("0+0, z=1") {
     val w=0.toByte
     val v=0.toByte
-    val (r1,flags)= alu.arithmetic(ADD,w,v)
+    val (r1,flags)= alu.performALUArithmetic(ADD,w,v)
     assert(r1.toInt==0)
     assert(flags.z)
     assert(!flags.s)
@@ -136,7 +154,7 @@ class DWordSuite extends FunSuite {
   test("20+(-20)==0, z=1") {
     val w=20.toByte
     val v=(-20).toByte
-    val (r1,flags)= alu.arithmetic(ADD,w,v)
+    val (r1,flags)= alu.performALUArithmetic(ADD,w,v)
     assert(r1.toInt==0)
     assert(flags.z)
     assert(!flags.s)
@@ -147,7 +165,7 @@ class DWordSuite extends FunSuite {
   test("127+1==-128 ==128u, c=0,s=1,o=1") {
     val w=127.toByte
     val v=1.toByte
-    val (r1,flags)= alu.arithmetic(ADD,v,w)
+    val (r1,flags)= alu.performALUArithmetic(ADD,v,w)
     assertResult(r1.toInt)(-128)
     assert(!flags.z)
     assert(flags.s)
@@ -158,7 +176,7 @@ class DWordSuite extends FunSuite {
   test("127+ (-5)== 127+(251u)==122, c=1,s=0,o=0") {
     val w=127.toByte
     val v=(-5).toByte
-    val (r1,flags)= alu.arithmetic(ADD,w,v)
+    val (r1,flags)= alu.performALUArithmetic(ADD,w,v)
     assertResult(r1.toInt)(122)
     assert(!flags.z)
     assert(!flags.s)
