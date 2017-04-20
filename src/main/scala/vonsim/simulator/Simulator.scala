@@ -128,6 +128,12 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
         val a=cpu.alu.applyOp(op, v)
         update(o, a)
       }
+      case Sti=>{
+         error("not implemented")
+      }
+      case Cli=>{
+         error("not implemented")
+      }
       case In(reg,v) =>{
          error("not implemented")
       }
