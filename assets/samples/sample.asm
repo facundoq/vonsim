@@ -47,7 +47,6 @@ CALL HOLA
 RET
 NOP
 HLT
-END
 CLI
 StI
 ret
@@ -57,3 +56,4 @@ push ax
 pop bx
 pop cx
 int 4
+END

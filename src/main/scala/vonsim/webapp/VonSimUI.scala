@@ -1,5 +1,5 @@
 package vonsim.webapp
-
+import vonsim.utils.CollectionUtils._
 import scalatags.JsDom.all._
 import org.scalajs.dom.html._
 import org.scalajs.dom.raw.HTMLElement
@@ -24,6 +24,8 @@ import vonsim.assembly.ParserError
 
 import scala.scalajs.js.timers.SetTimeoutHandle
 import scala.scalajs.js.timers._
+import vonsim.assembly.SemanticError
+import vonsim.assembly.Compiler.FailedCompilation
 
 
 abstract class VonSimUI {
@@ -32,7 +34,7 @@ abstract class VonSimUI {
 }
 
 class MainUI(defaultCode: String) extends VonSimUI {
-
+  println("Setting up UI..")
   val editorUI = new EditorUI(defaultCode,() => compile())
   val mainboardUI = new MainboardUI()
   val sim = div(id := "main",
@@ -58,30 +60,43 @@ class MainUI(defaultCode: String) extends VonSimUI {
     }
 
   }
+  
   compile()
   
   def compile() {
+    println("Compiling..")
     val s=editorUI.editor.getSession()
     val codeString = editorUI.editor.getValue()
-    val instructions=Compiler(codeString)
+    val compilation=Compiler(codeString)
     //mainboardUI.console.textContent=instructions.mkString("\n")
-    val errors=instructions.filter(_.isLeft).map(_.left.get)
-    val annotations=errors.map(e => {
-      e match{
-        case LexerError(l:Location,m:String) => Annotation(l.line.toDouble-1,l.column.toDouble,m,"Lexer Error")
-        case ParserError(l:Location,m:String) =>Annotation(l.line.toDouble-1,l.column.toDouble,m,"Parser Error")
+    compilation match {
+      case Left(f) =>{
+        println("Errors compiling")
+        println(f.instructions.mkString("\n")) 
+        val errors=f.instructions.lefts
+        val annotations=errors.map(e => {
+          e match{
+            case LexerError(l:Location,m:String) => Annotation(l.line.toDouble-1,l.column.toDouble,m,"Lexer Error")
+            case ParserError(l:Location,m:String) =>Annotation(l.line.toDouble-1,l.column.toDouble,m,"Parser Error")
+            case SemanticError(l:Location,m:String) =>Annotation(l.line.toDouble-1,l.column.toDouble,m,"Semantic Error")
+          }
+          
+        })
+        val a =annotations.toJSArray//.map(_.asInstanceOf[Annotation])
+        //println(a)
+        s.setAnnotations(a)
+        
+    //    println(errors)
+        val errorLines= errors.map(_.location.line.toDouble-1).toJSArray
+        val rows=s.getLength().toInt
+        (0 until rows).foreach(l=> s.removeGutterDecoration(l, "ace_error "))
+        errorLines.foreach(l=> s.addGutterDecoration(l, "ace_error "))
       }
-      
-    })
-    val a =annotations.toJSArray//.map(_.asInstanceOf[Annotation])
-    //println(a)
-    s.setAnnotations(a)
+      case Right(f) =>{ println("Everything compiled fine") } 
+    }
     
-//    println(errors)
-    val errorLines= errors.map(_.location.line.toDouble-1).toJSArray
-    val rows=s.getLength().toInt
-    (0 until rows).foreach(l=> s.removeGutterDecoration(l, "ace_error "))
-    errorLines.foreach(l=> s.addGutterDecoration(l, "ace_error "))
+    
+    
     
   }
 
