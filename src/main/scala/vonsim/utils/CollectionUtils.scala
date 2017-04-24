@@ -4,6 +4,23 @@ object CollectionUtils {
   
   implicit class EitherList[A,B,C](a:List[Either[A,B]]){
     
+      def mapRightEither(f:B => Either[A,C]):List[Either[A,C]]={
+        a.map(x => 
+            if (x.isLeft){ 
+              Left(x.left.get)
+            }else{ 
+              f.apply(x.right.get)
+            }
+        )
+      }
+      def allRight={
+        val b=a.map(_.isRight).forall(identity)
+        b
+      }
+      def allLeft={
+        val b=a.map(_.isLeft).forall(identity)
+        b
+      }
       def mapRight(f:B => C):List[Either[A,C]]={
             
         a.map(x => 

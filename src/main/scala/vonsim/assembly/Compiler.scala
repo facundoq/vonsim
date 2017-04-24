@@ -9,6 +9,8 @@ import vonsim.simulator
 import vonsim.simulator._
 import vonsim.assembly.parser.ZeroAry
 import vonsim.utils.CollectionUtils._
+import vonsim.assembly.parser.ExecutableInstruction
+import vonsim.assembly.parser.LabeledInstruction
 
 sealed trait CompilationError{
   def location:Location
@@ -63,7 +65,7 @@ object Compiler {
     
     compilation  
     // TODO change return type to include a list of global errors /(like not having an end) and warnings
-    // TODO change return type to include memory that has to be set (for variable initializations)
+
   }
   
   def transformToSimulatorInstructions(instructions:ParsingResult): CompilationResult ={
@@ -74,54 +76,52 @@ object Compiler {
     val globalErrors=mutable.ListBuffer[GlobalError]()
     
     // check and remove final end
-    if (instructions.last.isRight && instructions.last.right.get.isInstanceOf[parser.End]){
-      ins=instructions.dropRight(1)
-    }else{
+    if (!(instructions.last.isRight && instructions.last.right.get.isInstanceOf[parser.End])){
       globalErrors+=GlobalError(Option.empty,"Missing END statment")
     }
-    // check that no more ENDs are around
-    ins=ins.map(_ match {
-      case Right(i)=>{
-        i match {
-          case end:parser.End => Left(SemanticError(Location(end.pos.line),"There should be only one END, and it should be the last instruction."))
-          case other => Right(other)
-        }
-      } 
-      case Left(x) => Left(x)
-    }
-    )
+    ins=checkRepeatedEnds(ins)
+    ins=checkRepeatedLabels(ins)
+    ins=checkFirstOrgBeforeInstructionsWithAddress(ins)
     
-    //TODO process EQU statements
-    //TODO check duplicate EQU definitions
-    val equ=Map[String,Int]()
-    //The first ORG should come before the first instruction with address
-    ins=detectRepeatedLabels(ins)
-    ins=invalidateInstructionsWithoutAddress(ins)
+    val equ=ins.collect({case Right(x:parser.EQU) => (x.label,x.value)}).toMap
     
-    val (unlabeledInstructions, labelToLine) = unlabelInstructions(ins)
+    val (vardefLabelToLine, jumpLabelToLine)=getLabelToLineMappings(ins)
+    val unlabeledInstructions = unlabelInstructions(ins)
     
     // TODO build a db of information before
-    val (memory,lineToAddress) = getMemoryLayout(unlabeledInstructions,labelToLine)
+    val (memory,vardefLineToAddress,executableLineToAddress) = getMemoryLayout(unlabeledInstructions)
     
-    val labelToAddress=Map[String,MemoryAddress]("hola" -> 123,"HOLA"->2345)
+    val vardefLabelToAddress=vardefLabelToLine filter{case (label,line) => vardefLineToAddress.keySet.contains(line)} map { case (x,y) => (x,vardefLineToAddress(y))}
+    
+    //val labelToAddress=Map[String,MemoryAddress]("hola" -> 123,"HOLA"->2345)
     val warnings=List[Warning]()
     
     
-    // TODO check duplicate definitions
-    
     //TODO process variable declaration statements
 
-    val r=unlabeledInstructions.map(x =>
-      if (x.isLeft) Left(x.left.get) else parserToSimulator(x.right.get,labelToAddress)
-    )
-    if (r.map(_.isRight).forall(identity)){
-      val addressToInstruction=r.rights.map(i => (lineToAddress(i.line),i) ).toMap
+    val r=unlabeledInstructions.mapRightEither(x => parserToSimulator(x,vardefLabelToAddress))
+    if (r.allRight){
+      val addressToInstruction=r.rights.collect{ case x:ExecutableInstruction => (executableLineToAddress(x.line),x) } toMap
+
       Right(new SuccessfulCompilation(addressToInstruction,memory,warnings))
     }else{
       Left(new FailedCompilation(r,globalErrors.toList))
     }
   }
-  def detectRepeatedLabels(ins:ParsingResult)={
+  def checkRepeatedEnds(ins:ParsingResult)={
+    val lastLine=ins.last.fold(_.location.line, _.pos.line)
+    ins.mapRightEither(_ match {
+          case end:parser.End => {
+            if (end.pos.line<lastLine){ // 
+              Left(SemanticError(Location(end.pos.line),"There should be only one END, and it should be the last instruction."))
+            }else{ // leave End if it is the last instruction
+              Right(end)              
+            }
+          }
+          case other => Right(other) 
+    })
+  }
+  def checkRepeatedLabels(ins:ParsingResult)={
 //    val jumpLabels=ins.rights.collect{ case x:parser.LabeledInstruction => (x.label,x.pos.line) }
 //    val memoryLabels=ins.rights.collect{ case x:parser.VarDef => (x.label,x.pos.line) }
 //    val equLabels=ins.rights.collect{ case x:parser.EQU => (x.label,x.pos.line) }
@@ -129,21 +129,21 @@ object Compiler {
     val labels=ins.rights.collect{ case x:parser.LabelDefinition => x.label}
     val labelCounts=mutable.Map[String,Int]()
     labels.foreach(label => labelCounts(label)=labelCounts.getOrElse(label, 0)+1 )
-    ins.map(_ match {
-      case Left(x) => Left(x)
-      case Right(x:parser.LabelDefinition) => {
+    
+    ins.mapRightEither(_ match {
+      case x:parser.LabelDefinition => {
         if(labelCounts(x.label)>1)  {
           Left(new SemanticError(Location(x.pos.line),s"Label ${x.label} has multiple definitions"))
         }else{
           Right(x)
         }
       }
-      case Right(x) => Right(x)
+      case x => Right(x)
     })
 
     
   }
-  def invalidateInstructionsWithoutAddress(ins:ParsingResult)={
+  def checkFirstOrgBeforeInstructionsWithAddress(ins:ParsingResult)={
     val firstOrg =ins.indexWhere(x => x.isRight && x.right.get.isInstanceOf[parser.Org])
     ins.zipWithIndex.map { case (e,i) =>
         e match{
@@ -159,31 +159,38 @@ object Compiler {
     }
   }
   
-  def getMemoryLayout(unlabeledInstructions:ParsingResult,labelToLine:Map[String,Int])={
+  def getMemoryLayout(unlabeledInstructions:ParsingResult)={
     val memory=Map[MemoryAddress,Int]()
-    val lineToAddress=Map[Line,MemoryAddress]()
+    val vardefLineToAddress=Map[Line,MemoryAddress]()
+    val executableLineToAddress=Map[Line,MemoryAddress]()
     
-    (memory,lineToAddress) 
+    (memory,vardefLineToAddress,executableLineToAddress) 
   }
-  def unlabelInstructions(instructions:ParsingResult):(ParsingResult,Map[String,Line])={
-    val labelToLine=mutable.Map[String,Line]()
+  def getLabelToLineMappings(instructions:ParsingResult):(Map[String,Line],Map[String,Line])={
+    val vardefLabelToLine=mutable.Map[String,Line]()
+    val jumpLabelToLine=mutable.Map[String,Line]()
     
-    val unlabeledInstructions=instructions.map( i =>
-      if (i.isLeft){
-        i
-      }else{
-        i.right.get match {
+    val unlabeledInstructions=instructions.rights.foreach(
+        _ match {
           case li:parser.LabeledInstruction => {
-            labelToLine(li.label)=li.pos.line
-            Right(li.i)
+            jumpLabelToLine(li.label)=li.pos.line
+            li.i
           }
-          case other => Right(other) 
+          case v:VarDefInstruction => {
+            vardefLabelToLine(v.label)=v.pos.line
+            v
+          }
         }
         
-      }
     )
-    
-    (unlabeledInstructions,labelToLine.toMap)
+    (vardefLabelToLine.toMap,jumpLabelToLine.toMap)
+  }
+  def unlabelInstructions(instructions:ParsingResult):ParsingResult={
+
+    instructions.mapRight(_ match {
+      case li:parser.LabeledInstruction => li.i
+      case other=>other
+    })
   }
    
   

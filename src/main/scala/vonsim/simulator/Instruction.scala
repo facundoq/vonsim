@@ -13,10 +13,13 @@ abstract class EquInstruction
 case class EquWord(label:String,value:Word) extends EquInstruction
 case class EquDWord(label:String,value:DWord) extends EquInstruction
 
-abstract class VarDefInstruction extends Instruction
+abstract class VarDefInstruction extends Instruction{
+  def label:String
+  def address:Int
+}
 
 case class WordDef(label:String,address:Int,values:List[Word]) extends VarDefInstruction
-case class DWordDef(label:String,address:Int,values:List[Word]) extends VarDefInstruction
+case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefInstruction
 
 case class Mov(binaryOperands:BinaryOperands) extends Instruction
 case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends Instruction
