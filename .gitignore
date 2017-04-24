@@ -19,6 +19,9 @@ project/plugins/project/
 .cache_main
 .cache_tests
 
+#scala-js stuff
+node_modules/
+
 #eclipse stuff
 
 .classpath
