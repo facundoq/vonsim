@@ -94,28 +94,16 @@ object Compiler {
     //TODO process EQU statements
     //TODO check duplicate EQU definitions
     val equ=Map[String,Int]()
-    //TODO check starting ORG
-    val firstOrg =ins.indexWhere(x => x.isRight && x.right.get.isInstanceOf[parser.Org])
-    ins.zipWithIndex.map { case (e,i) =>
-        e match{
-          case Left(x) => Left(x)
-          case Right(x) => {
-            if (i<firstOrg ) {
-              //TODO finish
-            }else{
-              Right(x)
-            }
-          }
-        }
-      
-    }
-    
+    //The first ORG should come before the first instruction with address
+    ins=detectRepeatedLabels(ins)
+    ins=invalidateInstructionsWithoutAddress(ins)
     
     val (unlabeledInstructions, labelToLine) = unlabelInstructions(ins)
     
     // TODO build a db of information before
     val (memory,lineToAddress) = getMemoryLayout(unlabeledInstructions,labelToLine)
     
+    val labelToAddress=Map[String,MemoryAddress]("hola" -> 123,"HOLA"->2345)
     val warnings=List[Warning]()
     
     
@@ -124,7 +112,7 @@ object Compiler {
     //TODO process variable declaration statements
 
     val r=unlabeledInstructions.map(x =>
-      if (x.isLeft) Left(x.left.get) else parserToSimulator(x.right.get)
+      if (x.isLeft) Left(x.left.get) else parserToSimulator(x.right.get,labelToAddress)
     )
     if (r.map(_.isRight).forall(identity)){
       val addressToInstruction=r.rights.map(i => (lineToAddress(i.line),i) ).toMap
@@ -133,10 +121,47 @@ object Compiler {
       Left(new FailedCompilation(r,globalErrors.toList))
     }
   }
+  def detectRepeatedLabels(ins:ParsingResult)={
+//    val jumpLabels=ins.rights.collect{ case x:parser.LabeledInstruction => (x.label,x.pos.line) }
+//    val memoryLabels=ins.rights.collect{ case x:parser.VarDef => (x.label,x.pos.line) }
+//    val equLabels=ins.rights.collect{ case x:parser.EQU => (x.label,x.pos.line) }
+//    val labels=jumpLabels++memoryLabels++equLabels
+    val labels=ins.rights.collect{ case x:parser.LabelDefinition => x.label}
+    val labelCounts=mutable.Map[String,Int]()
+    labels.foreach(label => labelCounts(label)=labelCounts.getOrElse(label, 0)+1 )
+    ins.map(_ match {
+      case Left(x) => Left(x)
+      case Right(x:parser.LabelDefinition) => {
+        if(labelCounts(x.label)>1)  {
+          Left(new SemanticError(Location(x.pos.line),s"Label ${x.label} has multiple definitions"))
+        }else{
+          Right(x)
+        }
+      }
+      case Right(x) => Right(x)
+    })
+
+    
+  }
+  def invalidateInstructionsWithoutAddress(ins:ParsingResult)={
+    val firstOrg =ins.indexWhere(x => x.isRight && x.right.get.isInstanceOf[parser.Org])
+    ins.zipWithIndex.map { case (e,i) =>
+        e match{
+          case Left(x) => Left(x)
+          case Right(x) => {
+            if ((i<firstOrg ) && (!x.isInstanceOf[parser.NonAddressableInstruction])) {
+              Left(new SemanticError(Location(x.pos.line),"No ORG before this instruction; cannot determine memory address."))
+            }else{
+              Right(x)
+            }
+          }
+        }
+    }
+  }
+  
   def getMemoryLayout(unlabeledInstructions:ParsingResult,labelToLine:Map[String,Int])={
     val memory=Map[MemoryAddress,Int]()
     val lineToAddress=Map[Line,MemoryAddress]()
-    
     
     (memory,lineToAddress) 
   }
@@ -163,31 +188,53 @@ object Compiler {
    
   
   
-  def parserToSimulator(i:parser.Instruction):Either[CompilationError,simulator.InstructionInfo] = {
+  def parserToSimulator(i:parser.Instruction,labelToAddress:Map[String,MemoryAddress]):Either[CompilationError,simulator.InstructionInfo] = {
     val zeroary=Map(parser.Popf() -> Popf
                     ,parser.Pushf() -> Pushf
                     ,parser.Hlt() -> Hlt
                     ,parser.Nop() -> Nop
                     ,parser.IRet() -> Iret
                     ,parser.Ret() -> Ret
-                    ,parser.Cli() -> Sti
-                    ,parser.Sti() -> Cli
+                    ,parser.Cli() -> Cli
+                    ,parser.Sti() -> Sti
                     ,parser.End() -> End
                     )  
     i match{
       case x:ZeroAry => Right(new InstructionInfo(x.pos.line,zeroary(x)))
       case x:parser.IntN => Right( new InstructionInfo(x.pos.line,IntN(WordValue(x.n))))
+      case x:parser.Org => Right( new InstructionInfo(x.pos.line,Org(x.dir)))
+      case x:parser.Jump => { 
+        if (labelToAddress.keySet.contains(x.label)){
+          Right( new InstructionInfo(x.pos.line,x match{
+            case x:parser.ConditionalJump => ConditionalJump(labelToAddress(x.label),jumpConditions(x.op))
+            case x:parser.Call => Call(labelToAddress(x.label))
+            case x:parser.UnconditionalJump => Jump(labelToAddress(x.label))
+          }))
+        }else{
+          Left(new SemanticError(new Location(x.pos.line,x.pos.column),s"Label ${x.label} undefined"))
+        }
+      }
       case x:parser.Stack => Right( new InstructionInfo(x.pos.line,x.i match {
         case st:lexer.POP => Pop( fullRegisters(x.r))
         case st:lexer.PUSH => Push( fullRegisters(x.r))
         }))
         
-      case other => Left(new SemanticError(new Location(other.pos.line,other.pos.column),"Not Supported"))
+      case other => Left(new SemanticError(new Location(other.pos.line,other.pos.column),"Not Supported:"+other))
                         
     }
     
   }
   
+  val jumpConditions=Map(
+      lexer.JC() -> JC
+      ,lexer.JNC() -> JNC
+      ,lexer.JZ() -> JZ
+      ,lexer.JNZ() -> JNZ
+      ,lexer.JO() -> JO
+      ,lexer.JNO() -> JNO
+      ,lexer.JS() -> JS
+      ,lexer.JNS() -> JNS
+      )
   val fullRegisters=Map(
        lexer.AX() -> AX
       ,lexer.BX() -> BX

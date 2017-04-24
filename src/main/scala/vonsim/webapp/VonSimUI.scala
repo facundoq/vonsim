@@ -73,12 +73,13 @@ class MainUI(defaultCode: String) extends VonSimUI {
       case Left(f) =>{
         println("Errors compiling")
         println(f.instructions.mkString("\n")) 
-        val errors=f.instructions.lefts
-        val annotations=errors.map(e => {
+        
+        val annotations=f.instructions.map(e => {
           e match{
-            case LexerError(l:Location,m:String) => Annotation(l.line.toDouble-1,l.column.toDouble,m,"Lexer Error")
-            case ParserError(l:Location,m:String) =>Annotation(l.line.toDouble-1,l.column.toDouble,m,"Parser Error")
-            case SemanticError(l:Location,m:String) =>Annotation(l.line.toDouble-1,l.column.toDouble,m,"Semantic Error")
+            case Left(LexerError(l:Location,m:String)) => Annotation(l.line.toDouble-1,l.column.toDouble,m,"Lexer Error")
+            case Left(ParserError(l:Location,m:String)) =>Annotation(l.line.toDouble-1,l.column.toDouble,m,"Parser Error")
+            case Left(SemanticError(l:Location,m:String)) =>Annotation(l.line.toDouble-1,l.column.toDouble,m,"Semantic Error")
+            case Right(x) => Annotation(x.line.toDouble-1,0.toDouble,x.instruction.toString(),"Correct Instruction")            
           }
           
         })
@@ -86,13 +87,20 @@ class MainUI(defaultCode: String) extends VonSimUI {
         //println(a)
         s.setAnnotations(a)
         
-    //    println(errors)
+
+        val errors=f.instructions.lefts
+            //    println(errors)
         val errorLines= errors.map(_.location.line.toDouble-1).toJSArray
         val rows=s.getLength().toInt
         (0 until rows).foreach(l=> s.removeGutterDecoration(l, "ace_error "))
         errorLines.foreach(l=> s.addGutterDecoration(l, "ace_error "))
       }
-      case Right(f) =>{ println("Everything compiled fine") } 
+      case Right(f) =>{ 
+        println("Everything compiled fine")
+        val annotations=f.instructions.values.map(e => { Annotation(e.line.toDouble-1,0.toDouble,e.instruction.toString(),"Correct Instruction")})
+        s.setAnnotations(annotations.toJSArray)
+        
+      } 
     }
     
     
