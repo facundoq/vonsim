@@ -11,6 +11,7 @@ import vonsim.assembly.parser.ZeroAry
 import vonsim.utils.CollectionUtils._
 import vonsim.assembly.parser.ExecutableInstruction
 import vonsim.assembly.parser.LabeledInstruction
+import vonsim.assembly.parser.ExecutableInstruction
 
 sealed trait CompilationError{
   def location:Location
@@ -159,12 +160,40 @@ object Compiler {
     }
   }
   
-  def getMemoryLayout(unlabeledInstructions:ParsingResult)={
-    val memory=Map[MemoryAddress,Int]()
-    val vardefLineToAddress=Map[Line,MemoryAddress]()
-    val executableLineToAddress=Map[Line,MemoryAddress]()
+  def getMemoryLayout(instructions:ParsingResult)={
+    val memory=mutable.Map[MemoryAddress,Int]()
+    val vardefLineToAddress=mutable.Map[Line,MemoryAddress]()
+    val executableLineToAddress=mutable.Map[Line,MemoryAddress]()
+    val correctInstructions=instructions.rights
+    val firstOrgIndex=correctInstructions.indexWhere(_.isInstanceOf[parser.Org])
+    if (firstOrgIndex>=0){
+      val firstOrg=correctInstructions(firstOrgIndex).asInstanceOf[parser.Org]
+      var address=firstOrg.dir
+      correctInstructions.indices.foreach(i =>
+        correctInstructions(i) match{
+        case x:ExecutableInstruction =>{
+          executableLineToAddress(x.pos.line)=address
+          address+=Simulator.instructionSize
+        }
+        case x:VarDefInstruction =>{
+          executableLineToAddress(x.pos.line)=address
+          x.values.foreach(v=>{
+            v match {
+              case w:Word => memory(address)=w.toInt
+              case dw:DWord => { 
+                memory(address)=dw.l
+                memory(address+1)=dw.h
+                }
+            }
+            address+=v.bytes  
+          })
+          
+        }
+       } 
+      )  
+    }
     
-    (memory,vardefLineToAddress,executableLineToAddress) 
+    (memory.toMap,vardefLineToAddress.toMap,executableLineToAddress.toMap) 
   }
   def getLabelToLineMappings(instructions:ParsingResult):(Map[String,Line],Map[String,Line])={
     val vardefLabelToLine=mutable.Map[String,Line]()

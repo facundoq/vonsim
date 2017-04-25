@@ -16,10 +16,20 @@ case class EquDWord(label:String,value:DWord) extends EquInstruction
 abstract class VarDefInstruction extends Instruction{
   def label:String
   def address:Int
+  def bytes:Int
+  def values:List[ComputerWord]
 }
 
-case class WordDef(label:String,address:Int,values:List[Word]) extends VarDefInstruction
-case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefInstruction
+case class WordDef(label:String,address:Int,val values:List[Word]) extends VarDefInstruction{
+  def bytes()={
+    values.length*values.last.bytes  
+  }
+}
+case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefInstruction{
+  def bytes()={
+    values.length*values.last.bytes  
+  }
+}
 
 case class Mov(binaryOperands:BinaryOperands) extends Instruction
 case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends Instruction
