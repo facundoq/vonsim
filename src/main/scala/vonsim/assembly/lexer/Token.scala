@@ -132,12 +132,13 @@ case class AX() extends FullRegisterToken with IORegister
 case class BX() extends FullRegisterToken
 case class CX() extends FullRegisterToken
 case class DX() extends FullRegisterToken with IOAddress
-trait LowRegisterToken extends RegisterToken
+trait HalfRegisterToken extends RegisterToken
+trait LowRegisterToken extends HalfRegisterToken
 case class AL() extends LowRegisterToken with IORegister
 case class BL() extends LowRegisterToken
 case class CL() extends LowRegisterToken
 case class DL() extends LowRegisterToken
-trait HighRegisterToken extends RegisterToken
+trait HighRegisterToken extends HalfRegisterToken
 case class AH() extends HighRegisterToken
 case class BH() extends HighRegisterToken
 case class CH() extends HighRegisterToken

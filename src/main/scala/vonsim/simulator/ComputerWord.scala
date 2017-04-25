@@ -4,6 +4,17 @@ import ComputerWord._
 
 object ComputerWord {
   
+  // Minimum number of bytes to encode a number
+  def bytesFor(x:Int)={
+    var n=x
+    var bytes=0
+    while (n!=0){
+      bytes+=1
+      n= n >>> bitsPerByte
+    }
+    bytes
+  }
+  
   def bitsPerByte=8
   
   def unsignedToSignedByte(n: Int) = {

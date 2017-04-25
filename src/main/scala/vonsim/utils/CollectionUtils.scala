@@ -2,6 +2,11 @@ package vonsim.utils
 
 object CollectionUtils {
   
+  implicit class BetterEither[A,B,C](a:Either[A,B]){
+
+      
+  }
+  
   implicit class EitherList[A,B,C](a:List[Either[A,B]]){
     
       def mapRightEither(f:B => Either[A,C]):List[Either[A,C]]={
