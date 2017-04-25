@@ -22,8 +22,8 @@ class SimulatorSuite extends FunSuite {
   
   test("3+2=5 register") {
     val instructions=List(
-       new Mov(new DWordRegisterDirect(AX,new DWordValue(3)))
-       ,new ALUBinary(ADD,new DWordRegisterDirect(AX,new DWordValue(2)))
+       new Mov(new DWordRegisterValue(AX,new DWordValue(3)))
+       ,new ALUBinary(ADD,new DWordRegisterValue(AX,new DWordValue(2)))
        ,Hlt
        )
     val s=simulator(instructions)
@@ -37,8 +37,8 @@ class SimulatorSuite extends FunSuite {
   test("3+2=5 memory") {
     val address=20
     val instructions=List(
-       new Mov(new DWordMemoryDirect(DWordMemoryAddress(address),new DWordValue(3)))
-       ,new ALUBinary(ADD,new DWordMemoryDirect(DWordMemoryAddress(address),new DWordValue(2)))
+       new Mov(new DWordMemoryValue(DWordMemoryAddress(address),new DWordValue(3)))
+       ,new ALUBinary(ADD,new DWordMemoryValue(DWordMemoryAddress(address),new DWordValue(2)))
        ,Hlt
        )
     val s=simulator(instructions)
@@ -54,7 +54,7 @@ class SimulatorSuite extends FunSuite {
   test("3+3=6 memory/register") {
     val address=20
     val instructions=List(
-       new Mov(new DWordRegisterDirect(AX,new DWordValue(3)))
+       new Mov(new DWordRegisterValue(AX,new DWordValue(3)))
        ,new Mov(new DWordMemoryRegister(DWordMemoryAddress(address),AX))
        ,new ALUBinary(ADD,new DWordMemoryRegister(DWordMemoryAddress(address),AX))
        ,Hlt
@@ -74,7 +74,7 @@ class SimulatorSuite extends FunSuite {
    test("3+1=4") {
     val address=0x1000
     val instructions=List(
-       new Mov(new DWordMemoryDirect(DWordMemoryAddress(address),new DWordValue(3)))
+       new Mov(new DWordMemoryValue(DWordMemoryAddress(address),new DWordValue(3)))
        ,new ALUUnary(INC,new DWordMemoryAddress(address))
        ,Hlt
        )
@@ -90,7 +90,7 @@ class SimulatorSuite extends FunSuite {
    
   test("3-1=2") {
     val instructions=List(
-       new Mov(new DWordRegisterDirect(AX,new DWordValue(3)))
+       new Mov(new DWordRegisterValue(AX,new DWordValue(3)))
        ,new ALUUnary(DEC,AX)
        ,Hlt
        )
@@ -108,9 +108,9 @@ class SimulatorSuite extends FunSuite {
    test("push pop") {
 
     val instructions=List(
-       new Mov(new DWordRegisterDirect(AX,new DWordValue(3)))
+       new Mov(new DWordRegisterValue(AX,new DWordValue(3)))
        ,new Push(AX)
-       ,new Mov(new DWordRegisterDirect(AX,new DWordValue(5)))
+       ,new Mov(new DWordRegisterValue(AX,new DWordValue(5)))
        ,new Push(AX)
        ,new Pop(DX)
        ,new Pop(CX)
@@ -144,10 +144,10 @@ class SimulatorSuite extends FunSuite {
     val v1=Word(5)
     val v2=Word(15)
     val instructions=List(
-       new Mov(new WordRegisterDirect(AL,new WordValue(v0.toInt)))
-       , new ALUBinary(CMP,new WordRegisterDirect(AL,new WordValue(v0.toInt)))
-       , new ALUBinary(CMP,new WordRegisterDirect(AL,new WordValue(v1.toInt)))
-       , new ALUBinary(CMP,new WordRegisterDirect(AL,new WordValue(v2.toInt)))
+       new Mov(new WordRegisterValue(AL,new WordValue(v0.toInt)))
+       , new ALUBinary(CMP,new WordRegisterValue(AL,new WordValue(v0.toInt)))
+       , new ALUBinary(CMP,new WordRegisterValue(AL,new WordValue(v1.toInt)))
+       , new ALUBinary(CMP,new WordRegisterValue(AL,new WordValue(v2.toInt)))
        ,Hlt
        )
     val flagsWithSandC=new Flags(true,true,false,false)
@@ -185,10 +185,10 @@ class SimulatorSuite extends FunSuite {
     val r4=Word("11011010")
     
     val instructions=List(
-       new Mov(new WordRegisterDirect(AL,new WordValue(v0.toInt)))
-       , new ALUBinary(OR,new WordRegisterDirect(AL,new WordValue(v1.toInt)))
-       , new ALUBinary(AND,new WordRegisterDirect(AL,new WordValue(v2.toInt)))
-       , new ALUBinary(XOR,new WordRegisterDirect(AL,new WordValue(v3.toInt)))
+       new Mov(new WordRegisterValue(AL,new WordValue(v0.toInt)))
+       , new ALUBinary(OR,new WordRegisterValue(AL,new WordValue(v1.toInt)))
+       , new ALUBinary(AND,new WordRegisterValue(AL,new WordValue(v2.toInt)))
+       , new ALUBinary(XOR,new WordRegisterValue(AL,new WordValue(v3.toInt)))
        , new ALUUnary(NOT,AL)
        ,Hlt
        )
@@ -249,7 +249,7 @@ class SimulatorSuite extends FunSuite {
     val jumpAddress=baseAddress+Simulator.instructionSize
     val instructions=List(
        new Jump(jumpAddress)
-       ,new Mov(new WordRegisterDirect(AL,new WordValue(2)))
+       ,new Mov(new WordRegisterValue(AL,new WordValue(2)))
        ,Hlt
        )
        
@@ -271,9 +271,9 @@ class SimulatorSuite extends FunSuite {
     val jumpAddress=baseAddress+ (Simulator.instructionSize*3)
     val instructions=List(
        new Jump(jumpAddress)
-       ,new Mov(new WordRegisterDirect(AL,new WordValue(1)))
-       ,new Mov(new WordRegisterDirect(AL,new WordValue(2)))
-       ,new Mov(new WordRegisterDirect(AL,new WordValue(3)))
+       ,new Mov(new WordRegisterValue(AL,new WordValue(1)))
+       ,new Mov(new WordRegisterValue(AL,new WordValue(2)))
+       ,new Mov(new WordRegisterValue(AL,new WordValue(3)))
        ,Hlt
        )
        
@@ -297,15 +297,15 @@ class SimulatorSuite extends FunSuite {
     val jumpAddressZ=baseAddress+ (Simulator.instructionSize*6)
     val jumpAddressEnd=baseAddress+ (Simulator.instructionSize*9)
     val instructions=List(
-        new Mov(new WordRegisterDirect(AL,new WordValue(1)))
-       ,new ALUBinary(CMP,new WordRegisterDirect(AL,new WordValue(1)))
+        new Mov(new WordRegisterValue(AL,new WordValue(1)))
+       ,new ALUBinary(CMP,new WordRegisterValue(AL,new WordValue(1)))
        ,new ConditionalJump(jumpAddressNZ,JNZ)
        ,new ConditionalJump(jumpAddressZ,JZ)
-        ,new Mov(new WordRegisterDirect(AL,new WordValue(2)))
+        ,new Mov(new WordRegisterValue(AL,new WordValue(2)))
        ,new Jump(jumpAddressEnd)
-        ,new Mov(new WordRegisterDirect(AL,new WordValue(3)))
+        ,new Mov(new WordRegisterValue(AL,new WordValue(3)))
         ,new Jump(jumpAddressEnd)
-       ,new Mov(new WordRegisterDirect(AL,new WordValue(4)))
+       ,new Mov(new WordRegisterValue(AL,new WordValue(4)))
        ,Hlt
        )
        
@@ -336,13 +336,13 @@ class SimulatorSuite extends FunSuite {
     val jumpAddress=baseAddress+Simulator.instructionSize*6
     val returnAddress=baseAddress+Simulator.instructionSize*2
     val instructions=List(
-        new Mov(new WordRegisterDirect(AL,new WordValue(1)))
+        new Mov(new WordRegisterValue(AL,new WordValue(1)))
        ,new Call(jumpAddress)
-       ,new Mov(new WordRegisterDirect(AL,new WordValue(2)))
+       ,new Mov(new WordRegisterValue(AL,new WordValue(2)))
        ,Hlt
        ,Nop
        ,Nop
-       ,new Mov(new WordRegisterDirect(AL,new WordValue(3)))
+       ,new Mov(new WordRegisterValue(AL,new WordValue(3)))
        ,Nop
        ,Ret
        )

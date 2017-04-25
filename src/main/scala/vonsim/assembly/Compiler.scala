@@ -11,6 +11,8 @@ import vonsim.assembly.parser.ZeroAry
 import vonsim.utils.CollectionUtils._
 import vonsim.assembly.parser.ExecutableInstruction
 import vonsim.assembly.parser.LabeledInstruction
+import scala.util.parsing.input.Positional
+import vonsim.assembly.lexer.VarType
 
 sealed trait CompilationError{
   def location:Location
@@ -93,13 +95,13 @@ object Compiler {
     
     val vardefLabelToAddress=vardefLabelToLine filter{case (label,line) => vardefLineToAddress.keySet.contains(line)} map { case (x,y) => (x,vardefLineToAddress(y))}
     
-    //val labelToAddress=Map[String,MemoryAddress]("hola" -> 123,"HOLA"->2345)
+    val vardefLabelToType=Map[String,VarType]()
     val warnings=List[Warning]()
     
     
     //TODO process variable declaration statements
-
-    val r=unlabeledInstructions.mapRightEither(x => parserToSimulator(x,vardefLabelToAddress))
+    
+    val r=unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,vardefLabelToType,vardefLabelToAddress))
     if (r.allRight){
       val addressToInstruction=r.rights.collect{ case x:ExecutableInstruction => (executableLineToAddress(x.line),x) } toMap
 
@@ -113,7 +115,7 @@ object Compiler {
     ins.mapRightEither(_ match {
           case end:parser.End => {
             if (end.pos.line<lastLine){ // 
-              Left(SemanticError(Location(end.pos.line),"There should be only one END, and it should be the last instruction."))
+              semanticError(end,"There should be only one END, and it should be the last instruction.")
             }else{ // leave End if it is the last instruction
               Right(end)              
             }
@@ -122,10 +124,6 @@ object Compiler {
     })
   }
   def checkRepeatedLabels(ins:ParsingResult)={
-//    val jumpLabels=ins.rights.collect{ case x:parser.LabeledInstruction => (x.label,x.pos.line) }
-//    val memoryLabels=ins.rights.collect{ case x:parser.VarDef => (x.label,x.pos.line) }
-//    val equLabels=ins.rights.collect{ case x:parser.EQU => (x.label,x.pos.line) }
-//    val labels=jumpLabels++memoryLabels++equLabels
     val labels=ins.rights.collect{ case x:parser.LabelDefinition => x.label}
     val labelCounts=mutable.Map[String,Int]()
     labels.foreach(label => labelCounts(label)=labelCounts.getOrElse(label, 0)+1 )
@@ -133,7 +131,7 @@ object Compiler {
     ins.mapRightEither(_ match {
       case x:parser.LabelDefinition => {
         if(labelCounts(x.label)>1)  {
-          Left(new SemanticError(Location(x.pos.line),s"Label ${x.label} has multiple definitions"))
+          semanticError(x,s"Label ${x.label} has multiple definitions")
         }else{
           Right(x)
         }
@@ -150,7 +148,7 @@ object Compiler {
           case Left(x) => Left(x)
           case Right(x) => {
             if ((i<firstOrg ) && (!x.isInstanceOf[parser.NonAddressableInstruction])) {
-              Left(new SemanticError(Location(x.pos.line),"No ORG before this instruction; cannot determine memory address."))
+              semanticError(x,"No ORG before this instruction; cannot determine memory address.")
             }else{
               Right(x)
             }
@@ -195,7 +193,7 @@ object Compiler {
    
   
   
-  def parserToSimulator(i:parser.Instruction,labelToAddress:Map[String,MemoryAddress]):Either[CompilationError,simulator.InstructionInfo] = {
+  def parserToSimulatorInstruction(i:parser.Instruction,labelToType:Map[String,lexer.VarType],labelToAddress:Map[String,MemoryAddress]):Either[CompilationError,simulator.InstructionInfo] = {
     val zeroary=Map(parser.Popf() -> Popf
                     ,parser.Pushf() -> Pushf
                     ,parser.Hlt() -> Hlt
@@ -207,29 +205,92 @@ object Compiler {
                     ,parser.End() -> End
                     )  
     i match{
-      case x:ZeroAry => Right(new InstructionInfo(x.pos.line,zeroary(x)))
-      case x:parser.IntN => Right( new InstructionInfo(x.pos.line,IntN(WordValue(x.n))))
-      case x:parser.Org => Right( new InstructionInfo(x.pos.line,Org(x.dir)))
+      case x:ZeroAry => successfulTransformation(x,zeroary(x))
+      case x:parser.IntN => successfulTransformation(x,IntN(WordValue(x.n)))
+      case x:parser.Org => successfulTransformation(x,Org(x.dir))
       case x:parser.Jump => { 
         if (labelToAddress.keySet.contains(x.label)){
-          Right( new InstructionInfo(x.pos.line,x match{
+          successfulTransformation(x,x match{
             case x:parser.ConditionalJump => ConditionalJump(labelToAddress(x.label),jumpConditions(x.op))
             case x:parser.Call => Call(labelToAddress(x.label))
             case x:parser.UnconditionalJump => Jump(labelToAddress(x.label))
-          }))
+          })
         }else{
-          Left(new SemanticError(new Location(x.pos.line,x.pos.column),s"Label ${x.label} undefined"))
+          semanticError(x,s"Label ${x.label} undefined")
         }
       }
-      case x:parser.Stack => Right( new InstructionInfo(x.pos.line,x.i match {
+      case x:parser.Stack => successfulTransformation(x,x.i match {
         case st:lexer.POP => Pop( fullRegisters(x.r))
         case st:lexer.PUSH => Push( fullRegisters(x.r))
-        }))
-        
-      case other => Left(new SemanticError(new Location(other.pos.line,other.pos.column),"Not Supported:"+other))
+        })
+      case x:parser.Mov => 
+        parserToSimulatorBinaryOperands(x,x.m,x.v,labelToType,labelToAddress).right.flatMap(
+            op => successfulTransformation(x,Mov(op)))
+      case other => semanticError(other,"Not Supported:"+other)
                         
     }
     
+    
+  }
+  
+  def successfulTransformation[T](x:parser.Instruction,y:Instruction)={
+      Right[T,InstructionInfo](new InstructionInfo(x.pos.line,y))
+    }
+  def parserToSimulatorBinaryOperands(i:parser.Instruction,x:lexer.Mutable,y:lexer.Value,labelToType:Map[String,lexer.VarType],labelToAddress:Map[String,MemoryAddress]):Either[SemanticError,BinaryOperands]={
+    parserToSimulatorOperand(x,labelToType,labelToAddress).right.flatMap(o1 =>
+    parserToSimulatorOperand(y,labelToType,labelToAddress).right.flatMap(o2 =>
+    unaryOperandsToBinaryOperands(i,o1,o2) ))
+  }
+
+  def unaryOperandsToBinaryOperands(i:parser.Instruction,op1:UnaryOperand,op2:UnaryOperand):Either[SemanticError,BinaryOperands]={
+    (op1,op2) match {
+      case (r:FullRegister,x:FullRegister) => Right(DWordRegisterRegister(r,x))
+      case (r:HalfRegister,x:HalfRegister) => Right(WordRegisterRegister(r,x))
+      case (r:DWordMemoryAddress,x:FullRegister) => Right(DWordMemoryRegister(r,x))
+      case (r:WordMemoryAddress,x:HalfRegister) => Right(WordMemoryRegister(r,x))
+      case (r:WordMemoryAddress,x:WordValue) => Right(WordMemoryValue(r,x))
+      case (r:DWordMemoryAddress,x:WordValue) => Right(DWordMemoryValue(r,DWordValue(x.v)))
+      case (r:DWordMemoryAddress,x:DWordValue) => Right(DWordMemoryValue(r,x))
+      case (r:HalfRegister,x:WordValue) => Right(WordRegisterValue(r,x))
+      case (r:FullRegister,x:WordValue) => Right(DWordRegisterValue(r,DWordValue(x.v)))
+      case (r:FullRegister,x:DWordValue) => Right(DWordRegisterValue(r,x))
+      case (r:MemoryOperand,x:MemoryOperand) => semanticError(i,"Both operands access memory. Cannot read two memory locations in the same instruction.")
+      case other => semanticError(i,"Invalid operands.")
+    }
+    
+  }
+  def semanticError[T](p:Positional,message:String):Left[SemanticError,T]={
+    Left(new SemanticError(new Location(p.pos.line,p.pos.column),message))
+    
+  }
+  def parserToSimulatorOperand(op:lexer.Value,labelToType:Map[String,lexer.VarType],labelToAddress:Map[String,MemoryAddress]):Either[SemanticError,UnaryOperand]={
+      op match{
+        case x:lexer.IDENTIFIER => {
+          if (labelToType.keySet.contains(x.str)){
+            semanticError(op,s"Undefined identifier ${x.str}")
+          }else{
+            val varType=labelToType(x.str)
+            val varAddress=labelToAddress(x.str)
+            Right(varType match{
+              case lexer.DB() => WordMemoryAddress(varAddress)
+              case lexer.DW() => DWordMemoryAddress(varAddress)
+            })
+          }
+        }
+        case x:lexer.RegisterToken => Right(registers(x))
+        case x:lexer.LITERALINTEGER => {
+          ComputerWord.bytesFor(x.v) match{
+            case 1 => Right(WordValue(x.v))
+            case 2 => Right(DWordValue(x.v))
+            case _ => semanticError(x,s"The number ${x.v} cannot be represented with 8 or 16 bits")
+          }          
+        }
+        // TODO check for EQUs when literal strings appear
+        case x:lexer.LITERALSTRING => semanticError(x, s"Cannot use literal strings as inmediate operands (${x.str})")
+        
+        case x:lexer.INDIRECTBX => Right(WordIndirectMemoryAddress) 
+        
+      }
   }
   
   val jumpConditions=Map(
