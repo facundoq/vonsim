@@ -255,6 +255,15 @@ object Compiler {
       case x:parser.Mov => 
         parserToSimulatorBinaryOperands(x,x.m,x.v,labelToType,labelToAddress).right.flatMap(
             op => successfulTransformation(x,Mov(op)))
+      case x:parser.BinaryArithmetic => 
+        parserToSimulatorBinaryOperands(x,x.m,x.v,labelToType,labelToAddress).right.flatMap(
+            operands => successfulTransformation(x,ALUBinary(binaryOperations(x.op), operands)))      
+      case x:parser.UnaryArithmetic => 
+        parserToSimulatorOperand(x.m,labelToType,labelToAddress).right.flatMap(
+            _ match{
+              case operand:UnaryOperandUpdatable => successfulTransformation(x,ALUUnary(unaryOperations(x.op), operand))
+              case other => semanticError(x,s"Operand $other is not updatable") 
+            })
       case other => semanticError(other,"Not Supported:"+other)
                         
     }
@@ -275,14 +284,26 @@ object Compiler {
     (op1,op2) match {
       case (r:FullRegister,x:FullRegister) => Right(DWordRegisterRegister(r,x))
       case (r:HalfRegister,x:HalfRegister) => Right(WordRegisterRegister(r,x))
+      case (r:HalfRegister,x:WordValue) => Right(WordRegisterValue(r,x))
+      case (r:FullRegister,x:WordValue) => Right(DWordRegisterValue(r,DWordValue(x.v)))
+      case (r:FullRegister,x:DWordValue) => Right(DWordRegisterValue(r,x))
+      case (r:HalfRegister,x:WordMemoryAddress) => Right(WordRegisterMemory(r,x))
+      case (r:FullRegister,x:DWordMemoryAddress) => Right(DWordRegisterMemory(r,x))
+      case (r:HalfRegister,WordIndirectMemoryAddress) => Right(WordRegisterIndirectMemory(r,WordIndirectMemoryAddress))
+      case (r:FullRegister,DWordIndirectMemoryAddress) => Right(DWordRegisterIndirectMemory(r,DWordIndirectMemoryAddress))
+      
       case (r:DWordMemoryAddress,x:FullRegister) => Right(DWordMemoryRegister(r,x))
       case (r:WordMemoryAddress,x:HalfRegister) => Right(WordMemoryRegister(r,x))
       case (r:WordMemoryAddress,x:WordValue) => Right(WordMemoryValue(r,x))
       case (r:DWordMemoryAddress,x:WordValue) => Right(DWordMemoryValue(r,DWordValue(x.v)))
       case (r:DWordMemoryAddress,x:DWordValue) => Right(DWordMemoryValue(r,x))
-      case (r:HalfRegister,x:WordValue) => Right(WordRegisterValue(r,x))
-      case (r:FullRegister,x:WordValue) => Right(DWordRegisterValue(r,DWordValue(x.v)))
-      case (r:FullRegister,x:DWordValue) => Right(DWordRegisterValue(r,x))
+      
+      case (DWordIndirectMemoryAddress,x:DWordValue) => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress,x))
+      case (WordIndirectMemoryAddress,x:WordValue) => Right(WordIndirectMemoryValue(WordIndirectMemoryAddress,x))
+      case (DWordIndirectMemoryAddress,x:WordValue) => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress,DWordValue(x.v)))
+      case (DWordIndirectMemoryAddress,x:FullRegister) => Right(DWordIndirectMemoryRegister(DWordIndirectMemoryAddress,x))
+      case (WordIndirectMemoryAddress,x:HalfRegister) => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress,x))
+      
       case (r:MemoryOperand,x:MemoryOperand) => semanticError(i,"Both operands access memory. Cannot read two memory locations in the same instruction.")
       case other => semanticError(i,"Invalid operands.")
     }
@@ -306,6 +327,7 @@ object Compiler {
             })
           }
         }
+//        case x:lexer.SP => semanticError(x, s"Using SP as a register is not supported")
         case x:lexer.RegisterToken => Right(registers(x))
         case x:lexer.LITERALINTEGER => {
           ComputerWord.bytesFor(x.v) match{
@@ -316,8 +338,7 @@ object Compiler {
         }
         // TODO check for EQUs when literal strings appear
         case x:lexer.LITERALSTRING => semanticError(x, s"Cannot use literal strings as inmediate operands (${x.str})")
-        
-        case x:lexer.INDIRECTBX => Right(WordIndirectMemoryAddress) 
+        case x:lexer.INDIRECTBX => Right(DWordIndirectMemoryAddress)
         
       }
   }
@@ -337,6 +358,8 @@ object Compiler {
       ,lexer.BX() -> BX
       ,lexer.CX() -> CX
       ,lexer.DX() -> DX
+      ,lexer.SP() -> IP
+      ,lexer.IP() -> SP
       )
   val halfRegisters=Map(
          lexer.AL() -> AL
@@ -349,6 +372,22 @@ object Compiler {
         ,lexer.DH() -> DH
         )
   val registers = fullRegisters++halfRegisters
+  val binaryOperations= Map[lexer.BinaryArithmeticOp,ALUOpBinary](
+      lexer.ADD() -> ADD
+      ,lexer.ADC() -> ADC
+      ,lexer.SUB() -> SUB
+      ,lexer.SBB() -> SBB
+      ,lexer.XOR() -> XOR
+      ,lexer.OR() -> OR
+      ,lexer.AND() -> AND
+      ,lexer.CMP() -> CMP
+      )
+  val unaryOperations= Map[lexer.UnaryArithmeticOp,ALUOpUnary](
+      lexer.NOT() -> NOT
+      ,lexer.DEC() -> DEC
+      ,lexer.INC() -> INC
+      
+      )
   
 }
   

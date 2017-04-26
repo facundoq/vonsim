@@ -35,7 +35,7 @@ object Parser extends Parsers {
     (label ~ instruction) ^^{case LABEL(l) ~ (o:Instruction) => LabeledInstruction(l,o)}
   }
   def instruction = positioned{
-    zeroary | org | mov | jump  | arithmetic | cmp | io | intn | stack | vardef 
+    zeroary | org | mov | jump  | arithmetic | io | intn | stack | vardef 
   }
   def arithmetic= positioned {
     binaryArithmetic | unaryArithmetic 

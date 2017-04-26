@@ -237,10 +237,19 @@ class CPU {
   }
 
   def get(r: FullRegister): DWord = {
-    registers(r)
+    r match{
+      case SP => DWord(sp)
+      case IP => DWord(ip)
+      case other => registers(r)
+    }
   }
   def set(r: FullRegister, v: DWord) {
-    registers(r) = v
+    r match{
+      case SP => sp=v.toInt
+      case IP => ip=v.toInt
+      case other => registers(r) = v
+    }
+    
   }
 
   def get(r: HalfRegister): Word = {

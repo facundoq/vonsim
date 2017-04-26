@@ -17,7 +17,7 @@ object Token{
   def special = List(COMMA(),NEWLINE(),EMPTY())
   def keyword= List( END(),NOP(),RET(),HLT())
   def ops = List(ORG(),MOV(),CMP())++binaryArithmetic++unaryArithmetic
-  def binaryArithmetic = List(ADD(),ADC(),SUB(),SBB(),OR(),XOR(),AND())
+  def binaryArithmetic = List(ADD(),ADC(),SUB(),SBB(),OR(),XOR(),AND(),CMP())
   def unaryArithmetic = List(INC(),DEC(),NOT())
   def registers:List[RegisterToken] = lRegisters++hRegisters++xRegisters++List(SP())
   def lRegisters =List(AL(),BL(),CL(),DL())
@@ -100,11 +100,12 @@ case class ADD() extends BinaryArithmeticOp
 case class ADC() extends BinaryArithmeticOp
 case class SUB() extends BinaryArithmeticOp
 case class SBB() extends BinaryArithmeticOp
-case class NOR() extends BinaryArithmeticOp
+case class NOR() extends BinaryArithmeticOp // TODO WTF
 case class AND() extends BinaryArithmeticOp
 case class OR() extends BinaryArithmeticOp
 case class XOR() extends BinaryArithmeticOp
 case class CMP() extends BinaryArithmeticOp
+
 trait UnaryArithmeticOp extends ArithmeticOp
 case class DEC() extends UnaryArithmeticOp
 case class INC() extends UnaryArithmeticOp
@@ -127,6 +128,8 @@ case class JNZ() extends ConditionalJumpToken
 
 trait RegisterToken extends Token with Mutable with Value
 case class SP() extends RegisterToken
+case class IP() extends RegisterToken
+
 trait FullRegisterToken extends RegisterToken
 case class AX() extends FullRegisterToken with IORegister
 case class BX() extends FullRegisterToken

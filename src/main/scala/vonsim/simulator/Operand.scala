@@ -69,7 +69,10 @@ trait IndirectRegister
 case object AX extends FullRegister with IORegister
 case object BX extends FullRegister with IndirectRegister 
 case object CX extends FullRegister 
-case object DX extends FullRegister 
+case object DX extends FullRegister
+
+case object SP extends FullRegister
+case object IP extends FullRegister
 
 case object AH extends HighRegister
 case object BH extends HighRegister 
@@ -99,16 +102,24 @@ abstract class DWordBinaryOperands extends BinaryOperands{
 
 case class DWordRegisterRegister(o1:FullRegister,o2:FullRegister) extends DWordBinaryOperands
 case class WordRegisterRegister(o1:HalfRegister,o2:HalfRegister) extends WordBinaryOperands
-
-case class WordRegisterMemory(o1:HalfRegister,o2:WordMemoryAddress) extends WordBinaryOperands
-case class WordMemoryRegister(o1:WordMemoryAddress,o2:HalfRegister) extends WordBinaryOperands
+case class DWordRegisterIndirectMemory(o1:FullRegister,o2:DWordIndirectMemoryAddress.type) extends DWordBinaryOperands
+case class WordRegisterIndirectMemory(o2:HalfRegister,o1:WordIndirectMemoryAddress.type) extends WordBinaryOperands
 case class DWordRegisterMemory(o1:FullRegister,o2:DWordMemoryAddress) extends DWordBinaryOperands
-case class DWordMemoryRegister(o1:DWordMemoryAddress,o2:FullRegister) extends DWordBinaryOperands
-
-case class WordRegisterValue(o1:HalfRegister,o2:WordValue) extends WordBinaryOperands
+case class WordRegisterMemory(o1:HalfRegister,o2:WordMemoryAddress) extends WordBinaryOperands
 case class DWordRegisterValue(o1:FullRegister,o2:DWordValue) extends DWordBinaryOperands
-case class WordMemoryValue(o1:WordMemoryAddress,o2:WordValue) extends WordBinaryOperands
+case class WordRegisterValue(o1:HalfRegister,o2:WordValue) extends WordBinaryOperands
+
+case class DWordMemoryRegister(o1:DWordMemoryAddress,o2:FullRegister) extends DWordBinaryOperands
+case class WordMemoryRegister(o1:WordMemoryAddress,o2:HalfRegister) extends WordBinaryOperands
 case class DWordMemoryValue(o1:DWordMemoryAddress,o2:DWordValue) extends DWordBinaryOperands
+case class WordMemoryValue(o1:WordMemoryAddress,o2:WordValue) extends WordBinaryOperands
+
+
+case class DWordIndirectMemoryRegister(o1:DWordIndirectMemoryAddress.type,o2:FullRegister) extends DWordBinaryOperands
+case class WordIndirectMemoryRegister(o1:WordIndirectMemoryAddress.type,o2:HalfRegister) extends WordBinaryOperands
+case class DWordIndirectMemoryValue(o1:DWordIndirectMemoryAddress.type,o2:DWordValue) extends DWordBinaryOperands
+case class WordIndirectMemoryValue(o1:WordIndirectMemoryAddress.type,o2:WordValue) extends WordBinaryOperands
+
 
 
 
