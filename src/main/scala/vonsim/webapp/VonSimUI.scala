@@ -127,7 +127,7 @@ class MainUI(defaultCode: String) extends VonSimUI {
 class ControlsUI() extends VonSimUI {
   val quickButton = button(
       img(src:="img/icons/quickrun.svg",alt:="Quick run")
-      ,title:="F1: Reset simulator, loads program into memory, runs until cpu stops."
+      ,title:="F1: Reset simulator, load program into memory, run until cpu stops."
       ,id:="quickButton")
   val resetButton = button(
       img(src:="img/icons/loop2.svg",alt:="Reset")
@@ -142,7 +142,7 @@ class ControlsUI() extends VonSimUI {
       ,title:="F4: Execute a single instruction."
       ,id:="runOneButton")
   val runPauseButton = button(img(src:="img/icons/play3.svg",alt:="Run")
-      , title:="F5:Run program until cpu stops."
+      , title:="F5: Run program until cpu stops."
       ,id:="runPauseButton")
       
   val root = div(id := "controls"

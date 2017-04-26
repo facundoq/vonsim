@@ -2,15 +2,36 @@ package vonsim.simulator
 
 import ComputerWord._
 
+
 object ComputerWord {
+    
+  def minimalWordFor(x:Int)={
+    bytesFor(x) match{
+      case 2 => Option(DWord(x))
+      case 1 => Option(Word(x))
+      case _ => None 
+    }
+    
+    
+  }
   
   // Minimum number of bytes to encode a number
+  def ca2range(bytes:Int)={
+    val h= (Math.pow(2,bitsPerByte*(bytes+1)-1)-1).toInt
+    val l= -(h +1)
+    (l,h)
+  }
+  def between(x:Int,range:(Int,Int))={
+    //!(x<range._1 || range._2<x)
+    range._1<=x && x<=range._2
+  }
   def bytesFor(x:Int)={
     var n=x
-    var bytes=0
-    while (n!=0){
+    var bytes=1
+    var r=ca2range(bytes)
+    while (!between(x,r)){
       bytes+=1
-      n= n >>> bitsPerByte
+      r=ca2range(bytes)
     }
     bytes
   }

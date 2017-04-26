@@ -23,7 +23,7 @@ hola: mov ax, bx
     mov [bx],ax
     mov ax, 2
     mov ax, -25
-    mov ax, 25AH
+HOLA:    mov ax, 25AH
     mov ax, 25Ah
     mov ax, 10001111B
     not ax
@@ -34,9 +34,9 @@ hola: mov ax, bx
     xor ax, 26h
     cmp ax, 26h
     mov ax,sp
-    in al,PIC
-    in al,123
-    out ax,dx
+;    in al,PIC ; not implemented yet!
+;    in al,123 ; not implemented yet!
+;    out ax,dx ; not implemented yet!
     jc hola
 org 1000
 

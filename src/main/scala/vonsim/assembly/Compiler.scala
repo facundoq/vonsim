@@ -65,9 +65,7 @@ object Compiler {
     val parsedInstructions = fixedTokensNoEmpty map parseValidTokens toList
     
     val compilation = transformToSimulatorInstructions(parsedInstructions)
-    
     compilation  
-    // TODO change return type to include a list of global errors /(like not having an end) and warnings
 
   }
   
@@ -89,20 +87,29 @@ object Compiler {
     val equ=ins.collect({case Right(x:parser.EQU) => (x.label,x.value)}).toMap
     
     val (vardefLabelToLine, jumpLabelToLine)=getLabelToLineMappings(ins)
+    println("Vardef label to line "+vardefLabelToLine)
+    println("jump label to line"+jumpLabelToLine)
+    
     val unlabeledInstructions = unlabelInstructions(ins)
     
     // TODO build a db of information before
-    val (memory,vardefLineToAddress,executableLineToAddress) = getMemoryLayout(unlabeledInstructions)
-    
+    val (memory,vardefLineToAddress,vardefLineToType,executableLineToAddress) = getMemoryLayout(unlabeledInstructions)
+    println("Memory"+memory)
+    println("Vardef address"+vardefLineToAddress)
+    println("Vardef type"+vardefLineToType)
+    println("executable"+executableLineToAddress)
     val vardefLabelToAddress=vardefLabelToLine filter{case (label,line) => vardefLineToAddress.keySet.contains(line)} map { case (x,y) => (x,vardefLineToAddress(y))}
+    val vardefLabelToType=vardefLabelToLine filter{case (label,line) => vardefLineToType.keySet.contains(line)} map { case (x,y) => (x,vardefLineToType(y))}
+    val jumpLabelToAddress=jumpLabelToLine filter{case (label,line) => executableLineToAddress.keySet.contains(line)} map { case (x,y) => (x,executableLineToAddress(y))}
+    println("Vardef address"+vardefLabelToAddress)
+    println("Vardef type"+vardefLabelToType)
     
-    val vardefLabelToType=Map[String,VarType]()
     val warnings=List[Warning]()
     
     
     //TODO process variable declaration statements
     
-    val r=unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,vardefLabelToType,vardefLabelToAddress))
+    val r=unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,vardefLabelToType,vardefLabelToAddress,jumpLabelToAddress))
     if (r.allRight){
       val addressToInstruction=r.rights.collect{ case x:ExecutableInstruction => (executableLineToAddress(x.line),x) } toMap
 
@@ -161,7 +168,9 @@ object Compiler {
   def getMemoryLayout(instructions:ParsingResult)={
     val memory=mutable.Map[MemoryAddress,Int]()
     val vardefLineToAddress=mutable.Map[Line,MemoryAddress]()
+    val vardefLineToType=mutable.Map[Line,lexer.VarType]()
     val executableLineToAddress=mutable.Map[Line,MemoryAddress]()
+    
     val correctInstructions=instructions.rights
     val firstOrgIndex=correctInstructions.indexWhere(_.isInstanceOf[parser.Org])
     if (firstOrgIndex>=0){
@@ -173,27 +182,22 @@ object Compiler {
           executableLineToAddress(x.pos.line)=address
           address+=Simulator.instructionSize
         }
-        case x:VarDefInstruction =>{
-          executableLineToAddress(x.pos.line)=address
-          x.values.foreach(v=>{
-            v match {
-              case w:Word => memory(address)=w.toInt
-              case dw:DWord => { 
-                memory(address)=dw.l
-                memory(address+1)=dw.h
-                }
-            }
-            address+=v.bytes  
-          })
-          
+        case x:parser.VarDef =>{
+          vardefLineToAddress(x.pos.line)=address
+          vardefLineToType(x.pos.line)=x.t
+          val typeToBytes=Map(lexer.DB()->1,lexer.DW()->2)
+          val bytesForType=typeToBytes(x.t)
+          address+=bytesForType*x.values.length
         }
         case other => {}
        } 
       )  
     }
     
-    (memory.toMap,vardefLineToAddress.toMap,executableLineToAddress.toMap) 
+    (memory.toMap,vardefLineToAddress.toMap,vardefLineToType.toMap,executableLineToAddress.toMap) 
   }
+  
+  
   def getLabelToLineMappings(instructions:ParsingResult):(Map[String,Line],Map[String,Line])={
     val vardefLabelToLine=mutable.Map[String,Line]()
     val jumpLabelToLine=mutable.Map[String,Line]()
@@ -222,7 +226,10 @@ object Compiler {
    
   
   
-  def parserToSimulatorInstruction(i:parser.Instruction,labelToType:Map[String,lexer.VarType],labelToAddress:Map[String,MemoryAddress]):Either[CompilationError,simulator.InstructionInfo] = {
+  def parserToSimulatorInstruction(i:parser.Instruction,
+      vardefLabelToType:Map[String,lexer.VarType],vardefLabelToAddress:Map[String,MemoryAddress]
+  ,jumpLabelToAddress:Map[String,MemoryAddress]):Either[CompilationError,simulator.InstructionInfo] = {
+    
     val zeroary=Map(parser.Popf() -> Popf
                     ,parser.Pushf() -> Pushf
                     ,parser.Hlt() -> Hlt
@@ -238,11 +245,11 @@ object Compiler {
       case x:parser.IntN => successfulTransformation(x,IntN(WordValue(x.n)))
       case x:parser.Org => successfulTransformation(x,Org(x.dir))
       case x:parser.Jump => { 
-        if (labelToAddress.keySet.contains(x.label)){
+        if (jumpLabelToAddress.keySet.contains(x.label)){
           successfulTransformation(x,x match{
-            case x:parser.ConditionalJump => ConditionalJump(labelToAddress(x.label),jumpConditions(x.op))
-            case x:parser.Call => Call(labelToAddress(x.label))
-            case x:parser.UnconditionalJump => Jump(labelToAddress(x.label))
+            case x:parser.ConditionalJump => ConditionalJump(jumpLabelToAddress(x.label),jumpConditions(x.op))
+            case x:parser.Call => Call(jumpLabelToAddress(x.label))
+            case x:parser.UnconditionalJump => Jump(jumpLabelToAddress(x.label))
           })
         }else{
           semanticError(x,s"Label ${x.label} undefined")
@@ -253,17 +260,39 @@ object Compiler {
         case st:lexer.PUSH => Push( fullRegisters(x.r))
         })
       case x:parser.Mov => 
-        parserToSimulatorBinaryOperands(x,x.m,x.v,labelToType,labelToAddress).right.flatMap(
+        parserToSimulatorBinaryOperands(x,x.m,x.v,vardefLabelToType,vardefLabelToAddress).right.flatMap(
             op => successfulTransformation(x,Mov(op)))
       case x:parser.BinaryArithmetic => 
-        parserToSimulatorBinaryOperands(x,x.m,x.v,labelToType,labelToAddress).right.flatMap(
+        parserToSimulatorBinaryOperands(x,x.m,x.v,vardefLabelToType,vardefLabelToAddress).right.flatMap(
             operands => successfulTransformation(x,ALUBinary(binaryOperations(x.op), operands)))      
       case x:parser.UnaryArithmetic => 
-        parserToSimulatorOperand(x.m,labelToType,labelToAddress).right.flatMap(
+        parserToSimulatorOperand(x.m,vardefLabelToType,vardefLabelToAddress).right.flatMap(
             _ match{
               case operand:UnaryOperandUpdatable => successfulTransformation(x,ALUUnary(unaryOperations(x.op), operand))
               case other => semanticError(x,s"Operand $other is not updatable") 
             })
+      case x:parser.VarDef => {
+        val optionValues=x.values.map(ComputerWord.minimalWordFor)
+        if (optionValues.map(_.isEmpty).fold(false)(_ || _)){
+          semanticError(x,"Some values are too small or too large.")
+        }else{
+          val values=optionValues.filter(_.isDefined).map(_.get) 
+          x.t match{
+          case t:lexer.DB =>{
+            if (values.map(_.isInstanceOf[Word]).fold(true)(_&&_)){
+              semanticError(x,"Some values do not fit into an 8 bit representation.")
+            }else{      
+              successfulTransformation(x,WordDef(x.label,vardefLabelToAddress(x.label),values.asInstanceOf[List[Word]]))
+            }
+          }
+          case t:lexer.DW =>{      
+              successfulTransformation(x,DWordDef(x.label,vardefLabelToAddress(x.label),values.map(_.toDWord)))
+          }
+        }
+        
+        }
+          
+      }
       case other => semanticError(other,"Not Supported:"+other)
                         
     }
