@@ -71,9 +71,7 @@ class MainUI(defaultCode: String) extends VonSimUI {
     //mainboardUI.console.textContent=instructions.mkString("\n")
     compilation match {
       case Left(f) =>{
-        println("Errors compiling")
-        println(f.instructions.mkString("\n")) 
-        
+        println("Errors compiling") 
         val annotations=f.instructions.map(e => {
           e match{
             case Left(LexerError(l:Location,m:String)) => Annotation(l.line.toDouble-1,l.column.toDouble,m,"Lexer Error")
@@ -84,12 +82,10 @@ class MainUI(defaultCode: String) extends VonSimUI {
           
         })
         val a =annotations.toJSArray//.map(_.asInstanceOf[Annotation])
-        //println(a)
         s.setAnnotations(a)
         
-
+        println(f.instructions)
         val errors=f.instructions.lefts
-            //    println(errors)
         val errorLines= errors.map(_.location.line.toDouble-1).toJSArray
         val rows=s.getLength().toInt
         (0 until rows).foreach(l=> s.removeGutterDecoration(l, "ace_error "))
@@ -97,14 +93,13 @@ class MainUI(defaultCode: String) extends VonSimUI {
       }
       case Right(f) =>{ 
         println("Everything compiled fine")
-        val annotations=f.instructions.values.map(e => { Annotation(e.line.toDouble-1,0.toDouble,e.instruction.toString(),"Correct Instruction")})
+        val annotations=f.instructions.map(e => { Annotation(e.line.toDouble-1,0.toDouble,e.instruction.toString(),"Correct Instruction")})
         s.setAnnotations(annotations.toJSArray)
+        //TODO initialize Simulator
         
+        (0 until s.getLength().toInt).foreach(row => s.removeGutterDecoration(row, "ace_error"))
       } 
-    }
-    
-    
-    
+    }    
     
   }
 

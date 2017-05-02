@@ -13,6 +13,10 @@ import vonsim.assembly.parser.ExecutableInstruction
 import vonsim.assembly.parser.LabeledInstruction
 import scala.util.parsing.input.Positional
 import vonsim.assembly.lexer.VarType
+import vonsim.assembly.parser.ExecutableInstruction
+import vonsim.assembly.parser.ExecutableInstruction
+import vonsim.assembly.parser.ExecutableInstruction
+import vonsim.assembly.parser.ExecutableInstruction
 
 
 sealed trait CompilationError{
@@ -38,7 +42,7 @@ case class Location(line: Int, column: Int) {
 
 object Compiler {
   
-  class SuccessfulCompilation(val instructions:Map[MemoryAddress,InstructionInfo],val memory:Map[MemoryAddress,Int],val warnings:List[Warning]){
+  class SuccessfulCompilation(val instructions:List[InstructionInfo], val addressToInstruction:Map[MemoryAddress,InstructionInfo],val memory:Map[MemoryAddress,Int],val warnings:List[Warning]){
   
   }
   class FailedCompilation(val instructions:List[Either[CompilationError,InstructionInfo]],val globalErrors:List[GlobalError]){
@@ -53,6 +57,8 @@ object Compiler {
   def apply(code: String): CompilationResult= {
     val instructions = code.split("\n")
     var optionTokens = instructions map { Lexer(_) } 
+    println(optionTokens.length)
+    println(optionTokens(1))
     val fixedTokens = Lexer.fixLineNumbers(optionTokens)
     val fixedTokensNoEmpty = fixedTokens.filter(p => {
       !(p.isRight && p.right.get.length==1 && p.right.get(0).equals(EMPTY()))
@@ -76,7 +82,7 @@ object Compiler {
     var ins=instructions
     val globalErrors=mutable.ListBuffer[GlobalError]()
     
-    // check and remove final end
+    // check final end
     if (!(instructions.last.isRight && instructions.last.right.get.isInstanceOf[parser.End])){
       globalErrors+=GlobalError(Option.empty,"Missing END statment")
     }
@@ -110,10 +116,12 @@ object Compiler {
     //TODO process variable declaration statements
     
     val r=unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,vardefLabelToType,vardefLabelToAddress,jumpLabelToAddress))
-    if (r.allRight){
-      val addressToInstruction=r.rights.collect{ case x:ExecutableInstruction => (executableLineToAddress(x.line),x) } toMap
 
-      Right(new SuccessfulCompilation(addressToInstruction,memory,warnings))
+    if (r.allRight){
+      val executableInstructions=r.rights.filter(_.instruction.isInstanceOf[ExecutableInstruction])
+      val addressToInstruction=executableInstructions.map(x => (executableLineToAddress(x.line),x)).toMap
+      
+      Right(new SuccessfulCompilation(r.rights(),addressToInstruction,memory,warnings))
     }else{
       Left(new FailedCompilation(r,globalErrors.toList))
     }
@@ -207,7 +215,7 @@ object Compiler {
           case li:parser.LabeledInstruction => {
             jumpLabelToLine(li.label)=li.pos.line
           }
-          case v:VarDefInstruction => {
+          case v:parser.VarDef => {
             vardefLabelToLine(v.label)=v.pos.line
           }
           case other => {}
@@ -271,6 +279,7 @@ object Compiler {
               case operand:UnaryOperandUpdatable => successfulTransformation(x,ALUUnary(unaryOperations(x.op), operand))
               case other => semanticError(x,s"Operand $other is not updatable") 
             })
+                  
       case x:parser.VarDef => {
         val optionValues=x.values.map(ComputerWord.minimalWordFor)
         if (optionValues.map(_.isEmpty).fold(false)(_ || _)){
@@ -279,7 +288,7 @@ object Compiler {
           val values=optionValues.filter(_.isDefined).map(_.get) 
           x.t match{
           case t:lexer.DB =>{
-            if (values.map(_.isInstanceOf[Word]).fold(true)(_&&_)){
+            if (!values.map(_.isInstanceOf[Word]).fold(true)(_&&_)){
               semanticError(x,"Some values do not fit into an 8 bit representation.")
             }else{      
               successfulTransformation(x,WordDef(x.label,vardefLabelToAddress(x.label),values.asInstanceOf[List[Word]]))

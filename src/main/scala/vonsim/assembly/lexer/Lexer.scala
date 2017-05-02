@@ -20,11 +20,16 @@ object Lexer extends RegexParsers {
   override def skipWhitespace = true
   override val whiteSpace = "[ \t]+".r
   
-  def apply(code: String): Either[LexerError, List[Token]] = {
+  def apply(codeParameter: String): Either[LexerError, List[Token]] = {
+    var code=codeParameter
+    val commentStart=code.indexOf(";")
+    if (commentStart != -1){
+      code=code.substring(0,commentStart)
+    }
     if (code.trim().isEmpty()){
        Right(List(EMPTY()))
     }else{
-      parse(tokens, code) match {
+      parse(tokens, code+"\n") match {
         case NoSuccess(msg, next) => Left(LexerError(Location(next.pos.line, next.pos.column), msg))
         case Success(result, next) => Right(result)
       }
@@ -33,7 +38,7 @@ object Lexer extends RegexParsers {
   
   def tokens: Parser[List[Token]] = {
     phrase( rep1(comma | uninitialized | indirectbx | varType |  label | flagsStack | stack | keyword | literal 
-        | ops | io | interrupt |  register | jumps | identifier )) ^^ { rawTokens =>
+        | ops | io | interrupt |  register | jumps | identifier | newline )) ^^ { rawTokens =>
       rawTokens
     }
   }
@@ -94,6 +99,7 @@ def literalstring = positioned {
 //def unknown = positioned{
 //  """(.){0,30}""".r ^^^ UNKNOWN()
 //}
+def newline = positioned { """(\r?\n)+""".r ^^^ NEWLINE() }
 
 def comma = positioned { "," ^^^ COMMA() }
 def uninitialized = positioned { "?" ^^^ UNINITIALIZED() }

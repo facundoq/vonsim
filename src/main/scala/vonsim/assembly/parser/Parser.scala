@@ -29,7 +29,7 @@ object Parser extends Parsers {
   }
 
   def program = positioned {
-     labeledInstruction | instruction  
+     (labeledInstruction | instruction) ~ newline ^^{case (o:Instruction) ~ _  => o }  
   }
   def labeledInstruction =positioned {
     (label ~ instruction) ^^{case LABEL(l) ~ (o:Instruction) => LabeledInstruction(l,o)}
@@ -57,7 +57,7 @@ object Parser extends Parsers {
   }
   
   def cmp = positioned {
-    (CMP() ~ (value) ~ COMMA() ~ (value)) ^^ { case ( CMP() ~ (v1:Value) ~ _ ~ (v2:Value)) => Cmp(v1,v2)} 
+    (CMP() ~ (value) ~ COMMA() ~ (value) ~ (newline)) ^^ { case ( CMP() ~ (v1:Value) ~ _ ~ (v2:Value) ~ _) => Cmp(v1,v2)} 
   }
   
   
@@ -113,6 +113,9 @@ object Parser extends Parsers {
     (conditionalJumpTokens  ~ identifier ) ^^ {case (o:ConditionalJumpToken) ~ IDENTIFIER(i) => ConditionalJump(o,i)}
   }
   
+  private def newline= positioned {
+    accept("newline", { case bl @ NEWLINE() => bl })
+  }
   private def literalString = positioned {
     accept("string literal", { case lit @ LITERALSTRING(v) => lit })
   }
