@@ -15,7 +15,7 @@ trait NonAddressableInstruction extends Instruction
 trait AddressableInstruction extends Instruction
 trait ExecutableInstruction extends AddressableInstruction
 
-case class LabeledInstruction(label:String,i:Instruction) extends Instruction with LabelDefinition
+case class LabeledInstruction(label:String,i:Instruction) extends ExecutableInstruction with LabelDefinition
 
 case class Org(dir:Int) extends NonAddressableInstruction
 case class IntN(n:Int) extends ExecutableInstruction 

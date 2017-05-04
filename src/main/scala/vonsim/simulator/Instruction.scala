@@ -2,8 +2,11 @@ package vonsim.simulator
 
 
 abstract class Instruction
-case object Hlt extends Instruction
-case object Nop extends Instruction
+
+abstract class ExecutableInstruction extends Instruction
+
+case object Hlt extends ExecutableInstruction 
+case object Nop extends ExecutableInstruction 
 case object End extends Instruction
 
 case class Org(address:Int) extends Instruction
@@ -31,18 +34,18 @@ case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefI
   }
 }
 
-case class Mov(binaryOperands:BinaryOperands) extends Instruction
-case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends Instruction
-case class ALUUnary(op:ALUOpUnary,unaryOperands:UnaryOperandUpdatable) extends Instruction
+case class Mov(binaryOperands:BinaryOperands) extends ExecutableInstruction 
+case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends ExecutableInstruction 
+case class ALUUnary(op:ALUOpUnary,unaryOperands:UnaryOperandUpdatable) extends ExecutableInstruction 
 
 
-class StackInstruction extends Instruction
+class StackInstruction extends ExecutableInstruction 
 case class Push(r:FullRegister) extends StackInstruction
 case class Pop(r:FullRegister) extends StackInstruction
 case object Popf extends StackInstruction
 case object Pushf extends StackInstruction
 
-class InterruptInstruction extends Instruction
+class InterruptInstruction extends ExecutableInstruction 
 case object Sti extends InterruptInstruction
 case object Cli extends InterruptInstruction
 case object Iret extends InterruptInstruction with IpModifyingInstruction
@@ -50,11 +53,11 @@ case class  IntN(v:InmediateOperand) extends InterruptInstruction
 
 trait IpModifyingInstruction 
 
-abstract class JumpInstruction extends Instruction with IpModifyingInstruction{
+abstract class JumpInstruction extends ExecutableInstruction  with IpModifyingInstruction  { 
   def m:Int
 }
 
-case object Ret extends Instruction with IpModifyingInstruction
+case object Ret extends ExecutableInstruction  with IpModifyingInstruction
 case class Call(m:Int) extends JumpInstruction 
 case class Jump(m:Int) extends JumpInstruction
 
@@ -70,7 +73,7 @@ case object JO extends Condition
 case object JNO extends Condition
 case class ConditionalJump(m:Int,c:Condition) extends JumpInstruction
 
-class IOInstruction extends Instruction
+class IOInstruction extends ExecutableInstruction 
 
 case class In(r:IORegister,a:Simulator.IOMemoryAddress) extends IOInstruction
 case class Out(r:IORegister,a:Simulator.IOMemoryAddress) extends IOInstruction

@@ -16,7 +16,7 @@ class SimulatorSuite extends FunSuite {
   def simulator(instructions:List[Instruction],baseAddress:Int=0x2000)={
    val cpu=new CPU()
    cpu.ip=baseAddress
-   val memory=new Memory()
+   val memory=Memory(Simulator.maxMemorySize)
    new Simulator(cpu,memory,instructionsToProgram(instructions,cpu.ip))
   }
   

@@ -1,10 +1,15 @@
 package vonsim.utils
 
+import scala.reflect.ClassTag
+
 object CollectionUtils {
   
   implicit class BetterEither[A,B,C](a:Either[A,B]){
 
       
+  }
+  implicit class BetterMap[A:ClassTag](m:Map[Int,A]){
+    
   }
   
   implicit class EitherList[A,B,C](a:List[Either[A,B]]){

@@ -268,14 +268,29 @@ class CPU {
 
 }
 
-class Memory {
-  val values = randomBytes().map(Word(_))
-
-  def randomBytes() = {
-    val values = Array.ofDim[Byte](Simulator.maxMemorySize)
+object Memory{
+  def apply(size:Int):Memory={
+    new Memory(randomBytes(size).map(Word(_)))
+  }
+  def apply(values:Map[Int,Int],size:Int):Memory={
+    
+    val max=if (values.isEmpty) 0  else values.keys.max
+    val m=Memory(Math.max(size,max))
+    values.foreach{case (i,v) => m.values(i)=Word(v) }
+    m
+  }
+  def randomBytes(size:Int) = {
+    val values = Array.ofDim[Byte](size)
     new Random().nextBytes(values)
     values
   }
+}
+
+class Memory(val values:Array[Word]) {
+  
+  
+  
+  
   def getByte(address: Int) = {
     values(address)
   }

@@ -6,6 +6,7 @@ import scala.util.Random
 import com.sun.org.apache.bcel.internal.generic.ArithmeticInstruction
 import Simulator._
 import ComputerWord._
+import vonsim.assembly.Compiler.SuccessfulCompilation
 
 object Simulator {
 
@@ -15,7 +16,13 @@ object Simulator {
   def instructionSize = 2 //in bytes // TODO or 1? check instruction encoding
 
   def Empty() = {
-    new Simulator(new CPU(), new Memory(), Map[Int, InstructionInfo]())
+    new Simulator(new CPU(), Memory(Simulator.maxMemorySize), Map[Int, InstructionInfo]())
+  }
+  def apply(c:SuccessfulCompilation)={
+    val cpu= new CPU()
+    val memory=Memory(c.memory,Simulator.maxMemorySize)
+    
+    new Simulator(cpu,memory,c.addressToInstruction)
   }
 
 }
@@ -28,6 +35,7 @@ class InstructionInfo(val line: Int, val instruction: Instruction) {
   }
   
 }
+
 
 class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, InstructionInfo]) {
 
