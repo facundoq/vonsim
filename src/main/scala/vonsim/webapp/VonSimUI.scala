@@ -81,7 +81,8 @@ class MainUI(defaultCode: String) extends VonSimUI {
           }
           
         })
-        val a =annotations.toJSArray//.map(_.asInstanceOf[Annotation])
+        val globalErrorAnnotations=f.globalErrors.map(e => Annotation(0,0,e.msg,"global_error"))
+        val a =(annotations++globalErrorAnnotations).toJSArray
         s.setAnnotations(a)
         
         println(f.instructions)
@@ -90,6 +91,10 @@ class MainUI(defaultCode: String) extends VonSimUI {
         val rows=s.getLength().toInt
         (0 until rows).foreach(l=> s.removeGutterDecoration(l, "ace_error "))
         errorLines.foreach(l=> s.addGutterDecoration(l, "ace_error "))
+        if (!f.globalErrors.isEmpty){
+          s.addGutterDecoration(0, "ace_error ")
+        }
+        
       }
       case Right(f) =>{ 
         println("Everything compiled fine")
