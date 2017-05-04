@@ -20,7 +20,7 @@ case class LabeledInstruction(label:String,i:Instruction) extends ExecutableInst
 case class Org(dir:Int) extends NonAddressableInstruction
 case class IntN(n:Int) extends ExecutableInstruction 
 
-case class Stack(i:StackInstruction,r:FullRegisterToken) extends AddressableInstruction  
+case class Stack(i:StackInstruction,r:FullRegisterToken) extends ExecutableInstruction  
 
 trait ZeroAry
 

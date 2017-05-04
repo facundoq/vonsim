@@ -125,6 +125,8 @@ abstract class ComputerWord {
   def toInt:Int
   def toUnsignedInt:Int
   
+  def toByteList():List[Word]
+  
 }
 
 object Word {
@@ -148,12 +150,13 @@ class Word(var v:Byte) extends ComputerWord{
     def bit(i: Int) = ((v & (0x01 << i)) > 0).toInt
     
     def toBits() = (0 to bits-1) map {bit(_)}
-    def toDWord()=DWord(0,v)
+    def toDWord()=DWord(v,0)
     
     def bitString= toBits().mkString("")
     override def toString()=s"Word(${this.bitString})"
     def toInt=v.toInt
     def toUnsignedInt=signedToUnsignedByte(toInt)
+    
     
     override def equals(a:Any)={
       a match{
@@ -163,6 +166,9 @@ class Word(var v:Byte) extends ComputerWord{
     }
     override def hashCode()={
       v.hashCode()
+    }
+    override def toByteList():List[Word]={
+      List(this)
     }
 }
 
@@ -218,5 +224,10 @@ class DWord(var l:Byte, var h:Byte) extends ComputerWord{
     case _ => false
   }
   override def hashCode = l.hashCode()
+  
+  override def toByteList():List[Word]={
+    
+      List(Word(this.l),Word(this.h))
+    }
   
 }
