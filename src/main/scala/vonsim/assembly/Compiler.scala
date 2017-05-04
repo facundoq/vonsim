@@ -115,7 +115,8 @@ object Compiler {
     //TODO process variable declaration statements
     
     val r=unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,vardefLabelToType,vardefLabelToAddress,jumpLabelToAddress))
-    if (r.allRight){
+    if (r.allRight && globalErrors.isEmpty){
+//      println(s"Instructions $r")
       val instructions=r.rights
       val memory=getMemory(r.rights(),vardefLabelToAddress)
       val executableInstructions=instructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
@@ -158,11 +159,12 @@ object Compiler {
   }
   def checkFirstOrgBeforeInstructionsWithAddress(ins:ParsingResult)={
     val firstOrg =ins.indexWhere(x => x.isRight && x.right.get.isInstanceOf[parser.Org])
+    
     ins.zipWithIndex.map { case (e,i) =>
         e match{
           case Left(x) => Left(x)
           case Right(x) => {
-            if ((i<firstOrg ) && (!x.isInstanceOf[parser.NonAddressableInstruction])) {
+            if ((i<firstOrg || firstOrg== -1 ) && (!x.isInstanceOf[parser.NonAddressableInstruction])) {
               semanticError(x,"No ORG before this instruction; cannot determine memory address.")
             }else{
               Right(x)

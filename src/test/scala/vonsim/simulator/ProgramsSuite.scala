@@ -47,7 +47,7 @@ class ProgramsSuite extends FunSuite {
     assert(s.cpu.halted)
   }
       test("push pop") {
-       println("push pop")
+
      val program = 
 """
   org 2000h
@@ -213,6 +213,18 @@ end"""
   }
    
   
+  test("no org should throw error") {
+
+     val program = 
+"""
+  mov ax,3
+  end
+"""
+    val compilation= Compiler(program)
+    assert(compilation.isLeft)
+    
+  }
+
    
    
 }
