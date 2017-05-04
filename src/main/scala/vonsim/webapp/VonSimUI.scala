@@ -44,7 +44,7 @@ class MainUI(defaultCode: String) extends VonSimUI {
   val root = div(id := "pagewrap",
     header(
         div(id:="header",img(id := "icon", alt:="Von Sim Icon", title:="Von Sim: a simplified intel 8088 simulator", src := "img/icon.png")
-           ,h1(id := "title", "a simplified intel 8088 simulator")
+           ,h1(id := "title", "a simplified intel 8088 simulator (alpha version)")
         )
     )
     ,sim).render
@@ -189,7 +189,7 @@ class MemoryUI() extends VonSimUI {
   val memoryTable = table(
     thead(th("Address"), th("Value"))).render
   val r = new Random()
-  for (i <- 0 to 192) {
+  for (i <- 0 to 0x10) {
     val address = "%04X".format(i)
     val value = "%02X".format(r.nextInt(256))
     memoryTable.appendChild(tr(td(address), td(value)).render)
@@ -199,7 +199,8 @@ class MemoryUI() extends VonSimUI {
     div(cls := "flexcolumns",
       img(id := "memoryicon", src := "img/iconsets/bw/ram.png"), h2("Memory")),
     div(cls := "memoryTable", memoryTable)).render
-
+//https://clusterize.js.org/
+//https://www.eriwen.com/css/use-the-table-layout-css-property-to-speed-up-table-rendering/    
 }
 
 class CpuUI() extends VonSimUI {
@@ -276,7 +277,22 @@ class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
       ,container
     ).render
    
+  
+  
+  editor.getSession().on("change", new DelayedJSEvent(onchange).listener)
+  
+//  container.onkeydown = (e: dom.KeyboardEvent) => {
+ //    println("keydown")
+//    keyTyped()
+//  }
+  
+  
+}
+
+class DelayedJSEvent(val response:() => Unit){
   var keystrokes = 0
+  val listener: js.Function1[js.Any,js.Any]= (a:js.Any) => keyTyped().asInstanceOf[js.Any]
+  
   def keyTyped(){
       keystrokes+=1
 //      println("keyTyped"+keystrokes)
@@ -288,17 +304,9 @@ class EditorUI(defaultCode: String,onchange:() => Unit) extends VonSimUI {
 //      println("act"+keystrokes)
       if (keystrokes == 0){
 //        println("onchanged"+keystrokes)
-        onchange()
+        response()
       }       
   }
-  val eventListener: js.Function1[js.Any,js.Any]= (a:js.Any) => keyTyped().asInstanceOf[js.Any]
-  
-  editor.getSession().on("change", eventListener)
-  
-//  container.onkeydown = (e: dom.KeyboardEvent) => {
- //    println("keydown")
-//    keyTyped()
-//  }
   
   
 }
