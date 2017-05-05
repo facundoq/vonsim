@@ -1,5 +1,5 @@
 package vonsim.simulator
-
+import vonsim.utils.CollectionUtils._
 import org.scalatest.FunSuite
 import Simulator._
 import ComputerWord._
@@ -189,6 +189,139 @@ end"""
     assert(s.cpu.halted)
   }
   
+   test("sum naturals") {
+//     println("PROGRAM sum naturals")
+     val program = 
+"""
+  org 2000h
+      mov al,0
+      add cl,8
+loop: cmp cl,0
+      jz fin  
+      add al,cl
+      dec cl
+      jmp loop
+fin:  hlt  
+  end
+"""
+    
+    val s=simulator(program)
+    
+    s.run()
+    assertResult(8+7+6+5+4+3+2+1)(s.cpu.get(AL).toInt)
+    assert(s.cpu.halted)
+  }
+     test("mult") {
+//      println("PROGRAM mult")
+   val program="""
+  org 1000h
+; mult receives number a in AX and b in CX
+; returns result in dx
+mult: push cx
+      mov dx,0
+loop_mult: cmp cx,0
+      jz fin_mult  
+      add dx,ax
+      dec cx
+      jmp loop_mult
+fin_mult:pop cx
+         ret 
+ 
+org 2000h
+mov ax,3
+mov cx,5
+call mult
+hlt
+end
+
+"""    
+       
+    val s=simulator(program)
+    val instructions=s.run().toList
+    assertResult(15)(s.cpu.get(DX).toInt)
+    assertResult(0x2008)(s.cpu.ip)
+    assert(s.cpu.halted)
+    assert(instructions.allRight)
+}
+     
+    test("factorial") {
+//      println("PROGRAM factorial")
+     val program = 
+"""
+  org 1000h
+; mult receives number a in AX and b in CX
+; returns result in dx
+mult: push cx
+      mov dx,0
+loop_mult: cmp cx,0
+      jz fin_mult  
+      add dx,ax
+      dec cx
+      jmp loop_mult
+fin_mult:pop cx
+         ret  
+
+org 3000h
+; fact receives n in cx
+; returns result in ax
+fact:      mov ax,1
+loop_fact: cmp cx,0
+           jz fin_fact
+           call mult
+           mov ax,dx
+           dec cx
+           jmp loop_fact
+fin_fact:  ret
+            
+org 2000h
+mov cx,5
+call fact
+hlt  
+end
+"""
+    
+    val s=simulator(program)    
+    s.run()
+    assertResult(5*4*3*2)(s.cpu.get(AX).toInt)
+    assert(s.cpu.halted)
+  }
+   
+   test("pushf popf") {
+     val program = 
+"""
+  org 2000h
+  mov al,128
+  add al,128
+  pushf
+  add al,1
+  popf
+  hlt  
+  end
+"""
+    val addFlags=new Flags(true,false,true,true)
+    val subFlags=new Flags(false,false,false,false)
+    val s=simulator(program)
+    
+    s.step()
+    assertResult(Word("10000000"))(s.cpu.get(AL))
+    s.step()
+    
+    
+    assertResult(addFlags)(s.cpu.alu.flags)
+    assertResult(Word("00000000"))(s.cpu.get(AL))
+    val sp=s.cpu.sp
+    s.step()
+    assertResult(sp-2)(s.cpu.sp)
+    s.step()
+    assertResult(subFlags)(s.cpu.alu.flags)
+    assertResult(Word("00000001"))(s.cpu.get(AL))
+    s.step()
+    assertResult(sp)(s.cpu.sp)
+    assertResult(addFlags)(s.cpu.alu.flags)
+    s.step()
+    assert(s.cpu.halted)
+  }
+   
    test("3+2=5 memory") {
      val program = 
 """
@@ -212,7 +345,49 @@ end"""
     assert(s.cpu.halted)
   }
    
-  
+  test("double call") {
+//    println("PROGRAM double call")
+     val program = 
+"""
+  org 1000h
+f1:  add ax,2
+     ret
+     
+  org 1200h
+f2:  call f1
+     ret
+       
+  org 2000h
+  mov ax,2
+  call f2
+  hlt  
+  end
+"""
+    val s=simulator(program)
+    
+    val sp=s.cpu.sp
+    assert(s.step().isRight)
+    assertResult(DWord(2))(s.cpu.get(AX))
+    assert(s.step().isRight)
+    assertResult(0x1200)(s.cpu.ip)
+    assertResult(sp-2)(s.cpu.sp)
+    assertResult(DWord(0x2004))(s.memory.getBytes(s.cpu.sp))
+    assert(s.step().isRight)
+    assertResult(0x1000)(s.cpu.ip)
+    assertResult(sp-4)(s.cpu.sp)
+    assertResult(DWord(0x1202))(s.memory.getBytes(s.cpu.sp))
+    assert(s.step().isRight)
+    assertResult(DWord(4))(s.cpu.get(AX))
+    assert(s.step().isRight)
+    assertResult(0x1202)(s.cpu.ip)
+    assertResult(sp-2)(s.cpu.sp)
+    assertResult(DWord(0x2004))(s.memory.getBytes(s.cpu.sp))
+    assert(s.step().isRight)
+    assertResult(0x2004)(s.cpu.ip)
+    assertResult(sp)(s.cpu.sp)
+    assert(s.step().isRight)
+    assert(s.cpu.halted)
+  }
   test("no org should throw error") {
 
      val program = 
@@ -223,6 +398,30 @@ end"""
     val compilation= Compiler(program)
     assert(compilation.isLeft)
     
+  }
+  
+    test("no end should throw error") {
+
+     val program = 
+"""
+  org 2000h
+  mov ax,3
+"""
+    val compilation= Compiler(program)
+    assert(compilation.isLeft)
+    
+  }
+    
+   test("end before last line should throw error") {
+
+     val program = 
+"""
+  org 2000h
+  end
+  mov ax,3
+"""
+    val compilation= Compiler(program)
+    assert(compilation.isLeft)
   }
 
    

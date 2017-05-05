@@ -52,7 +52,7 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
     stepN(Simulator.maxInstructions)
   }
 
-  def stepN(n: Int) {
+  def stepN(n: Int) ={
     val instruction = step()
     var instructions = ListBuffer(instruction)
     var counter = 0
@@ -61,6 +61,7 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
       val instruction = step()
       instructions += instruction
     }
+    instructions
   }
 
   def step() = {
@@ -88,11 +89,14 @@ class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, Ins
         }
       }
       case Call(address) => {
+//        println(s"Calling $address, returning to ${cpu.ip}")
         val ra = push(cpu.ip)
+//        println(memory.getBytes(cpu.sp))
         cpu.ip = address
       }
       case Ret => {
         val ra = pop()
+//        println(s"Retting to $ra (${ra.toInt}) from ${cpu.ip}")
         cpu.ip = ra.toInt
       }
       case Push(register) => {
