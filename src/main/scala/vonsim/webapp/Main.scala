@@ -13,6 +13,7 @@ import scala.scalajs.js.annotation.JSExport
 import scalatags.JsDom.all._
 import org.scalajs.dom.html._
 import org.scalajs.dom.raw.HTMLElement
+import js.JSConverters._
 
 import java.awt.Event
 import scala.util.parsing.input.Position
@@ -69,6 +70,12 @@ object Main extends JSApp {
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)
       })
+      
+//    val clusterizePropsElements = new ClusterizeProps{
+//      override val scrollElem = Some(ui.mainboardUI.memoryUI.memoryTableDiv).orUndefined
+//      override val contentElem = Some(ui.mainboardUI.memoryUI.body).orUndefined    
+//    }
+//    val clusterize=new Clusterize(clusterizePropsElements)
   }
 
   def gencode() = {

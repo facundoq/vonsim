@@ -110,6 +110,15 @@
 .registerTable td, .registerTable th,.memoryTable td, .memoryTable th {
   border: 1px solid black;
 }
+
+.memoryTable td, .memoryTable th {
+  padding:1px;
+}
+
+
+.registerTable td, .registerTable th{
+  padding:3px;
+}
 .registerTable{
 	padding:1px;
     margin: 4px auto;

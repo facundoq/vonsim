@@ -191,21 +191,34 @@ class IOMemoryUI() extends VonSimUI {
 }
 
 class MemoryUI() extends VonSimUI {
+  
+  
+  val body=tbody(id:="memoryTableBody",cls:="clusterize-content").render
   val memoryTable = table(
-    thead(th("Address"), th("Value"))).render
+    thead(th("Address"), th("Value")),body).render
+    
   val r = new Random()
-  for (i <- 0 to 0x10) {
-    val address = "%04X".format(i)
-    val value = "%02X".format(r.nextInt(256))
-    memoryTable.appendChild(tr(td(address), td(value)).render)
+  
+  val value = "%02X".format(r.nextInt(256))
+  for (i <- 0 to 0x4000) {
+    val address = "%04X".format(i)  
+    body.appendChild(tr(td(address), td(value)).render)
   }
-
+  
+   
+   
+  val memoryTableDiv=div(id:="memoryTable",cls := "memoryTable clusterize-scroll", memoryTable).render
   val root = div(id := "memory", cls := "memory",
     div(cls := "flexcolumns",
       img(id := "memoryicon", src := "img/iconsets/bw/ram.png"), h2("Memory")),
-    div(cls := "memoryTable", memoryTable)).render
-//https://clusterize.js.org/
-//https://www.eriwen.com/css/use-the-table-layout-css-property-to-speed-up-table-rendering/    
+    memoryTableDiv).render
+    
+    val clusterizePropsElements = new ClusterizeProps{
+      override val scrollElem = Some(memoryTableDiv).orUndefined
+      override val contentElem = Some(body).orUndefined    
+    }
+    val clusterize=new Clusterize(clusterizePropsElements)
+  
 }
 
 class CpuUI() extends VonSimUI {

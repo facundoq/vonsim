@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Lato');
+/* @import url('https://fonts.googleapis.com/css?family=Lato'); */
 /*
 Palette:
 http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++ 
@@ -11,7 +11,7 @@ http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++
 	display: -webkit-flex; 
     display: flex;
     flex-flow: column;
-    font-family: 'Lato',sans-serif;
+    font-family: 'LatoWeb',sans-serif;
 }
 
 .flexcolumns{
