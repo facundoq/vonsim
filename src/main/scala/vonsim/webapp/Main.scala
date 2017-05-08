@@ -20,11 +20,13 @@ import scala.util.parsing.input.Position
 import scala.scalajs.js.timers._
 
 import dom.ext._
-import scala.scalajs
-            .concurrent
+import scala.scalajs.concurrent
             .JSExecutionContext
             .Implicits
             .queue
+import vonsim.simulator.Simulator
+
+            
 
 object Main extends JSApp {
 
@@ -64,8 +66,11 @@ object Main extends JSApp {
     
     
   }
+  var ui:MainUI=null
+  var s:Simulator=null
   def initializeUI(initialCode:String){
-    val ui = new MainUI(initialCode)
+    s=Simulator.Empty()
+    ui = new MainUI(s,initialCode)
     document.body.appendChild(ui.root)
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)
