@@ -33,7 +33,7 @@
 	margin: 0px 10px;
 }
 #controls img{
-	height:32px;
+	height:24px;
 }
 #resetButton{
 	
@@ -54,9 +54,13 @@
 
 #cpu {
     background-color: #A9E3FF;
-    max-height:500px;
+    max-height:600px;
 }
-
+.registersIcon{
+	height:24px;
+	width:24px;
+	padding-right: 5px;
+}
 #cpuicon, #memoryicon, #iomemoryicon,#devicesicon{
 	height:32px;
 	width:32px;
@@ -67,6 +71,7 @@
     padding:20px 20px;
     margin:10px 10px;
     border-radius: 10px;
+    overflow-y:auto;
 }
 
 .memory {
@@ -129,4 +134,13 @@
 	padding: 4px;
 	margin: 4px;
 	text-align: center;
+}
+
+.flag{
+	border:1px solid;
+	margin:1px;
+}
+.operation{
+	border:1px solid;
+	margin:1px;
 }

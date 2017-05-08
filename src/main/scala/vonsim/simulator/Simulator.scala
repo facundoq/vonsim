@@ -7,6 +7,7 @@ import com.sun.org.apache.bcel.internal.generic.ArithmeticInstruction
 import Simulator._
 import ComputerWord._
 import vonsim.assembly.Compiler.SuccessfulCompilation
+import vonsim.assembly.Compiler.SuccessfulCompilation
 
 object Simulator {
 
@@ -37,8 +38,14 @@ class InstructionInfo(val line: Int, val instruction: Instruction) {
 }
 
 
-class Simulator(val cpu: CPU, val memory: Memory, val instructions: Map[Int, InstructionInfo]) {
-
+class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, InstructionInfo]) {
+  
+  def load(c:SuccessfulCompilation){
+    cpu.reset()
+    memory.update(c.memory)
+    instructions=c.addressToInstruction
+  }
+  
   def currentInstruction() = {
     if (instructions.keySet.contains(cpu.ip)) {
       val instruction = instructions(cpu.ip)

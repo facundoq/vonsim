@@ -64,25 +64,26 @@ class LowRegister extends HalfRegister{
 }
 
 trait IORegister
-trait IndirectRegister 
+trait IndirectRegister
+trait GeneralPurposeRegister
 
-case object AX extends FullRegister with IORegister
-case object BX extends FullRegister with IndirectRegister 
-case object CX extends FullRegister 
-case object DX extends FullRegister
+case object AX extends FullRegister with IORegister with GeneralPurposeRegister
+case object BX extends FullRegister with IndirectRegister with GeneralPurposeRegister  
+case object CX extends FullRegister with GeneralPurposeRegister
+case object DX extends FullRegister with GeneralPurposeRegister
 
 case object SP extends FullRegister
 case object IP extends FullRegister
 
-case object AH extends HighRegister
-case object BH extends HighRegister 
-case object CH extends HighRegister 
-case object DH extends HighRegister
+case object AH extends HighRegister with GeneralPurposeRegister
+case object BH extends HighRegister with GeneralPurposeRegister
+case object CH extends HighRegister with GeneralPurposeRegister
+case object DH extends HighRegister 
 
-case object AL extends LowRegister with IORegister
-case object BL extends LowRegister 
-case object CL extends LowRegister 
-case object DL extends LowRegister
+case object AL extends LowRegister with IORegister with GeneralPurposeRegister
+case object BL extends LowRegister with GeneralPurposeRegister
+case object CL extends LowRegister with GeneralPurposeRegister
+case object DL extends LowRegister with GeneralPurposeRegister
 
 
 

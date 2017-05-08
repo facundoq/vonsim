@@ -7,6 +7,7 @@ import com.sun.org.apache.bcel.internal.generic.ArithmeticInstruction
 import Simulator._
 import ComputerWord._
 import scala.Equals
+import vonsim.assembly.Compiler.MemoryAddress
 
 object Flags {
 
@@ -14,8 +15,35 @@ object Flags {
     new Flags(d.bit(0).toBoolean, d.bit(1).toBoolean, d.bit(2).toBoolean, d.bit(3).toBoolean)
   }
 }
-class Flags(var c: Boolean = false, var s: Boolean = false, var o: Boolean = false, var z: Boolean = false) {
+trait Flag
+object Flag{
+  def all=List(C,O,S,Z)
+}
 
+case object C extends Flag
+case object O extends Flag
+case object S extends Flag
+case object Z extends Flag
+
+class Flags(var c: Boolean = false, var s: Boolean = false, var o: Boolean = false, var z: Boolean = false) {
+  
+  
+  def get(f:Flag)={
+    f match{
+      case C => c
+      case O => o
+      case S => s
+      case Z => z
+    }
+  }
+  def set(f:Flag,v:Boolean)={
+    f match{
+      case C => c=v
+      case O => o=v
+      case S => s=v
+      case Z => z=v
+    }
+  }
   def reset() {
     c = false
     s = false
@@ -272,13 +300,14 @@ object Memory{
   def apply(size:Int):Memory={
     new Memory(randomBytes(size).map(Word(_)))
   }
+  
   def apply(values:Map[Int,Int],size:Int):Memory={
-    
     val max=if (values.isEmpty) 0  else values.keys.max
     val m=Memory(Math.max(size,max))
     values.foreach{case (i,v) => m.values(i)=Word(v) }
     m
   }
+  
   def randomBytes(size:Int) = {
     val values = Array.ofDim[Byte](size)
     new Random().nextBytes(values)
@@ -287,8 +316,6 @@ object Memory{
 }
 
 class Memory(val values:Array[Word]) {
-  
-  
   
   
   def getByte(address: Int) = {
@@ -304,6 +331,8 @@ class Memory(val values:Array[Word]) {
     values(address) = v.l
     values(address + 1) = v.h
   }
-
+  def update(valuesMap:Map[MemoryAddress,Int]){
+    valuesMap.foreach{ case (a,v) => values(a)=Word(v) }
+  }
 }
 
