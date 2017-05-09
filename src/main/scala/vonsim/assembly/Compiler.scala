@@ -362,6 +362,7 @@ object Compiler {
       case (WordIndirectMemoryAddress,x:HalfRegister) => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress,x))
       
       case (r:MemoryOperand,x:MemoryOperand) => semanticError(i,"Both operands access memory. Cannot read two memory locations in the same instruction.")
+      case (r:WordOperand,x:DWordOperand) => semanticError(i,"The second operand needs 16 bits to be encoded, but the first one only has 8 bits ")
       case other => semanticError(i,"Invalid operands.")
     }
     

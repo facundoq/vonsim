@@ -17,9 +17,18 @@ object ComputerWord {
   
   // Minimum number of bytes to encode a number
   def ca2range(bytes:Int)={
-    val h= (Math.pow(2,bitsPerByte*(bytes+1)-1)-1).toInt
+    val h= (Math.pow(2,(bitsPerByte*bytes)-1)-1).toInt
     val l= -(h +1)
     (l,h)
+  }
+  def bssRange(bytes:Int)={
+    val h= (Math.pow(2,bitsPerByte*bytes)-1).toInt
+    (0,h)
+  }
+  def mixedRange(bytes:Int)={
+    val (l1,h1) = ca2range(bytes)
+    val (l2,h2) = bssRange(bytes)
+    ( Math.min(l1,l2), Math.max(h1,h2) )
   }
   def between(x:Int,range:(Int,Int))={
     //!(x<range._1 || range._2<x)
@@ -28,10 +37,10 @@ object ComputerWord {
   def bytesFor(x:Int)={
     var n=x
     var bytes=1
-    var r=ca2range(bytes)
+    var r=mixedRange(bytes)
     while (!between(x,r)){
       bytes+=1
-      r=ca2range(bytes)
+      r=mixedRange(bytes)
     }
     bytes
   }

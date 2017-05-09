@@ -78,7 +78,11 @@ def literalnumber= positioned {
     literalhex | literalbyte  | literaldec
 }
 def literaldec= positioned {
-  "(-)?[0-9]+".r ^^ { str => LITERALINTEGER(str.toInt)  }
+  "(-)?[0-9]{1,7}".r ^^ { str => {
+    println("Literal dec "+str)
+    LITERALINTEGER(str.toInt) 
+    } 
+  }
 }
 
 def literalhex= positioned {
@@ -86,8 +90,14 @@ def literalhex= positioned {
 }
 
 def literalbyte= positioned {
-  "[0-1]{8}B".r ^^ { str => LITERALINTEGER(Integer.parseInt(str.substring(0,str.length-1), 2))  }
+  "[0-1]{1,16}B".r ^^ { str => {
+    val byteString=str.substring(0,str.length-1)
+    
+    LITERALINTEGER(Integer.parseInt(byteString, 2))  
+   }
+  }
 }
+
 
 def literalstring = positioned {
     """"[^"]*"""".r ^^ { str =>
