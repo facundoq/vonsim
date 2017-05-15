@@ -37,9 +37,10 @@ class ControlsUI(s: Simulator) extends VonSimUI(s) {
   val runPauseButton = button(img(src := "img/icons/play3.svg", alt := "Run"), 
       title := "F5: Run program until cpu stops.", id := "runPauseButton").render
 
-  val root = div(id := "controls", 
-      span(cls := "controlSection", quickButton), 
-      span(cls := "controlSection", resetButton, loadButton, runOneButton, runPauseButton)).render
+  val root = div(id := "controls" 
+      ,span(cls := "controlSection", quickButton) 
+//      ,span(cls := "controlSection", resetButton, loadButton, runOneButton, runPauseButton)
+      ).render
   
   def update() {
     // TODO check if cpu halted
@@ -99,7 +100,7 @@ class IOMemoryUI(s: Simulator) extends VonSimUI(s) {
 
   val root = div(id := "iomemory", cls := "memory",
     div(cls := "flexcolumns",
-      img(id := "iomemoryicon", src := "img/iconsets/bw/cable.png"), h2("IO Memory")),
+      img(id := "iomemoryicon", src := "img/motherboard/cable.png"), h2("IO Memory")),
     div(cls := "memoryTable", memoryTable)).render
     
   def update() {
@@ -120,7 +121,7 @@ class MemoryUI(s: Simulator) extends VonSimUI(s) {
   val memoryTableDiv = div(id := "memoryTable", cls := "memoryTable clusterize-scroll", memoryTable).render
   val root = div(id := "memory", cls := "memory",
     div(cls := "flexcolumns",
-      img(id:= "memoryicon", src := "img/iconsets/bw/ram.png"), h3("Memory")),
+      img(id:= "memoryicon", src := "img/motherboard/ram.png"), h3("Memory")),
     memoryTableDiv).render
     
   var stringRows=generateRows().toJSArray
@@ -181,7 +182,7 @@ class RegistersUI(s: Simulator,val registers:List[FullRegister],title:String,bas
     
   val root = div(id := getIdFor("RegistersTable"), cls:="cpuElement",
     div(cls := "flexcolumns",
-      img(cls := "registersIcon", src := "img/register_icon.png"), h3(title)),
+      img(cls := "registersIcon", src := "img/motherboard/register_icon.png"), h3(title)),
       registerTable
    ).render
    
@@ -262,7 +263,7 @@ class CpuUI(s: Simulator) extends VonSimUI(s) {
 
   val root = div(id := "cpu",
     div(cls := "flexcolumns",
-      img(id := "cpuicon", src := "img/iconsets/bw/microchip.png"), h2("CPU")),
+      img(id := "cpuicon", src := "img/motherboard/microchip.png"), h2("CPU")),
     generalPurposeRegistersTable.root,
     specialRegistersTable.root,
     alu.root).render
@@ -282,7 +283,7 @@ class DevicesUI(s: Simulator) extends VonSimUI(s) {
 
   val root = div(id := "iomemory", cls := "memory",
     div(cls := "flexcolumns",
-      img(id := "devicesicon", src := "img/iconsets/bw/printer.png"), h2("Devices")),
+      img(id := "devicesicon", src := "img/motherboard/printer.png"), h2("Devices")),
     "some pretty devices plz here").render
 
     def update() {
