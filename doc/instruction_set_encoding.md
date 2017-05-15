@@ -12,10 +12,12 @@
 
 `| Op code (1 byte) | addressing mode (optional) | operands (1+ bytes)|`
 
+(Note: each | denotes byte separation)
+
 Op code format: `CCCCCCCC`  (8-bit operation Code)
 
 * Zeroary
- * all instructions: `| CCCCCCCC |`
+  * all instructions: `| CCCCCCCC |`
 
 * Unary
   * jump instructions:   `| CCCCCCCC | address (2 bytes) |`
@@ -31,9 +33,9 @@ Op code format: `CCCCCCCC`  (8-bit operation Code)
 
   * all instructions:  `| CCCCCCCC | ----MMMS | operand (1 or 2 bytes) | operand (1 or 2 bytes) |`
   * Where:
-    `CCCCCC` = A 6-bit operation Code
-    `MMM` = A 3-bit addressing Mode code
-    `S` = A bit indicating if the operands' Sizes are 1 byte or 2 bytes (0 => 1 byte, 1 => 2 bytes).
+    * `CCCCCC` = A 6-bit operation Code
+    *`MMM` = A 3-bit addressing Mode code
+    * `S` = A bit indicating if the operands' Sizes are 1 byte or 2 bytes (0 => 1 byte, 1 => 2 bytes).
 
 
 ## Binary Instructions
