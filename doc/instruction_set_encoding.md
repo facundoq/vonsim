@@ -10,7 +10,7 @@
 
 ## General format
 
-| Op code (1 byte) | addressing mode (optional) | operands (1+ bytes)|
+`| Op code (1 byte) | addressing mode (optional) | operands (1+ bytes)|`
 
 Op code format: `CCCCCCCC`  (8-bit operation Code)
 
@@ -105,7 +105,7 @@ mem 0000 001S
 ind 0000 010S
 ```
 
-S can be 0 or 1 (0 => 1-byte operands, 1 => 2 bytes operands)
+`S` can be 0 or 1 (0 => 1-byte operands, 1 => 2 bytes operands)
 
 
 ### Stack instructions
