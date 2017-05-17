@@ -14,8 +14,41 @@ object Simulator {
   type IOMemoryAddress = Byte
   def maxMemorySize = 0x4000 // in bytes
   def maxInstructions = 1000000 // max number of instructions to execute
-  def instructionSize = 2 //in bytes // TODO or 1? check instruction encoding
-
+  //def instructionSize = 2 //in bytes // TODO or 1? check instruction encoding
+  
+  def instructionSize(instruction:Instruction)={
+    instruction match {
+      
+      case i:JumpInstruction => 3
+      case i:IOInstruction => 3
+      case i:Zeroary => 1
+      case i:Mov => 2+operandSizes(i.binaryOperands)
+      case i:ALUBinary=> 2+operandSizes(i.binaryOperands)
+      case i:ALUUnary=> 2+operandSize(i.unaryOperands)
+      case i:IntN => 2
+      case i:Push => 2
+      case i:Pop => 2
+      
+      case _ => 0
+    }
+  }
+  def operandSizes(o:BinaryOperands)={
+    o match{
+      case w:WordBinaryOperands =>  operandSize(w.o1)+operandSize(w.o2)
+      case w:DWordBinaryOperands => operandSize(w.o1)+operandSize(w.o2)
+    }
+    
+  }
+  def operandSize(o:UnaryOperand)={
+    o match{
+      case r:Register=> 1
+      case d:DirectMemoryAddressOperand => 2
+      case i:IndirectMemoryAddressOperand => 1
+      case w:WordValue => 1
+      case dw:DWordValue => 2
+    }
+  }
+  
   def Empty() = {
     new Simulator(new CPU(), Memory(Simulator.maxMemorySize), Map[Int, InstructionInfo]())
   }
@@ -55,28 +88,28 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     }
   }
 
-  def run() = {
-    stepN(Simulator.maxInstructions)
+  def runInstructions() = {
+    stepNInstructions(Simulator.maxInstructions)
   }
 
-  def stepN(n: Int) ={
-    val instruction = step()
+  def stepNInstructions(n: Int) ={
+    val instruction = stepInstruction()
     var instructions = ListBuffer(instruction)
     var counter = 0
 
     while (counter < n && instruction.isRight && instruction.right.get.instruction != Hlt && !cpu.halted) {
-      val instruction = step()
+      val instruction = stepInstruction()
       instructions += instruction
     }
     instructions
   }
 
-  def step() = {
+  def stepInstruction() = {
     val instructionInfo = currentInstruction()
     println("Executing instruction: "+instructionInfo)
     if (instructionInfo.isRight) {
       val instruction = instructionInfo.right.get.instruction
-      cpu.ip += Simulator.instructionSize
+      cpu.ip += Simulator.instructionSize(instruction)
       execute(instruction)
       
     }else{

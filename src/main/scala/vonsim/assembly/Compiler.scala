@@ -12,6 +12,10 @@ import vonsim.utils.CollectionUtils._
 import vonsim.assembly.parser.LabeledInstruction
 import scala.util.parsing.input.Positional
 import vonsim.assembly.lexer.VarType
+import scala.collection.mutable.ListBuffer
+import vonsim.assembly.parser.VarDef
+
+
 
 
 sealed trait CompilationError{
@@ -91,40 +95,63 @@ object Compiler {
     
     val equ=ins.collect({case Right(x:parser.EQU) => (x.label,x.value)}).toMap
     
-    val (vardefLabelToLine, jumpLabelToLine)=getLabelToLineMappings(ins)
-    //println("Vardef label to line "+vardefLabelToLine)
+    val (vardefLabelToLine,vardefLabelToType, jumpLabelToLine)=getLabelToLineMappings(ins)
+//    println("Vardef label to line "+vardefLabelToLine)
+//    println("Vardef label to type"+vardefLabelToType)
 //    println("jump label to line"+jumpLabelToLine)
-    
+
     val unlabeledInstructions = unlabelInstructions(ins)
     
-    // TODO build a db of information before
-    val (vardefLineToAddress,vardefLineToType,executableLineToAddress) = getMemoryLayout(unlabeledInstructions)
-//    println("Memory"+memory)
+        
+    val warnings=ListBuffer[Warning]()
+    
+    
+    //Transform from parser.Instruction to simulator.Instruction 
+    // Note that at this point the jumps and memory addresses are actually line numbers  
+    val r=unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,vardefLabelToType,vardefLabelToLine,jumpLabelToLine))
+    if (r.allRight && globalErrors.isEmpty){
+//      println(s"Instructions $r")
+      var instructions=r.rights
+      if (instructions.filter(_.instruction==Hlt).isEmpty){
+        val hltWarning=(0,"No Hlt instructions found.")
+        warnings+=hltWarning
+      }
+      //Build a db of information after getting correctly parsed instructions
+    val (vardefLineToAddress,executableLineToAddress) = getMemoryLayout(instructions)
+    
+    //val vardefLabelToAddress= vardefLabelToLine filter{case (label,line) => vardefLineToAddress.keySet.contains(line)} map { case (x,y) => (x,vardefLineToAddress(y))}
+    //val jumpLabelToAddress= jumpLabelToLine filter{case (label,line) => executableLineToAddress.keySet.contains(line)} map { case (x,y) => (x,executableLineToAddress(y))}
+
+    //    println("Memory"+memory)
     //println("Vardef address"+vardefLineToAddress)
 //    println("Vardef type"+vardefLineToType)
 //    println("executable"+executableLineToAddress)
-    val vardefLabelToAddress=vardefLabelToLine filter{case (label,line) => vardefLineToAddress.keySet.contains(line)} map { case (x,y) => (x,vardefLineToAddress(y))}
-    val jumpLabelToAddress=jumpLabelToLine filter{case (label,line) => executableLineToAddress.keySet.contains(line)} map { case (x,y) => (x,executableLineToAddress(y))}
-    val vardefLabelToType=vardefLabelToLine filter{case (label,line) => vardefLineToType.keySet.contains(line)} map { case (x,y) => (x,vardefLineToType(y))}
+
 //    println("Vardef address"+vardefLabelToAddress)
 //    println("Vardef type"+vardefLabelToType)
-    
-    val warnings=List[Warning]()
-    
-    
-    //TODO process variable declaration statements
-    
-    val r=unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,vardefLabelToType,vardefLabelToAddress,jumpLabelToAddress))
-    if (r.allRight && globalErrors.isEmpty){
-//      println(s"Instructions $r")
-      val instructions=r.rights
-      val memory=getMemory(r.rights(),vardefLabelToAddress)
+      instructions=replaceLinesForAddresses(instructions,vardefLineToAddress,executableLineToAddress) 
+      val memory=getMemory(r.rights())
       val executableInstructions=instructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
       val addressToInstruction=executableInstructions.map(x => (executableLineToAddress(x.line),x)).toMap
-      Right(new SuccessfulCompilation(instructions,addressToInstruction,memory,warnings))
+      Right(new SuccessfulCompilation(instructions,addressToInstruction,memory,warnings.toList))
     }else{
       Left(new FailedCompilation(r,globalErrors.toList))
     }
+  }
+  def replaceLinesForAddresses(instructions:List[InstructionInfo],vardefLineToAddress:Map[Int,Int],executableLineToAddress:Map[Int,Int])={
+    
+    instructions.map(i =>{
+      val updatedInstruction= i.instruction match {
+        case x:WordDef => WordDef(x.label,vardefLineToAddress(x.address),x.values)
+        case x:DWordDef => DWordDef(x.label,vardefLineToAddress(x.address),x.values)
+        case Call(m) => Call(executableLineToAddress(m))
+        case Jump(m) => Jump(executableLineToAddress(m))
+        case ConditionalJump(m,c) => ConditionalJump(executableLineToAddress(m),c)
+        case x => x
+      }
+      new InstructionInfo(i.line,updatedInstruction)
+    })
+    
   }
   def checkRepeatedEnds(ins:ParsingResult)={
     val lastLine=ins.last.fold(_.location.line, _.pos.line)
@@ -173,11 +200,11 @@ object Compiler {
         }
     }
   }
-  def getMemory(instructions:List[InstructionInfo],labelToAddress:Map[String,Int])={
+  def getMemory(instructions:List[InstructionInfo])={
     val memory=mutable.Map[MemoryAddress,Int]()
     val vardefInstructions = instructions map {_.instruction} collect { case x:VarDefInstruction => x}
     vardefInstructions.foreach(i =>{
-      var address=labelToAddress(i.label)
+      var address=i.address
       
       i.values.foreach(cw =>
          cw.toByteList().foreach(b =>{ 
@@ -188,45 +215,47 @@ object Compiler {
     memory.toMap
   }
   
-  def getMemoryLayout(instructions:ParsingResult)={
+  def getMemoryLayout(instructions:List[InstructionInfo])={
     
     val vardefLineToAddress=mutable.Map[Line,MemoryAddress]()
-    val vardefLineToType=mutable.Map[Line,lexer.VarType]()
     val executableLineToAddress=mutable.Map[Line,MemoryAddress]()
     
-    val correctInstructions=instructions.rights
-    val firstOrgIndex=correctInstructions.indexWhere(_.isInstanceOf[parser.Org])
+
+    val firstOrgIndex=instructions.indexWhere(_.instruction.isInstanceOf[Org])
     if (firstOrgIndex>=0){
-      val firstOrg=correctInstructions(firstOrgIndex).asInstanceOf[parser.Org]
-      var address=firstOrg.dir
-      correctInstructions.indices.foreach(i =>
-        correctInstructions(i) match{
-        case x:parser.ExecutableInstruction =>{
-          executableLineToAddress(x.pos.line)=address
-          address+=Simulator.instructionSize
+      val firstOrg=instructions(firstOrgIndex).instruction.asInstanceOf[Org]
+      var address=firstOrg.address
+      instructions.indices.foreach(i =>{
+        val line=instructions(i).line
+        instructions(i).instruction match{
+        case x:ExecutableInstruction =>{
+          executableLineToAddress(line)=address
+          address+=Simulator.instructionSize(x)
         }
-        case x:parser.VarDef =>{
-          vardefLineToAddress(x.pos.line)=address
-          vardefLineToType(x.pos.line)=x.t
-          val typeToBytes=Map(lexer.DB()->1,lexer.DW()->2)
-          val bytesForType=typeToBytes(x.t)
-          address+=bytesForType*x.values.length
+        case x:VarDefInstruction =>{
+          vardefLineToAddress(line)=address
+          address+=x.bytes
         }
-        case x:parser.Org =>{
-          address=x.dir
+        case x:Org =>{
+          address=x.address
           
         }
         case other => {}
-       } 
+       }
+      }
       )  
     }
     
-    (vardefLineToAddress.toMap,vardefLineToType.toMap,executableLineToAddress.toMap) 
+    (vardefLineToAddress.toMap,executableLineToAddress.toMap) 
   }
   
+  def instructionSize(x:parser.Instruction)={
+    2  
+  }
   
-  def getLabelToLineMappings(instructions:ParsingResult):(Map[String,Line],Map[String,Line])={
+  def getLabelToLineMappings(instructions:ParsingResult):(Map[String,Line],Map[String,VarType],Map[String,Line])={
     val vardefLabelToLine=mutable.Map[String,Line]()
+    val vardefLabelToType=mutable.Map[String,VarType]()
     val jumpLabelToLine=mutable.Map[String,Line]()
     
     val unlabeledInstructions=instructions.rights.foreach(
@@ -236,12 +265,14 @@ object Compiler {
           }
           case v:parser.VarDef => {
             vardefLabelToLine(v.label)=v.pos.line
+            vardefLabelToType(v.label)=v.t
           }
           case other => {}
         }
         
     )
-    (vardefLabelToLine.toMap,jumpLabelToLine.toMap)
+    
+    (vardefLabelToLine.toMap,vardefLabelToType.toMap,jumpLabelToLine.toMap)
   }
   def unlabelInstructions(instructions:ParsingResult):ParsingResult={
 

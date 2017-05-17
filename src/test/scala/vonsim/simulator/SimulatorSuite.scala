@@ -27,11 +27,11 @@ class SimulatorSuite extends FunSuite {
        ,Hlt
        )
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(5)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   test("3+2=5 memory") {
@@ -42,12 +42,12 @@ class SimulatorSuite extends FunSuite {
        ,Hlt
        )
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.memory.getBytes(address).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(5)(s.memory.getBytes(address).toInt)
     assertResult(new Flags(false,false,false,false))(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
@@ -60,14 +60,14 @@ class SimulatorSuite extends FunSuite {
        ,Hlt
        )
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.memory.getBytes(address).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(6)(s.memory.getBytes(address).toInt)
     assertResult(new Flags(false,false,false,false))(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
@@ -79,12 +79,12 @@ class SimulatorSuite extends FunSuite {
        ,Hlt
        )
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.memory.getBytes(address).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(new Flags(false,false,false,false))(s.cpu.alu.flags)
     assertResult(4)(s.memory.getBytes(address).toInt)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
    
@@ -95,12 +95,12 @@ class SimulatorSuite extends FunSuite {
        ,Hlt
        )
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(new Flags(false,false,false,false))(s.cpu.alu.flags)
     assertResult(2)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
     
@@ -117,24 +117,24 @@ class SimulatorSuite extends FunSuite {
        ,Hlt
        )
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(AX).toInt)
     val sp=s.cpu.sp
-    s.step()
+    s.stepInstruction()
     assertResult(sp-2)(s.cpu.sp)
     assertResult(3)(s.memory.getBytes(sp-2).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(5)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(sp-4)(s.cpu.sp)
     assertResult(5)(s.memory.getBytes(sp-4).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(5)(s.cpu.get(DX).toInt)
     assertResult(sp-2)(s.cpu.sp)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(CX).toInt)
     assertResult(sp)(s.cpu.sp)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   } 
   
@@ -155,18 +155,18 @@ class SimulatorSuite extends FunSuite {
     flagsWithZ.z=true
     val nullFlags=new Flags()
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(v0)(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assertResult(v0)(s.cpu.get(AL))
     assertResult(flagsWithZ)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assertResult(v0)(s.cpu.get(AL))
     assertResult(nullFlags)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assertResult(v0)(s.cpu.get(AL))
     assertResult(flagsWithSandC)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
    }
    test("logical") {
@@ -196,21 +196,21 @@ class SimulatorSuite extends FunSuite {
     flagsWithS.s=true
     val nullFlags=new Flags()
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assertResult(v0)(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assertResult(r1)(s.cpu.get(AL))
     assertResult(flagsWithS)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assertResult(r2)(s.cpu.get(AL))
     assertResult(flagsWithS)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assertResult(r3)(s.cpu.get(AL))
     assertResult(nullFlags)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assertResult(r4)(s.cpu.get(AL))
     assertResult(flagsWithS)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
    
@@ -225,11 +225,11 @@ class SimulatorSuite extends FunSuite {
     val f=s.cpu.alu.flags
     val ip=s.cpu.ip
     val sp=s.cpu.sp
-    s.step()
-    assertResult(ip+Simulator.instructionSize)(s.cpu.ip)
+    s.stepInstruction()
+    assertResult(ip+Simulator.instructionSize(Nop))(s.cpu.ip)
     assertResult(sp)(s.cpu.sp)
     assertResult(f)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
@@ -241,12 +241,13 @@ class SimulatorSuite extends FunSuite {
        )
     
     val s=simulator(instructions)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   test("jump to next is like nop") {
     val baseAddress=0x2000
-    val jumpAddress=baseAddress+Simulator.instructionSize
+    
+    val jumpAddress=baseAddress+Simulator.instructionSize(new Jump(0))
     val instructions=List(
        new Jump(jumpAddress)
        ,new Mov(new WordRegisterValue(AL,new WordValue(2)))
@@ -258,17 +259,17 @@ class SimulatorSuite extends FunSuite {
     val nullFlags=new Flags()
     
     val s=simulator(instructions,baseAddress)
-    s.step()
+    s.stepInstruction()
     assertResult(jumpAddress)(s.cpu.ip)
-    s.step()
+    s.stepInstruction()
     assertResult(Word(2))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
   test("jump 2") {
     val baseAddress=8192
-    val jumpAddress=baseAddress+ (Simulator.instructionSize*3)
+    val jumpAddress=baseAddress+ (3+4+4)
     val instructions=List(
        new Jump(jumpAddress)
        ,new Mov(new WordRegisterValue(AL,new WordValue(1)))
@@ -283,19 +284,19 @@ class SimulatorSuite extends FunSuite {
     
     val s=simulator(instructions,baseAddress)
     assertResult(baseAddress)(s.cpu.ip)
-    s.step()
+    s.stepInstruction()
     assertResult(jumpAddress)(s.cpu.ip)
-    s.step()
+    s.stepInstruction()
     assertResult(Word(3))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
   test("jump conditional") {
     val baseAddress=8192
-    val jumpAddressNZ=baseAddress+ (Simulator.instructionSize*4)
-    val jumpAddressZ=baseAddress+ (Simulator.instructionSize*6)
-    val jumpAddressEnd=baseAddress+ (Simulator.instructionSize*9)
+    val jumpAddressNZ=baseAddress+ (4+4+3+3)
+    val jumpAddressZ=jumpAddressNZ+(4+3)
+    val jumpAddressEnd=jumpAddressZ+(4+3+4)
     val instructions=List(
         new Mov(new WordRegisterValue(AL,new WordValue(1)))
        ,new ALUBinary(CMP,new WordRegisterValue(AL,new WordValue(1)))
@@ -314,27 +315,28 @@ class SimulatorSuite extends FunSuite {
     
     val s=simulator(instructions,baseAddress)
     assertResult(baseAddress)(s.cpu.ip)
-    s.step()
+    s.stepInstruction()
     assertResult(Word(1))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assertResult(flagsWithZ)(s.cpu.alu.flags)
     val ip=s.cpu.ip
-    s.step()
-    assertResult(ip+Simulator.instructionSize)(s.cpu.ip)
-    s.step()
+    s.stepInstruction()
+    assertResult(ip+3)(s.cpu.ip)
+    s.stepInstruction()
     assertResult(jumpAddressZ)(s.cpu.ip)
-    s.step()
+    s.stepInstruction()
     assertResult(Word(3))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assertResult(jumpAddressEnd)(s.cpu.ip)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
   test("call") {
     val baseAddress=0x2000
-    val jumpAddress=baseAddress+Simulator.instructionSize*6
-    val returnAddress=baseAddress+Simulator.instructionSize*2
+    val returnAddress=baseAddress+(4+3)
+    val jumpAddress=returnAddress+(4+1+1+1)
+    
     val instructions=List(
         new Mov(new WordRegisterValue(AL,new WordValue(1)))
        ,new Call(jumpAddress)
@@ -353,20 +355,20 @@ class SimulatorSuite extends FunSuite {
     
     val s=simulator(instructions,baseAddress)
     val sp=s.cpu.sp
-    s.step()
+    s.stepInstruction()
     assertResult(Word(1))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assertResult(jumpAddress)(s.cpu.ip)
     assertResult(sp-2)(s.cpu.sp)
-    s.step()
+    s.stepInstruction()
     assertResult(Word(3))(s.cpu.get(AL))
-    s.step()
-    s.step()
+    s.stepInstruction()
+    s.stepInstruction()
     assertResult(returnAddress)(s.cpu.ip)
     assertResult(sp)(s.cpu.sp)
-    s.step()
+    s.stepInstruction()
     assertResult(Word(2))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
    

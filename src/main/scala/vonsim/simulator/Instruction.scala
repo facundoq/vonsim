@@ -1,12 +1,15 @@
 package vonsim.simulator
 
 
+trait Zeroary
+trait Unary
+
 abstract class Instruction
 
 abstract class ExecutableInstruction extends Instruction
 
-case object Hlt extends ExecutableInstruction 
-case object Nop extends ExecutableInstruction 
+case object Hlt extends ExecutableInstruction with Zeroary 
+case object Nop extends ExecutableInstruction with Zeroary
 case object End extends Instruction
 
 case class Org(address:Int) extends Instruction
@@ -34,7 +37,7 @@ case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefI
   }
 }
 
-case class Mov(binaryOperands:BinaryOperands) extends ExecutableInstruction 
+case class Mov(binaryOperands:BinaryOperands) extends ExecutableInstruction  
 case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends ExecutableInstruction 
 case class ALUUnary(op:ALUOpUnary,unaryOperands:UnaryOperandUpdatable) extends ExecutableInstruction 
 
@@ -42,13 +45,14 @@ case class ALUUnary(op:ALUOpUnary,unaryOperands:UnaryOperandUpdatable) extends E
 class StackInstruction extends ExecutableInstruction 
 case class Push(r:FullRegister) extends StackInstruction
 case class Pop(r:FullRegister) extends StackInstruction
-case object Popf extends StackInstruction
-case object Pushf extends StackInstruction
+case object Popf extends StackInstruction with Zeroary
+case object Pushf extends StackInstruction with Zeroary
 
 class InterruptInstruction extends ExecutableInstruction 
-case object Sti extends InterruptInstruction
-case object Cli extends InterruptInstruction
-case object Iret extends InterruptInstruction with IpModifyingInstruction
+case object Sti extends InterruptInstruction with Zeroary
+case object Cli extends InterruptInstruction with Zeroary
+case object Iret extends InterruptInstruction with IpModifyingInstruction with Zeroary
+
 case class  IntN(v:InmediateOperand) extends InterruptInstruction
 
 trait IpModifyingInstruction 

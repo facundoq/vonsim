@@ -2,19 +2,21 @@ package vonsim.simulator
 
 sealed class UnaryOperand
 
-sealed trait WordOperand
-sealed trait DWordOperand
+sealed trait WordOperand extends UnaryOperand
+sealed trait DWordOperand extends UnaryOperand
 
 class UnaryOperandUpdatable extends UnaryOperand 
 
 
 class MemoryOperand extends UnaryOperandUpdatable 
 
-case class DWordMemoryAddress(address:Int) extends MemoryOperand with DWordOperand 
-case class WordMemoryAddress(address:Int) extends MemoryOperand with WordOperand
+trait DirectMemoryAddressOperand extends MemoryOperand
+case class DWordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  with DWordOperand 
+case class WordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  with WordOperand
 
-case object DWordIndirectMemoryAddress extends MemoryOperand  with DWordOperand 
-case object WordIndirectMemoryAddress extends MemoryOperand with WordOperand
+trait IndirectMemoryAddressOperand extends MemoryOperand
+case object DWordIndirectMemoryAddress extends IndirectMemoryAddressOperand   with DWordOperand 
+case object WordIndirectMemoryAddress extends IndirectMemoryAddressOperand  with WordOperand
 
 class InmediateOperand extends UnaryOperand
 case class DWordValue(v:Int) extends InmediateOperand with DWordOperand

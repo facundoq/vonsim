@@ -43,7 +43,7 @@ class ProgramsSuite extends FunSuite {
     assertResult(2)(s.memory.getByte(0x1500).toInt)
     assertResult(24)(s.memory.getByte(0x1501).toInt)
     assertResult(0)(s.memory.getByte(0x1502).toInt)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
       test("push pop") {
@@ -58,15 +58,15 @@ class ProgramsSuite extends FunSuite {
   end
 """
     val s=simulator(program)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(AX).toInt)
     val sp=s.cpu.sp
-    s.step()
+    s.stepInstruction()
     assertResult(sp-2)(s.cpu.sp)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(BX).toInt)
     assertResult(sp)(s.cpu.sp)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
@@ -79,11 +79,11 @@ hlt
 end"""
     
     val s=simulator(program)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(5)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
@@ -181,11 +181,11 @@ end"""
     
     val s=simulator(program)
     assertResult(2)(s.memory.getBytes(0x1000).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(5)(s.cpu.get(AX).toInt)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
   
@@ -207,7 +207,7 @@ fin:  hlt
     
     val s=simulator(program)
     
-    s.run()
+    s.runInstructions()
     assertResult(8+7+6+5+4+3+2+1)(s.cpu.get(AL).toInt)
     assert(s.cpu.halted)
   }
@@ -237,7 +237,7 @@ end
 """    
        
     val s=simulator(program)
-    val instructions=s.run().toList
+    val instructions=s.runInstructions().toList
     assertResult(15)(s.cpu.get(DX).toInt)
     assertResult(0x2008)(s.cpu.ip)
     assert(s.cpu.halted)
@@ -281,7 +281,7 @@ end
 """
     
     val s=simulator(program)    
-    s.run()
+    s.runInstructions()
     assertResult(5*4*3*2)(s.cpu.get(AX).toInt)
     assert(s.cpu.halted)
   }
@@ -302,23 +302,23 @@ end
     val subFlags=new Flags(false,false,false,false)
     val s=simulator(program)
     
-    s.step()
+    s.stepInstruction()
     assertResult(Word("10000000"))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     
     
     assertResult(addFlags)(s.cpu.alu.flags)
     assertResult(Word("00000000"))(s.cpu.get(AL))
     val sp=s.cpu.sp
-    s.step()
+    s.stepInstruction()
     assertResult(sp-2)(s.cpu.sp)
-    s.step()
+    s.stepInstruction()
     assertResult(subFlags)(s.cpu.alu.flags)
     assertResult(Word("00000001"))(s.cpu.get(AL))
-    s.step()
+    s.stepInstruction()
     assertResult(sp)(s.cpu.sp)
     assertResult(addFlags)(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
    
@@ -336,12 +336,12 @@ end
 """
     val s=simulator(program)
     assertResult(1)(s.memory.getByte(0x1000).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(3)(s.memory.getByte(0x1000).toInt)
-    s.step()
+    s.stepInstruction()
     assertResult(5)(s.memory.getByte(0x1000).toInt)
     assertResult(new Flags(false,false,false,false))(s.cpu.alu.flags)
-    s.step()
+    s.stepInstruction()
     assert(s.cpu.halted)
   }
    
@@ -366,26 +366,26 @@ f2:  call f1
     val s=simulator(program)
     
     val sp=s.cpu.sp
-    assert(s.step().isRight)
+    assert(s.stepInstruction().isRight)
     assertResult(DWord(2))(s.cpu.get(AX))
-    assert(s.step().isRight)
+    assert(s.stepInstruction().isRight)
     assertResult(0x1200)(s.cpu.ip)
     assertResult(sp-2)(s.cpu.sp)
-    assertResult(DWord(0x2004))(s.memory.getBytes(s.cpu.sp))
-    assert(s.step().isRight)
+    assertResult(DWord(0x2007))(s.memory.getBytes(s.cpu.sp))
+    assert(s.stepInstruction().isRight)
     assertResult(0x1000)(s.cpu.ip)
     assertResult(sp-4)(s.cpu.sp)
     assertResult(DWord(0x1202))(s.memory.getBytes(s.cpu.sp))
-    assert(s.step().isRight)
+    assert(s.stepInstruction().isRight)
     assertResult(DWord(4))(s.cpu.get(AX))
-    assert(s.step().isRight)
-    assertResult(0x1202)(s.cpu.ip)
+    assert(s.stepInstruction().isRight)
+    assertResult(0x1203)(s.cpu.ip)
     assertResult(sp-2)(s.cpu.sp)
-    assertResult(DWord(0x2004))(s.memory.getBytes(s.cpu.sp))
-    assert(s.step().isRight)
-    assertResult(0x2004)(s.cpu.ip)
+    assertResult(DWord(0x2007))(s.memory.getBytes(s.cpu.sp))
+    assert(s.stepInstruction().isRight)
+    assertResult(0x2007)(s.cpu.ip)
     assertResult(sp)(s.cpu.sp)
-    assert(s.step().isRight)
+    assert(s.stepInstruction().isRight)
     assert(s.cpu.halted)
   }
   test("no org should throw error") {

@@ -88,7 +88,7 @@ class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
          println("Loading program... ")
          s.load(c)
          println("Running program... ")
-         s.run()
+         s.runInstructions()
          println("Updating UI..")
          update()
          println("Done")
