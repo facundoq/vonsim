@@ -249,7 +249,7 @@ ret = 01000011
 
 Sample 6:
 push dx  = 00100000  00000010
-00100000 = push
-00000011 = DX register
+   00100000 = push
+   00000011 = DX register
    
 ```
