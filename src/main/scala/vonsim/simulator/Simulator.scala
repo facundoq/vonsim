@@ -106,7 +106,7 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
 
   def stepInstruction() = {
     val instructionInfo = currentInstruction()
-    println("Executing instruction: "+instructionInfo)
+    //println("Executing instruction: "+instructionInfo)
     if (instructionInfo.isRight) {
       val instruction = instructionInfo.right.get.instruction
       cpu.ip += Simulator.instructionSize(instruction)

@@ -28,12 +28,12 @@ abstract class VarDefInstruction extends Instruction{
 
 case class WordDef(label:String,address:Int,val values:List[Word]) extends VarDefInstruction{
   def bytes()={
-    values.length*values.last.bytes  
+    if (values.isEmpty)  0 else values.length*values.last.bytes  
   }
 }
 case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefInstruction{
   def bytes()={
-    values.length*values.last.bytes  
+    if (values.isEmpty)  0 else values.length*values.last.bytes  
   }
 }
 

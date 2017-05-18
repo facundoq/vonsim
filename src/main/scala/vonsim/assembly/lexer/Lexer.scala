@@ -79,7 +79,7 @@ def literalnumber= positioned {
 }
 def literaldec= positioned {
   "(-)?[0-9]{1,7}".r ^^ { str => {
-    println("Literal dec "+str)
+
     LITERALINTEGER(str.toInt) 
     } 
   }

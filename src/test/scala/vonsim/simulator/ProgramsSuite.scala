@@ -36,15 +36,15 @@ class ProgramsSuite extends FunSuite {
   hlt  
   end
 """
-   println("VARDEF Executing program")
     val s=simulator(program)
-    
-    assertResult(1)(s.memory.getByte(0x1000).toInt)
-    assertResult(20)(s.memory.getByte(0x1001).toInt)
-    assertResult(0)(s.memory.getByte(0x1002).toInt)
-    assertResult(2)(s.memory.getByte(0x1500).toInt)
-    assertResult(24)(s.memory.getByte(0x1501).toInt)
-    assertResult(0)(s.memory.getByte(0x1502).toInt)
+    val base1=0x1000
+    val base2=0x1500
+    assertResult(1)(s.memory.getByte(base1).toInt)
+    assertResult(2)(s.memory.getByte(base2).toInt)
+    assertResult(20)(s.memory.getByte(base2+1).toInt)
+    assertResult(0)(s.memory.getByte(base2+2).toInt)
+    assertResult(24)(s.memory.getByte(base2+3).toInt)
+    assertResult(0)(s.memory.getByte(base2+4).toInt)
     s.stepInstruction()
     assert(s.cpu.halted)
   }
@@ -348,7 +348,6 @@ end
   }
    
   test("double call") {
-//    println("PROGRAM double call")
      val program = 
 """
   org 1000h
@@ -373,19 +372,19 @@ f2:  call f1
     assert(s.stepInstruction().isRight)
     assertResult(0x1200)(s.cpu.ip)
     assertResult(sp-2)(s.cpu.sp)
-    assertResult(DWord(0x2007))(s.memory.getBytes(s.cpu.sp))
+    assertResult(DWord(0x2008))(s.memory.getBytes(s.cpu.sp))
     assert(s.stepInstruction().isRight)
     assertResult(0x1000)(s.cpu.ip)
     assertResult(sp-4)(s.cpu.sp)
-    assertResult(DWord(0x1202))(s.memory.getBytes(s.cpu.sp))
+    assertResult(DWord(0x1203))(s.memory.getBytes(s.cpu.sp))
     assert(s.stepInstruction().isRight)
     assertResult(DWord(4))(s.cpu.get(AX))
     assert(s.stepInstruction().isRight)
     assertResult(0x1203)(s.cpu.ip)
     assertResult(sp-2)(s.cpu.sp)
-    assertResult(DWord(0x2007))(s.memory.getBytes(s.cpu.sp))
+    assertResult(DWord(0x2008))(s.memory.getBytes(s.cpu.sp))
     assert(s.stepInstruction().isRight)
-    assertResult(0x2007)(s.cpu.ip)
+    assertResult(0x2008)(s.cpu.ip)
     assertResult(sp)(s.cpu.sp)
     assert(s.stepInstruction().isRight)
     assert(s.cpu.halted)
