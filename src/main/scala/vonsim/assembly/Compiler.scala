@@ -74,6 +74,7 @@ object Compiler {
     val parsedInstructions = fixedTokensNoEmpty map parseValidTokens toList
     
     val compilation = transformToSimulatorInstructions(parsedInstructions)
+    println(compilation)
     compilation  
 
   }
@@ -96,9 +97,9 @@ object Compiler {
     val equ=ins.collect({case Right(x:parser.EQU) => (x.label,x.value)}).toMap
     
     val (vardefLabelToLine,vardefLabelToType, jumpLabelToLine)=getLabelToLineMappings(ins)
-//    println("Vardef label to line "+vardefLabelToLine)
-//    println("Vardef label to type"+vardefLabelToType)
-//    println("jump label to line"+jumpLabelToLine)
+    println("Vardef label to line "+vardefLabelToLine)
+    println("Vardef label to type"+vardefLabelToType)
+    println("jump label to line"+jumpLabelToLine)
 
     val unlabeledInstructions = unlabelInstructions(ins)
     
@@ -123,9 +124,8 @@ object Compiler {
     //val jumpLabelToAddress= jumpLabelToLine filter{case (label,line) => executableLineToAddress.keySet.contains(line)} map { case (x,y) => (x,executableLineToAddress(y))}
 
     //    println("Memory"+memory)
-    //println("Vardef address"+vardefLineToAddress)
-//    println("Vardef type"+vardefLineToType)
-//    println("executable"+executableLineToAddress)
+    println("Vardef address"+vardefLineToAddress)
+    println("executable"+executableLineToAddress)
 
 //    println("Vardef address"+vardefLabelToAddress)
 //    println("Vardef type"+vardefLabelToType)
@@ -144,6 +144,9 @@ object Compiler {
       val updatedInstruction= i.instruction match {
         case x:WordDef => WordDef(x.label,vardefLineToAddress(x.address),x.values)
         case x:DWordDef => DWordDef(x.label,vardefLineToAddress(x.address),x.values)
+        case x:ALUBinary => ALUBinary(x.op,replaceLinesForAdresses(x.binaryOperands,vardefLineToAddress))
+        case x:Mov => Mov(replaceLinesForAdresses(x.binaryOperands,vardefLineToAddress))
+        case x:ALUUnary => ALUUnary(x.op,replaceLinesForAdresses(x.unaryOperands,vardefLineToAddress))
         case Call(m) => Call(executableLineToAddress(m))
         case Jump(m) => Jump(executableLineToAddress(m))
         case ConditionalJump(m,c) => ConditionalJump(executableLineToAddress(m),c)
@@ -153,6 +156,34 @@ object Compiler {
     })
     
   }
+  def replaceLinesForAdresses(x:BinaryOperands,vardefLineToAddress:Map[Int,Int])={
+    x match {
+      case DWordRegisterMemory(o1,o2) => DWordRegisterMemory(o1,replaceLineForAdress(o2,vardefLineToAddress))
+      case WordRegisterMemory(o1,o2) => WordRegisterMemory(o1,replaceLineForAdress(o2,vardefLineToAddress))
+      case DWordMemoryRegister(o1,o2) => DWordMemoryRegister(replaceLineForAdress(o1,vardefLineToAddress),o2)
+      case WordMemoryRegister(o1,o2) => WordMemoryRegister(replaceLineForAdress(o1,vardefLineToAddress),o2)
+      case DWordMemoryValue(o1,o2) => DWordMemoryValue(replaceLineForAdress(o1,vardefLineToAddress),o2)
+      case WordMemoryValue(o1,o2) => WordMemoryValue(replaceLineForAdress(o1,vardefLineToAddress),o2)
+      case x => x
+    }
+  }
+  def replaceLineForAdress(mem:DWordMemoryAddress,vardefLineToAddress:Map[Int,Int])={
+    DWordMemoryAddress(vardefLineToAddress(mem.address))
+  }
+  def replaceLineForAdress(mem:WordMemoryAddress,vardefLineToAddress:Map[Int,Int])={
+    WordMemoryAddress(vardefLineToAddress(mem.address))
+  }
+    
+  def replaceLinesForAdresses(x:UnaryOperandUpdatable,vardefLineToAddress:Map[Int,Int])={
+    x match {
+      case a:DWordMemoryAddress => replaceLineForAdress(a, vardefLineToAddress)
+      case a:WordMemoryAddress => replaceLineForAdress(a, vardefLineToAddress)
+      case z => z
+    }
+      
+  }
+  
+  
   def checkRepeatedEnds(ins:ParsingResult)={
     val lastLine=ins.last.fold(_.location.line, _.pos.line)
     ins.mapRightEither(_ match {
@@ -228,17 +259,16 @@ object Compiler {
       instructions.indices.foreach(i =>{
         val line=instructions(i).line
         instructions(i).instruction match{
-        case x:ExecutableInstruction =>{
-          executableLineToAddress(line)=address
-          address+=Simulator.instructionSize(x)
+        case x:Org =>{
+          address=x.address
         }
         case x:VarDefInstruction =>{
           vardefLineToAddress(line)=address
           address+=x.bytes
         }
-        case x:Org =>{
-          address=x.address
-          
+        case x:ExecutableInstruction =>{
+          executableLineToAddress(line)=address
+          address+=Simulator.instructionSize(x)
         }
         case other => {}
        }
@@ -285,8 +315,8 @@ object Compiler {
   
   
   def parserToSimulatorInstruction(i:parser.Instruction,
-      vardefLabelToType:Map[String,lexer.VarType],vardefLabelToAddress:Map[String,MemoryAddress]
-  ,jumpLabelToAddress:Map[String,MemoryAddress]):Either[CompilationError,simulator.InstructionInfo] = {
+      vardefLabelToType:Map[String,lexer.VarType],vardefLabelToLine:Map[String,MemoryAddress]
+  ,jumpLabelToLine:Map[String,MemoryAddress]):Either[CompilationError,simulator.InstructionInfo] = {
     
     val zeroary=Map(parser.Popf() -> Popf
                     ,parser.Pushf() -> Pushf
@@ -303,11 +333,11 @@ object Compiler {
       case x:parser.IntN => successfulTransformation(x,IntN(WordValue(x.n)))
       case x:parser.Org => successfulTransformation(x,Org(x.dir))
       case x:parser.Jump => { 
-        if (jumpLabelToAddress.keySet.contains(x.label)){
+        if (jumpLabelToLine.keySet.contains(x.label)){
           successfulTransformation(x,x match{
-            case x:parser.ConditionalJump => ConditionalJump(jumpLabelToAddress(x.label),jumpConditions(x.op))
-            case x:parser.Call => Call(jumpLabelToAddress(x.label))
-            case x:parser.UnconditionalJump => Jump(jumpLabelToAddress(x.label))
+            case x:parser.ConditionalJump => ConditionalJump(jumpLabelToLine(x.label),jumpConditions(x.op))
+            case x:parser.Call => Call(jumpLabelToLine(x.label))
+            case x:parser.UnconditionalJump => Jump(jumpLabelToLine(x.label))
           })
         }else{
           semanticError(x,s"Label ${x.label} undefined")
@@ -318,13 +348,13 @@ object Compiler {
         case st:lexer.PUSH => Push( fullRegisters(x.r))
         })
       case x:parser.Mov => 
-        parserToSimulatorBinaryOperands(x,x.m,x.v,vardefLabelToType,vardefLabelToAddress).right.flatMap(
+        parserToSimulatorBinaryOperands(x,x.m,x.v,vardefLabelToType,vardefLabelToLine).right.flatMap(
             op => successfulTransformation(x,Mov(op)))
       case x:parser.BinaryArithmetic => 
-        parserToSimulatorBinaryOperands(x,x.m,x.v,vardefLabelToType,vardefLabelToAddress).right.flatMap(
+        parserToSimulatorBinaryOperands(x,x.m,x.v,vardefLabelToType,vardefLabelToLine).right.flatMap(
             operands => successfulTransformation(x,ALUBinary(binaryOperations(x.op), operands)))      
       case x:parser.UnaryArithmetic => 
-        parserToSimulatorOperand(x.m,vardefLabelToType,vardefLabelToAddress).right.flatMap(
+        parserToSimulatorOperand(x.m,vardefLabelToType,vardefLabelToLine).right.flatMap(
             _ match{
               case operand:UnaryOperandUpdatable => successfulTransformation(x,ALUUnary(unaryOperations(x.op), operand))
               case other => semanticError(x,s"Operand $other is not updatable") 
@@ -341,11 +371,11 @@ object Compiler {
             if (!values.map(_.isInstanceOf[Word]).fold(true)(_&&_)){
               semanticError(x,"Some values do not fit into an 8 bit representation.")
             }else{      
-              successfulTransformation(x,WordDef(x.label,vardefLabelToAddress(x.label),values.asInstanceOf[List[Word]]))
+              successfulTransformation(x,WordDef(x.label,vardefLabelToLine(x.label),values.asInstanceOf[List[Word]]))
             }
           }
           case t:lexer.DW =>{      
-              successfulTransformation(x,DWordDef(x.label,vardefLabelToAddress(x.label),values.map(_.toDWord)))
+              successfulTransformation(x,DWordDef(x.label,vardefLabelToLine(x.label),values.map(_.toDWord)))
           }
         }
         

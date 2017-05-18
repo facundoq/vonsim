@@ -26,17 +26,19 @@ class ProgramsSuite extends FunSuite {
 """
   org 1000h
   vardb: db 1
-  vardw: dw 20
   
   org 1500h
   vardb2: db 2
+    		 vardw: dw 20
   vardw2: dw 24
   
   org 2000h
   hlt  
   end
 """
+   println("VARDEF Executing program")
     val s=simulator(program)
+    
     assertResult(1)(s.memory.getByte(0x1000).toInt)
     assertResult(20)(s.memory.getByte(0x1001).toInt)
     assertResult(0)(s.memory.getByte(0x1002).toInt)
@@ -239,7 +241,7 @@ end
     val s=simulator(program)
     val instructions=s.runInstructions().toList
     assertResult(15)(s.cpu.get(DX).toInt)
-    assertResult(0x2008)(s.cpu.ip)
+    assertResult(0x200E)(s.cpu.ip)
     assert(s.cpu.halted)
     assert(instructions.allRight)
 }

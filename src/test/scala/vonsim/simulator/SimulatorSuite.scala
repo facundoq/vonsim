@@ -8,9 +8,16 @@ import com.sun.org.apache.bcel.internal.generic.ArithmeticInstruction
 
 class SimulatorSuite extends FunSuite {
   
-  def instructionsToProgram(is:List[Instruction],baseIP:Int)= 
-    is.zipWithIndex.map(a => (new InstructionInfo(a._2,a._1),a._2*2+baseIP).swap).toMap  
-   
+  def instructionsToProgram(is:List[Instruction],baseIP:Int)={ 
+    var address=baseIP
+    
+    is.zipWithIndex.map(a => {
+      val m=(new InstructionInfo(a._2,a._1),address).swap
+      address+=Simulator.instructionSize(a._1)
+      m
+      }).toMap  
+    
+  }
   
    
   def simulator(instructions:List[Instruction],baseAddress:Int=0x2000)={
