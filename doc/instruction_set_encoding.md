@@ -108,20 +108,20 @@ out 00 00 1010
 
 
 ### Binary addressing Modes (16 -> 4 bits):
-Format: `0000 MMMS`
+Format: `S000 0MMM`
 
 `S` can be 0 or 1 (0 => 1-byte operands, 1 => 2 bytes operands)
 
 ```
-reg,reg 0000 000S
-reg,im  0000 001S
-reg,mem 0000 010S
-reg,ind 0000 011S
+reg,reg S000 0000
+reg,im  S000 0001
+reg,mem S000 0010
+reg,ind S000 0011
 
-mem,reg 0000 100S
-mem,im  0000 101S
-ind,reg 0000 110S
-ind,im  0000 111S
+mem,reg S000 0100
+mem,im  S000 0101
+ind,reg S000 0110
+ind,im  S000 0111
 ```
 
 Where:
@@ -148,13 +148,13 @@ neg 00 01 0100
 ```
 
 ### Unary ALU operation addressing modes (MMS):
-Format: `0000 0MMS`
+Format: `S000 00MM`
 `S` can be 0 or 1 (0 => 1-byte operands, 1 => 2 bytes operands)
 
 ```
-reg 0000 000S
-mem 0000 001S
-ind 0000 010S
+reg S000 0000
+mem S000 0001
+ind S000 0010
 ```
 
 
@@ -215,16 +215,16 @@ sti   01 00 1000
 
 ```
 Sample 1:
-mov ax,bx = 00001000  00000001 00000001 00000010
+mov ax,bx = 00001000  00000001 00000000 00000001
    00001000 = mov
-   00000001 = reg / reg addresing modes, 16 bit operands
-   00000001 = AX register
-   00000010 = BX register
+   10000000 = reg / reg addresing modes, 16 bit operands
+   00000000 = AX register
+   00000001 = BX register
    
 Sample 2:
 mov ax,5 = 00001000  00000011 00000000 00000000 00000101
    00001000 = mov
-   00000011 = reg / immediate addresing modes, 16 bit operands
+   10000001 = reg / immediate addresing modes, 16 bit operands
    00000000 = AX register
    00000000 00000101 = value 5 encoded in 16 bits BSS
 
@@ -233,8 +233,23 @@ org 100h   = Not an executable statement
 var: db 7  = Not an executable statement
 org 2000h  = Not an executable statement
 add al,var = 00000000 00000100 00000100 00000001 00000000
-   00000000 = mov
-   00000100 = reg / mem addresing modes, 8 bit operands
+   00000000 = add
+   00000010 = reg / mem addresing modes, 8 bit operands
    00000100 = AL register
    00000001 00000000 = address 100h encoded in 16 bits BSS
+
+Sample 4:
+inc cx  = 00010001  00000011 00000010
+   00010001 = inc
+   10000000 = reg addresing mode, 16 bit operand
+   00000010 = CX register
+   
+Sample 5: 
+ret = 01000011
+
+Sample 6:
+push dx  = 00100000  00000010
+00100000 = push
+00000011 = DX register
+   
 ```
