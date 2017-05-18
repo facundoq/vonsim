@@ -37,6 +37,53 @@ Op code format: `CCCCCCCC`  (8-bit operation Code)
     *`MMM` = A 3-bit addressing Mode code
     * `S` = A bit indicating if the operands' Sizes are 1 byte or 2 bytes (0 => 1 byte, 1 => 2 bytes).
 
+Note: Many combinations of op codes, addressing codes and operands are illegal, for example those that encode binary operations between 16 bit and 8 bit registers. 
+
+## Operands
+
+There are three types of operands:
+
+### Register Operands
+
+1 byte with the code for the register
+
+Format: `0000 HLRR`
+* `RR`: a 2-byte code for the register, (`00 -> A, 01 -> B, 10 -> C, 11 -> D`)
+* `H`: a bit indicating if accessing only the high part of the register 
+* `L`: a bit indicating if accessing only the low  part of the register 
+* `H` and `L` are mutually exclusive.
+
+```
+AX  0000 0000
+BX  0000 0001
+CX  0000 0010
+DX  0000 0011
+AL  0000 0100
+BL  0000 0101
+CL  0000 0110
+DL  0000 0111
+AH  0000 1000
+BH  0000 1001
+CH  0000 1010
+DH  0000 1011
+```
+
+### Memory Operands
+Format: `LLLLLLLL HHHHHHHH`
+
+* Two bytes indicating the memory address of the value to use/update.
+* `L` LSB of the address
+* `H` MSB of the address
+
+### Immediate Operands
+
+Format: `LLLLLLLL` or `LLLLLLLL HHHHHHHH`
+
+* One or two bytes with the value of the immediate operand.
+* `L` LSB of the address
+* `H` MSB of the address
+
+
 
 ## Binary Instructions
 
@@ -83,7 +130,9 @@ Where:
 * reg: register operand
 * mem: memory operand
 
-NOTE: `reg,im` is the only valid addressing mode for `in` and `out` instructions
+Notes:
+* `reg,im` is the only valid addressing mode for `in` and `out` instructions
+* The operands must agree with the addressing modes; ie, if `S=0`, then operands must refer to 8-bit registers and 8 bit immediate operands.
 
 ## Unary instructions (17)
 General Format: `00 CCCCCC`
@@ -100,6 +149,7 @@ neg 00 01 0100
 
 ### Unary ALU operation addressing modes (MMS):
 Format: `0000 0MMS`
+`S` can be 0 or 1 (0 => 1-byte operands, 1 => 2 bytes operands)
 
 ```
 reg 0000 000S
@@ -107,8 +157,9 @@ mem 0000 001S
 ind 0000 010S
 ```
 
-`S` can be 0 or 1 (0 => 1-byte operands, 1 => 2 bytes operands)
 
+Notes:
+* The operand must agree with the addressing mode; ie, if `S=0`, then the operands must refer to a 8-bit register or an 8 bit immediate operand.
 
 ### Stack instructions
 Format: 00 10 000C
@@ -158,4 +209,32 @@ sti   01 00 1000
 4 bytes = binary op (1 byte) + addressing mode (1 byte) + register    (1 byte ) + immediate (1 byte )
 4 bytes = unary  op (1 byte) + addressing mode (1 byte) + mem address (2 bytes)
 3 bytes = unary  op (1 byte) + addressing mode (1 byte) + register    (1 byte )
+```
+
+## Sample instruction encodings
+
+```
+Sample 1:
+mov ax,bx = 00001000  00000001 00000001 00000010
+   00001000 = mov
+   00000001 = reg / reg addresing modes, 16 bit operands
+   00000001 = AX register
+   00000010 = BX register
+   
+Sample 2:
+mov ax,5 = 00001000  00000011 00000000 00000000 00000101
+   00001000 = mov
+   00000011 = reg / immediate addresing modes, 16 bit operands
+   00000000 = AX register
+   00000000 00000101 = value 5 encoded in 16 bits BSS
+
+Sample 3:
+org 100h   = Not an executable statement
+var: db 7  = Not an executable statement
+org 2000h  = Not an executable statement
+add al,var = 00000000 00000100 00000100 00000001 00000000
+   00000000 = mov
+   00000100 = reg / mem addresing modes, 8 bit operands
+   00000100 = AL register
+   00000001 00000000 = address 100h encoded in 16 bits BSS
 ```
