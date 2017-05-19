@@ -53,7 +53,7 @@ case object Sti extends InterruptInstruction with Zeroary
 case object Cli extends InterruptInstruction with Zeroary
 case object Iret extends InterruptInstruction with IpModifyingInstruction with Zeroary
 
-case class  IntN(v:InmediateOperand) extends InterruptInstruction
+case class  IntN(v:ImmediateOperand) extends InterruptInstruction
 
 trait IpModifyingInstruction 
 
@@ -61,7 +61,8 @@ abstract class JumpInstruction extends ExecutableInstruction  with IpModifyingIn
   def m:Int
 }
 
-case object Ret extends ExecutableInstruction  with IpModifyingInstruction
+case object Ret extends ExecutableInstruction  with IpModifyingInstruction with Zeroary
+
 case class Call(m:Int) extends JumpInstruction 
 case class Jump(m:Int) extends JumpInstruction
 
@@ -77,7 +78,7 @@ case object JO extends Condition
 case object JNO extends Condition
 case class ConditionalJump(m:Int,c:Condition) extends JumpInstruction
 
-class IOInstruction extends ExecutableInstruction 
+class IOInstruction(val r:IORegister,val a:Simulator.IOMemoryAddress) extends ExecutableInstruction 
 
-case class In(r:IORegister,a:Simulator.IOMemoryAddress) extends IOInstruction
-case class Out(r:IORegister,a:Simulator.IOMemoryAddress) extends IOInstruction
+case class In(rr:IORegister,aa:Simulator.IOMemoryAddress) extends IOInstruction(rr,aa)
+case class Out(rr:IORegister,aa:Simulator.IOMemoryAddress) extends IOInstruction(rr,aa)

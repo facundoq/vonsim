@@ -162,7 +162,7 @@ class Word(var v:Byte) extends ComputerWord{
     def toDWord()=DWord(v,0)
     
     def bitString= toBits().mkString("")
-    override def toString()=s"Word(${this.bitString})"
+    override def toString()=s"Word(${this.bitString.reverse})"
     def toInt=v.toInt
     def toUnsignedInt=signedToUnsignedByte(toInt)
     

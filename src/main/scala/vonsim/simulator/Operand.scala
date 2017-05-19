@@ -18,9 +18,9 @@ trait IndirectMemoryAddressOperand extends MemoryOperand
 case object DWordIndirectMemoryAddress extends IndirectMemoryAddressOperand   with DWordOperand 
 case object WordIndirectMemoryAddress extends IndirectMemoryAddressOperand  with WordOperand
 
-class InmediateOperand extends UnaryOperand
-case class DWordValue(v:Int) extends InmediateOperand with DWordOperand
-case class WordValue(v:Int) extends InmediateOperand with WordOperand
+class ImmediateOperand extends UnaryOperand
+case class DWordValue(v:Int) extends ImmediateOperand with DWordOperand
+case class WordValue(v:Int) extends ImmediateOperand with WordOperand
 
 class Register extends UnaryOperandUpdatable
 
@@ -65,7 +65,7 @@ class LowRegister extends HalfRegister{
   
 }
 
-trait IORegister
+trait IORegister extends Register
 trait IndirectRegister
 trait GeneralPurposeRegister
 

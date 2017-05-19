@@ -16,21 +16,141 @@ object Simulator {
   def maxInstructions = 1000000 // max number of instructions to execute
   //def instructionSize = 2 //in bytes // TODO or 1? check instruction encoding
   
-  def instructionSize(instruction:Instruction)={
-    instruction match {
-      
-      case i:JumpInstruction => 3
-      case i:IOInstruction => 3
-      case i:Zeroary => 1
-      case i:Mov => 2+operandSizes(i.binaryOperands)
-      case i:ALUBinary=> 2+operandSizes(i.binaryOperands)
-      case i:ALUUnary=> 2+operandSize(i.unaryOperands)
-      case i:IntN => 2
-      case i:Push => 2
-      case i:Pop => 2
-      
-      case _ => 0
+  def encode(instruction:Instruction)={
+    
+    instruction match{
+      case ei:ExecutableInstruction =>
+        val encoding=ListBuffer(encodeOpcode(ei))
+        ei match{
+          case i:JumpInstruction => encoding++=DWord(i.m).toByteList()
+          case i:Zeroary => 
+          case i:IOInstruction => {
+            encoding++= encodeUnaryOperand(i.r)++List(Word(i.a))
+          }
+          case i:Mov =>{
+            encoding+= encodeBinaryAddressingMode(i.binaryOperands)
+            encoding++=encodeBinaryOperands(i.binaryOperands)
+          }
+          case i:ALUBinary=> {
+            encoding+= encodeBinaryAddressingMode(i.binaryOperands)
+            encoding++=encodeBinaryOperands(i.binaryOperands)
+          }
+          case i:ALUUnary=>{
+            encoding+= encodeUnaryAddressingMode(i.unaryOperands)
+            encoding++=encodeUnaryOperand(i.unaryOperands)
+          }
+          case i:IntN => encoding++=encodeImmediate(i.v)
+          case i:Push => encoding+=encodeRegister(i.r)
+          case i:Pop => encoding+=encodeRegister(i.r)
+        }
+        encoding.toList
+      case other => List() 
     }
+
+  }
+  def encodeBinaryAddressingMode(o:BinaryOperands)={
+    
+    o match {
+      case x:WordRegisterRegister => Word("00000000")
+      case x:DWordRegisterRegister => Word("10000000")
+      case x:WordRegisterValue => Word("00000001")
+      case x:DWordRegisterValue => Word("10000001")
+      case x:WordRegisterMemory => Word("00000010")
+      case x:DWordRegisterMemory => Word("10000010")
+      case x:WordRegisterIndirectMemory=> Word("00000011")
+      case x:DWordRegisterIndirectMemory => Word("10000011")
+      
+      case x:WordMemoryRegister => Word("00000100")
+      case x:DWordMemoryRegister => Word("10000100")
+      case x:WordMemoryValue => Word("00000101")
+      case x:DWordMemoryValue => Word("10000101")
+      
+      case x:WordIndirectMemoryRegister=> Word("00000110")
+      case x:DWordIndirectMemoryRegister => Word("10000110")
+      case x:WordIndirectMemoryValue => Word("00000111")
+      case x:DWordIndirectMemoryValue => Word("10000111")  
+    }
+  }
+  
+  def encodeBinaryOperands(o:BinaryOperands)={
+    o match {
+      case x:DWordBinaryOperands => encodeUnaryOperand(x.o1)++encodeUnaryOperand(x.o2)
+      case x:WordBinaryOperands =>  encodeUnaryOperand(x.o1)++encodeUnaryOperand(x.o2)
+    }
+  }
+  
+  def encodeUnaryAddressingMode(i:UnaryOperandUpdatable)={
+    i match{
+      case x:HalfRegister => Word("00000000")
+      case x:FullRegister => Word("10000000")
+      case x:WordMemoryAddress => Word("00000001")
+      case x:DWordMemoryAddress => Word("10000001")
+      case WordIndirectMemoryAddress => Word("00000010")
+      case DWordIndirectMemoryAddress => Word("10000010")
+        
+    }
+  }
+  def encodeUnaryOperand(i:UnaryOperand)={
+    i match{
+      case r:Register=> List(encodeRegister(r))
+      case x:WordMemoryAddress => DWord(x.address).toByteList()
+      case x:DWordMemoryAddress =>DWord(x.address).toByteList()
+      case WordIndirectMemoryAddress =>  List()
+      case DWordIndirectMemoryAddress => List()
+      case x:ImmediateOperand =>  encodeImmediate(x)
+    }
+  }
+  
+  def encodeImmediate(i:ImmediateOperand)={
+    i match{
+      case dw:DWordValue => DWord(dw.v).toByteList()
+      case dw:WordValue => List(Word(dw.v))
+    }
+  }
+  def encodeRegister(r:Register)={
+    Word(List(AX,BX,CX,DX,AL,BL,CL,DL,AH,BH,CH,DH).indexOf(r))
+  }
+  
+  def encodeOpcode(instruction:ExecutableInstruction)={
+    instruction match{
+    case i:ALUBinary=>
+        Word(List(ADD,ADC,SUB,SBB,OR,AND,XOR,CMP).indexOf(i.op))
+    case i:Mov => Word("00001000")
+    case i:In =>  Word("00001001")
+    case i:Out => Word("00001010")
+    case i:ALUUnary=> Word(16+List(INC,DEC,NOT,NEG).indexOf(i.op)) 
+    case i:IntN => Word("00100001")
+    case i:Push => Word("00100000")
+    case i:Pop =>  Word("00100001")
+    
+    case ji:JumpInstruction =>
+      ji match{
+        case cj:ConditionalJump =>
+          Word(32+16+List(JC,JNC,JZ,JNZ,JO,JNO,JS,JNS).indexOf(cj.c))
+        case x:Call => Word("00111001")
+        case x:Jump => Word("00111000")
+      }
+    case i:Zeroary => Word(List(Pushf,Popf,Ret,Iret,Nop,Hlt,Cli,Sti).indexOf(i)+64)
+    }
+    
+  }
+  def instructionSize(instruction:Instruction)={
+      val encoding=encode(instruction)
+      encoding.length
+//    instruction match {
+//      
+//      case i:JumpInstruction => 3
+//      case i:IOInstruction => 3
+//      case i:Zeroary => 1
+//      case i:Mov => 2+operandSizes(i.binaryOperands)
+//      case i:ALUBinary=> 2+operandSizes(i.binaryOperands)
+//      case i:ALUUnary=> 2+operandSize(i.unaryOperands)
+//      case i:IntN => 2
+//      case i:Push => 2
+//      case i:Pop => 2
+//      
+//      case _ => 0
+//    }
   }
   def operandSizes(o:BinaryOperands)={
     o match{

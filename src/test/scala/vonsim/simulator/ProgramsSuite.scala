@@ -240,6 +240,9 @@ end
        
     val s=simulator(program)
     val instructions=s.runInstructions().toList
+//    val compiledInstructionsAddresses=s.instructions.keys.toList.sorted
+//    println(compiledInstructionsAddresses.map(a => Simulator.encode(s.instructions(a).instruction)).mkString("\n"))
+   
     assertResult(15)(s.cpu.get(DX).toInt)
     assertResult(0x200E)(s.cpu.ip)
     assert(s.cpu.halted)

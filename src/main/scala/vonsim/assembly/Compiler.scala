@@ -116,7 +116,7 @@ object Compiler {
 
 
       instructions = replaceLinesForAddresses(instructions, vardefLineToAddress, executableLineToAddress)
-      val memory = getMemory(instructions)
+      val memory = getMemory(instructions,executableLineToAddress)
       val executableInstructions = instructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
       val addressToInstruction = executableInstructions.map(x => (executableLineToAddress(x.line), x)).toMap
       Right(new SuccessfulCompilation(instructions, addressToInstruction, memory, warnings.toList))
@@ -216,20 +216,33 @@ object Compiler {
         }
     }
   }
-  def getMemory(instructions: List[InstructionInfo]) = {
+  def getMemory(instructions: List[InstructionInfo],executableLineToAddress:Map[Int,Int]) = {
     val memory = mutable.Map[MemoryAddress, Int]()
-    val vardefInstructions = instructions map { _.instruction } collect { case x: VarDefInstruction => x }
-    vardefInstructions.foreach(i => {
-      var address = i.address
-
-      i.values.foreach(cw =>
-        cw.toByteList().foreach(b => {
-          memory(address) = b.toInt
-          address += 1
-        }))
+    
+    instructions.foreach(f =>
+      f.instruction match{
+      case v:VarDefInstruction =>
+        setMemory(memory,v.address,v.values)
+        
+      case x:ExecutableInstruction =>{
+        setMemory(memory,executableLineToAddress(f.line),Simulator.encode(x))
+      }
+      case other =>
+      
     })
+    
     memory.toMap
   }
+  def setMemory(memory:mutable.Map[MemoryAddress, Int],baseAddress:Int,values:List[ComputerWord]){
+    var address = baseAddress
+
+    values.foreach(cw =>
+      cw.toByteList().foreach(b => {
+        memory(address) = b.toInt
+        address += 1
+      }))
+  }
+  
 
   def getMemoryLayout(instructions: List[InstructionInfo]) = {
 
