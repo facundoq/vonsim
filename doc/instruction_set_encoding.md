@@ -21,19 +21,23 @@ Op code format: `CCCCCCCC`  (8-bit operation Code)
 
 * Unary
   * jump instructions:   `| CCCCCCCC | address (2 bytes) |`
-  * alu instructions:    `| CCCCCCCC | -----MMS | operand (1 or 2 bytes) |`
+  * alu instructions:    `| CCCCCCCC | S-----MM | operand (register, direct or indirect mem address) |`
   * stack instructions:  `| CCCCCCCC | operand (1 byte) |`
 
   * Where:
-    * `CCCCCC` = A 8-bit operation Code
+    * `CCCCCCCC` = A 8-bit operation Code
     * `MM` = A 2-bit addresing Mode code
     * `S` = A bit indicating if the operand's Size is 1 byte or 2 bytes (0 => 1 byte, 1 => 2 bytes).
 
 * Binary:
-
-  * all instructions:  `| CCCCCCCC | ----MMMS | operand (1 or 2 bytes) | operand (1 or 2 bytes) |`
+  * IO binary:  `| CCCCCCCC | RRRRRRRR | AAAAAAAA
   * Where:
-    * `CCCCCC` = A 6-bit operation Code
+    * `CCCCCCCC` = A 8-bit operation Code
+    * `RRRRRRRR` = 8-bit register code (see below)
+    * `AAAAAAAA` = 8-bit IO address
+  * Other binary:  `| CCCCCCCC | S----MMM | operand (1 or 2 bytes) | operand (1 or 2 bytes) |`
+  * Where:
+    * `CCCCCCCC` = A 8-bit operation Code
     *`MMM` = A 3-bit addressing Mode code
     * `S` = A bit indicating if the operands' Sizes are 1 byte or 2 bytes (0 => 1 byte, 1 => 2 bytes).
 
@@ -87,7 +91,7 @@ Format: `LLLLLLLL` or `LLLLLLLL HHHHHHHH`
 
 ## Binary Instructions
 
-### Binary operations
+### Binary  operations
 Format: `00 00 CCCC`
 
 Where `CCCC` is a 4-bit instruction code.
@@ -102,8 +106,6 @@ and 00 00 0101
 xor 00 00 0110
 cmp 00 00 0111
 mov 00 00 1000
-in  00 00 1001
-out 00 00 1010
 ```
 
 
@@ -131,8 +133,20 @@ Where:
 * mem: memory operand
 
 Notes:
-* `reg,im` is the only valid addressing mode for `in` and `out` instructions
 * The operands must agree with the addressing modes; ie, if `S=0`, then operands must refer to 8-bit registers and 8 bit immediate operands.
+
+## Binary IO Operations
+
+Format: `00 00 10C1`
+
+Where `C` is a single bit indicating the direction (`in` or `out`)
+
+```
+in  00 00 1001
+out 00 00 1011
+```
+Notes:
+* Since `reg, 8 bit im` is the only valid addressing mode for `in` and `out` instructions, there is no addresing mode byte
 
 ## Unary instructions (17)
 General Format: `00 CCCCCC`
@@ -161,12 +175,13 @@ ind S000 0010
 Notes:
 * The operand must agree with the addressing mode; ie, if `S=0`, then the operands must refer to a 8-bit register or an 8 bit immediate operand.
 
-### Stack instructions
-Format: 00 10 000C
+### Int N and Stack instructions
+Format: 00 10 00CC
 
 ```
 push 00 10 0000
 pop  00 10 0001
+int  00 10 0010
 ```
 
 ### Jump instructions
@@ -182,23 +197,22 @@ jo    00 11 0100
 jno   00 11 0101
 js    00 11 0110
 jns   00 11 0111
-int   00 11 1000
+jmp   00 11 1000
 call  00 11 1001
-jmp   00 11 1010
 ```
 
 ## Zeroary instructions (8)
 
 Format: `01 00 CCCC`
 ```
-pushf 01 00 0001
-popf  01 00 0010
-ret   01 00 0011
-iret  01 00 0100
-nop   01 00 0101
-hlt   01 00 0110
-cli   01 00 0111
-sti   01 00 1000
+pushf 01 00 0000
+popf  01 00 0001
+ret   01 00 0010
+iret  01 00 0011
+nop   01 00 0100
+hlt   01 00 0101
+cli   01 00 0110
+sti   01 00 0111
 ```
 
 
