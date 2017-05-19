@@ -161,12 +161,13 @@ ind S000 0010
 Notes:
 * The operand must agree with the addressing mode; ie, if `S=0`, then the operands must refer to a 8-bit register or an 8 bit immediate operand.
 
-### Stack instructions
-Format: 00 10 000C
+### Int N and Stack instructions
+Format: 00 10 00CC
 
 ```
 push 00 10 0000
 pop  00 10 0001
+int  00 10 0010
 ```
 
 ### Jump instructions
@@ -182,23 +183,22 @@ jo    00 11 0100
 jno   00 11 0101
 js    00 11 0110
 jns   00 11 0111
-int   00 11 1000
+jmp   00 11 1000
 call  00 11 1001
-jmp   00 11 1010
 ```
 
 ## Zeroary instructions (8)
 
 Format: `01 00 CCCC`
 ```
-pushf 01 00 0001
-popf  01 00 0010
-ret   01 00 0011
-iret  01 00 0100
-nop   01 00 0101
-hlt   01 00 0110
-cli   01 00 0111
-sti   01 00 1000
+pushf 01 00 0000
+popf  01 00 0001
+ret   01 00 0010
+iret  01 00 0011
+nop   01 00 0100
+hlt   01 00 0101
+cli   01 00 0110
+sti   01 00 0111
 ```
 
 
