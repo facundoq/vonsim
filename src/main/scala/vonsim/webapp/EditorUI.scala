@@ -13,6 +13,8 @@ import scalatags.JsDom.all._
 import scala.scalajs.js.timers.SetTimeoutHandle
 import scala.scalajs.js.timers._
 
+import vonsim.webapp
+
 class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends VonSimUI(s) {
 
   //document.body.appendChild(div(id:="aceEditor","asdasdasdasdasd").render)

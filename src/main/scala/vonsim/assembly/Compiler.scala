@@ -227,7 +227,7 @@ object Compiler {
       case x:ExecutableInstruction =>{
         setMemory(memory,executableLineToAddress(f.line),Simulator.encode(x))
       }
-      case other =>
+      case other => 
       
     })
     
