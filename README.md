@@ -1,18 +1,28 @@
 # VonSim
 
-VonSim is a simulator for the x8088 Intel processor in the spirit of the good old [MSX88](http://e-spacio.uned.es/fez/eserv/taee:congreso-1994-1055/S2C05.pdf), widely used for teaching in various spanish-speaking universities. 
+VonSim is a simulator for the x8088 Intel processor in the spirit of the good old [MSX88](http://e-spacio.uned.es/fez/eserv/taee:congreso-1994-1055/S2C05.pdf), widely used for teaching in various spanish-speaking universities.
 
 The goal of the project is to provide a replacement for the MSX88 in terms of instruction set syntax and semantics (so that current teaching slides, homework sets, etc., do not need to be modified) while providing an improved encoding of the instructions and more specially an updated user interface that is:
 
 * more consistent with current programming practices: shorter write-compile-run cycles, integrated editor, clearer error messages.
 * better suited for freshmen cs/ee students: a web app with a modern interface, no installs, no need to usethe command line.
 
-In the same way that, for pedagogic reasons, the MSX88 deviated from the original 8088 instructions set, VonSim deviates from MSX88 in that it provides a user interface more focused on the *programming* aspect of using the simulator. In particular, it does away with the animations and simply provides a step-by-step visual debugger for assembly programs with lots of help. 
+In the same way that, for pedagogic reasons, the MSX88 deviated from the original 8088 instructions set, VonSim deviates from MSX88 in that it provides a user interface more focused on the *programming* aspect of using the simulator. In particular, it does away with the animations and simply provides a step-by-step visual debugger for assembly programs with lots of help.
 
-You can demo the [alpha version of vonsim](http://facundoq.github.io/unlp/vonsim/assets/index.html?url=samples/sample.asm). 
+You can demo the [alpha version of vonsim](http://facundoq.github.io/unlp/vonsim/assets/index.html?url=samples/sample.asm).
 
 
 The language reference can be accessed reading the [old msx88 manual](http://weblidi.info.unlp.edu.ar/catedras/organiza/descargas/Manual-MSX88.pdf), [instruction set](http://weblidi.info.unlp.edu.ar/catedras/organiza/descargas/set-instr-MSX88.PDF) and checking out the [samples folder](https://github.com/facundoq/vonsim/tree/master/assets/samples).
+
+## Instruction set support
+
+As of `2017/05/25`, all the instruction set is supported except for:
+* BYTE/WORD PTR indirect keyword
+* OFFSET LABEL memory references
+* Expressions in immediate operands.
+* EQU definitions
+* INT N instructions
+* IN and OUT instructions
 
 ## Roadmap
 
