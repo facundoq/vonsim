@@ -65,29 +65,7 @@ abstract class VonSimUI(val s: Simulator) extends HTMLUI{
   }
 }
 
-class HeaderUI(s: Simulator) extends VonSimUI(s) {
-  val controlsUI = new ControlsUI(s)
-  
-  
-  val root=header(div(id := "header"
-      , img(id := "icon", alt := "Von Sim Icon", title := "Von Sim: a simplified intel 8088 simulator", src := "img/icon.png")
-      , h1(id := "title", "a simplified intel 8088 simulator (alpha version)"))
-      , controlsUI.root
-      ).render
-  
-  def update() {
-    controlsUI.update()
-  }
-  
-  def update(i:InstructionInfo) {
-        controlsUI.update(i)
-        
-  }
-  def compilationEvent(c:CompilationResult){
-    controlsUI.compilationEvent(c)
-  }
-      
-}
+
 
 class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
   println("Setting up UI..")

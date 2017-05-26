@@ -16,6 +16,13 @@
 /*   -webkit-align-items: stretch; Safari */
 /*   align-items:         stretch; */
 }
+
+#controls img{
+	height:24px;
+}
+.controlButton{
+	display:inline-block;
+}
 #mainboardControls{
   flex: 0 1 auto;
   display: -webkit-flex; /* Safari */

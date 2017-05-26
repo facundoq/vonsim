@@ -10,29 +10,31 @@ import vonsim.assembly.Compiler.CompilationResult
 class ControlsUI(s: Simulator) extends VonSimUI(s) {
   
 
-      val quickButton = button(
-    img(src := "img/icons/quickrun.svg", alt := "Quick run")
+    val quickButton = button(cls:="controlButton"
+//    ,img(src := "img/icons/quickrun.svg", alt := "Quick run")
     ,"Quick run"
     ,title := "F1: Reset simulator, load program into memory, run until cpu stops." 
     ,id := "quickButton").render
 
 
-  val loadButton = button(
-    img(src := "img/icons/download3.svg", alt := "Load"),
-    "Load program",
-    title := "F2: Load program into memory without starting execution.", id := "loadButton").render
+  val loadButton = button(cls:="controlButton"
+//    ,img(src := "img/icons/download3.svg", alt := "Load")
+    ,"Load program"
+    ,title := "F2: Load program into memory without starting execution.", id := "loadButton").render
 
-  val resetButton = button(
-    img(src := "img/icons/loop2.svg", alt := "Reset")
+  val resetButton = button(cls:="controlButton"
+//    ,img(src := "img/icons/loop2.svg", alt := "Reset")
     ,"Reset"
     ,title := "F3: Reset cpu state to repeat the execution.", id := "resetButton").render
-  val runPauseButton = button(img(src := "img/icons/play3.svg", alt := "Run"),
-      "Run",
-      title := "F5: Run program until cpu stops.", id := "runPauseButton").render
+  val runPauseButton = button(cls:="controlButton"
+//      ,img(src := "img/icons/play3.svg", alt := "Run")
+      ,"Run"
+      ,title := "F5: Run program until cpu stops.", id := "runPauseButton").render
       
-    val runOneButton = button(img(src := "img/icons/step.svg", alt := "Step"),
-      "Step",  
-      title := "F6: Execute a single instruction.", id := "runOneButton").render
+    val runOneButton = button(cls:="controlButton"
+//        ,img(src := "img/icons/step.svg", alt := "Step")
+      ,"Step"  
+      ,title := "F6: Execute a single instruction.", id := "runOneButton").render
       
  
 
