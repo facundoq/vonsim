@@ -32,6 +32,13 @@ import vonsim.simulator.SimulatorProgramExecuting
 import vonsim.assembly.Compiler.CompilationResult
 import vonsim.assembly.Compiler.SuccessfulCompilation
 import vonsim.assembly.Compiler.SuccessfulCompilation
+import com.scalawarrior.scalajs.ace.IEditSession
+import vonsim.assembly.CompilationError
+import vonsim.simulator.InstructionInfo
+import vonsim.assembly.Compiler.CompilationResult
+import vonsim.assembly.Compiler.CompilationResult
+import vonsim.assembly.Compiler.CompilationResult
+
 
 abstract class HTMLUI {
   def root: HTMLElement
@@ -41,6 +48,8 @@ abstract class VonSimUI(val s: Simulator) extends HTMLUI{
 
   def update() // update changes made to the simulator
   def update(i:InstructionInfo) // update UI after execution of instruction
+  
+
   
   def formatIOAddress(a:Int)={
     "%02X".format(a)
@@ -56,51 +65,63 @@ abstract class VonSimUI(val s: Simulator) extends HTMLUI{
   }
 }
 
+class HeaderUI(s: Simulator) extends VonSimUI(s) {
+  val controlsUI = new ControlsUI(s)
+  
+  
+  val root=header(div(id := "header"
+      , img(id := "icon", alt := "Von Sim Icon", title := "Von Sim: a simplified intel 8088 simulator", src := "img/icon.png")
+      , h1(id := "title", "a simplified intel 8088 simulator (alpha version)"))
+      , controlsUI.root
+      ).render
+  
+  def update() {
+    controlsUI.update()
+  }
+  
+  def update(i:InstructionInfo) {
+        controlsUI.update(i)
+        
+  }
+  def compilationEvent(c:CompilationResult){
+    controlsUI.compilationEvent(c)
+  }
+      
+}
 
 class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
   println("Setting up UI..")
   var compilationResult:CompilationResult=null
   val editorUI = new EditorUI(s, defaultCode, () => compile())
+ 
+  
+  
   val mainboardUI = new MainboardUI(s)
+  val headerUI=new HeaderUI(s)
   val sim = div(id := "main",
-
       editorUI.root,
     mainboardUI.root).render
 
-  val root = div(id := "pagewrap",
-    header(
-      div(id := "header", img(id := "icon", alt := "Von Sim Icon", title := "Von Sim: a simplified intel 8088 simulator", src := "img/icon.png"), h1(id := "title", "a simplified intel 8088 simulator (alpha version)"))), sim).render
+  val root = div(id := "pagewrap"
+      ,headerUI.root 
+      ,sim).render
 
-  //  editorUI.root.onchange = (e: dom.Event) => compile()
-  //  editorUI.root.onkeyup = (e: dom.Event) => compile()
 
   root.onkeydown = (e: dom.KeyboardEvent) => {
     //println("Pressed " + e.keyCode + " " + e.ctrlKey)
     if ((e.ctrlKey || e.metaKey) && e.keyCode == 83) {
       e.preventDefault()
-      update()
       compile()
+      update()
     }
   } 
   
-  editorUI.editorControlsUI.quickButton.onclick=(e:Any) =>{
-     quickRun()
-  }
+  headerUI.controlsUI.quickButton.onclick=(e:Any) =>{quickRun()}
+  headerUI.controlsUI.loadButton.onclick=(e:Any) =>{loadProgram()}
   
-  editorUI.editorControlsUI.loadButton.onclick=(e:Any) =>{
-     loadProgram()
-  }
-  
-  mainboardUI.controlsUI.resetButton.onclick=(e:Any) =>{
-     reset()
-  }
-  mainboardUI.controlsUI.runPauseButton.onclick=(e:Any) =>{
-     
-     runInstructions()
-  }
-  mainboardUI.controlsUI.runOneButton.onclick=(e:Any) =>{
-     stepInstruction()
-  }
+  headerUI.controlsUI.resetButton.onclick=(e:Any) =>{reset()}
+  headerUI.controlsUI.runPauseButton.onclick=(e:Any) =>{runInstructions()}
+  headerUI.controlsUI.runOneButton.onclick=(e:Any) =>{stepInstruction()}
      
 
   println("Updating main stuff")
@@ -113,18 +134,12 @@ class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
     val codeString = editorUI.editor.getValue()
     compilationResult = Compiler(codeString)
     //mainboardUI.console.textContent=instructions.mkString("\n")
+    clearGutterDecorations(session)
     compilationResult match {
       case Left(f) => {
         println("Errors compiling")
-        val annotations = f.instructions.map(e => {
-          e match {
-            case Left(LexerError(l: Location, m: String))    => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Lexer Error")
-            case Left(ParserError(l: Location, m: String))   => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Parser Error")
-            case Left(SemanticError(l: Location, m: String)) => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Semantic Error")
-            case Right(x)                                    => Annotation(x.line.toDouble - 1, 0.toDouble, x.instruction.toString(), "Correct Instruction")
-          }
-
-        })
+        
+        val annotations=instructionsToAnnotations(f.instructions)
         val globalErrorAnnotations = f.globalErrors.map(e => Annotation(0, 0, e.msg, "global_error"))
         val a = (annotations ++ globalErrorAnnotations).toJSArray
         session.setAnnotations(a)
@@ -132,28 +147,39 @@ class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
 //        println(f.instructions)
         val errors = f.instructions.lefts
         val errorLines = errors.map(_.location.line.toDouble - 1).toJSArray
-        val rows = session.getLength().toInt
-        (0 until rows).foreach(l => session.removeGutterDecoration(l, "ace_error "))
         errorLines.foreach(l => session.addGutterDecoration(l, "ace_error "))
         if (!f.globalErrors.isEmpty) {
           session.addGutterDecoration(0, "ace_error ")
         }
-        editorUI.editorControlsUI.disable()
+        
+
         
       }
       case Right(f) => {
         println("Succesful compilation")
         val annotations = f.instructions.map(e => { Annotation(e.line.toDouble - 1, 0.toDouble, e.instruction.toString(), "Correct Instruction") })
-        session.setAnnotations(annotations.toJSArray)
-        if (s.state == SimulatorProgramExecuting){
-          editorUI.editorControlsUI.disable()
-        }else{
-          editorUI.editorControlsUI.enable()
-        }
+        val warningAnnotations = f.warnings.map(w => { Annotation(w._1.toDouble - 1, 0.toDouble, w._2, "Warning") })
         
-        (0 until session.getLength().toInt).foreach(row => session.removeGutterDecoration(row, "ace_error"))
+        session.setAnnotations((annotations++warningAnnotations).toJSArray)
+        warningAnnotations.indices.foreach(i => session.addGutterDecoration(i.toDouble-1, "ace_warning"))
+        
       }
     }
+    headerUI.compilationEvent(compilationResult)
+  }
+  def instructionsToAnnotations(instructions:List[Either[CompilationError,InstructionInfo]])={
+    instructions.map(e => {
+          e match {
+            case Left(LexerError(l: Location, m: String))    => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Lexer Error")
+            case Left(ParserError(l: Location, m: String))   => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Parser Error")
+            case Left(SemanticError(l: Location, m: String)) => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Semantic Error")
+            case Right(x)                                    => Annotation(x.line.toDouble - 1, 0.toDouble, x.instruction.toString(), "Correct Instruction")
+          }
+        })
+  }
+  def clearGutterDecorations(session:IEditSession){
+    (0 until session.getLength().toInt).foreach(row => session.removeGutterDecoration(row, "ace_error"))
+    (0 until session.getLength().toInt).foreach(row => session.removeGutterDecoration(row, "ace_warning"))
   }
 
   def update(){

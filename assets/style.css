@@ -1,9 +1,3 @@
-/* @import url('https://fonts.googleapis.com/css?family=Lato'); */
-/*
-Palette:
-http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++ 
- 
- */
 
 #pagewrap{
 	height:100vh;
@@ -11,7 +5,7 @@ http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++
 	display: -webkit-flex; 
     display: flex;
     flex-flow: column;
-    font-family: 'LatoWeb',sans-serif;
+    font-family: 'Fira Sans',sans-serif;
 }
 
 .flexcolumns{
@@ -37,7 +31,7 @@ http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++
     font-size: 2em;
     background-color: #34bbfc;
     box-shadow: 20px 20px 5px #000000;
-/*  border-bottom: 8px #34bbfc solid; */
+ border-bottom: 8px #34bbfc solid;
     
     
     display: -webkit-flex; /* Safari */
@@ -47,7 +41,7 @@ http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++
   -webkit-align-items: stretch; /* Safari */
   align-items:         stretch; 
    align-items: center;
-   border-bottom: 1px black ridge;
+/*    border-bottom: 1px black ridge; */
    
 }
 

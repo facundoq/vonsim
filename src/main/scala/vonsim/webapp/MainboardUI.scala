@@ -22,67 +22,16 @@ import vonsim.simulator.SimulatorProgramExecuting
 import vonsim.simulator.SimulatorNoProgramLoaded
 import vonsim.simulator.SimulatorExecutionError
 import vonsim.simulator.SimulatorExecutionFinished
+import vonsim.assembly.Compiler.CompilationResult
 
 
-class ControlsUI(s: Simulator) extends VonSimUI(s) {
-  
-  
-  val resetButton = button(
-    img(src := "img/icons/loop2.svg", alt := "Reset")
-    ,"Reset"
-    ,title := "F3: Reset cpu state to repeat the execution.", id := "resetButton").render
-  val runPauseButton = button(img(src := "img/icons/play3.svg", alt := "Run"),
-      "Run",
-      title := "F5: Run program until cpu stops.", id := "runPauseButton").render
-      
-    val runOneButton = button(img(src := "img/icons/step.svg", alt := "Step"),
-      "Step",  
-      title := "F6: Execute a single instruction.", id := "runOneButton").render
-  
-
-  val root = div(id := "mainboardControls" 
-     ,span(cls := "controlSection",resetButton)
-     ,span(cls := "controlSection",runOneButton)
-     ,span(cls := "controlSection",runPauseButton)
-      ).render
-  
-  def update() {
-    
-    s.state  match{
-      
-      case SimulatorNoProgramLoaded => {
-        resetButton.disabled=true
-        runPauseButton.disabled=true
-        runOneButton.disabled=true
-      }
-      case SimulatorProgramExecuting => {
-        resetButton.disabled=false
-        runPauseButton.disabled=false
-        runOneButton.disabled=false
-      }
-      case SimulatorProgramLoaded => {
-        resetButton.disabled=true
-        runPauseButton.disabled=false
-        runOneButton.disabled=false
-      }
-      case ( SimulatorExecutionFinished | SimulatorExecutionError(_)) => {
-        resetButton.disabled=false
-        runPauseButton.disabled=true
-        runOneButton.disabled=true
-      }
-    }
-  }
-  def update(i:InstructionInfo) {
-    
-  }
-}
 
 class MainboardUI(s: Simulator) extends VonSimUI(s) {
   val cpuUI = new CpuUI(s)
   val memoryUI = new MemoryUI(s)
 //  val ioMemoryUI = new IOMemoryUI(s)
 //  val devicesUI = new DevicesUI(s)
-  val controlsUI = new ControlsUI(s)
+  
 
 
   val console = pre("").render
@@ -90,9 +39,10 @@ class MainboardUI(s: Simulator) extends VonSimUI(s) {
     h2("Console"),
     console).render
 
-  val root = div(id := "mainboard", controlsUI.root, div(id := "devices"
-    ,cpuUI.root
-    ,memoryUI.root
+  val root = div(id := "mainboard"
+      , div(id := "devices"
+        ,cpuUI.root
+        ,memoryUI.root
 //    ,ioMemoryUI.root
 //    ,devicesUI.root
     )).render
@@ -100,43 +50,44 @@ class MainboardUI(s: Simulator) extends VonSimUI(s) {
    def update() {
     memoryUI.update()
     cpuUI.update()
-    controlsUI.update()
+    
+    
 //    ioMemoryUI.update()
   }
   def update(i:InstructionInfo) {
     memoryUI.update(i)
     cpuUI.update(i)
-    controlsUI.update(i)
+
 //    ioMemoryUI.update(i)
   }
   
 }
 
-class IOMemoryUI(s: Simulator) extends VonSimUI(s) {
-  val memoryTable = table(
-    thead(th("Name"), th("Address"), th("Value"))).render
-  val r = new Random()
-  val names = Map(10 -> "PA", 11 -> "PB", 12 -> "CA", 13 -> "CB")
-  for (i <- 0 to 128) {
-    val address = formatIOAddress(i)
-    val value = formatWord(Word(r.nextInt(256)))
-    val name = names.getOrElse(i, "")
-    memoryTable.appendChild(tr(td(name), td(address), td(value)).render)
-  }
-
-  val root = div(id := "iomemory", cls := "memory",
-    div(cls := "flexcolumns",
-      img(id := "iomemoryicon", src := "img/motherboard/cable.png"), h2("IO Memory")),
-    div(cls := "memoryTable", memoryTable)).render
-    
-  def update() {
-   //TODO devices  
-  }
-  def update(i:InstructionInfo) {
-   //TODO devices 
-  }
-
-}
+//class IOMemoryUI(s: Simulator) extends VonSimUI(s) {
+//  val memoryTable = table(
+//    thead(th("Name"), th("Address"), th("Value"))).render
+//  val r = new Random()
+//  val names = Map(10 -> "PA", 11 -> "PB", 12 -> "CA", 13 -> "CB")
+//  for (i <- 0 to 128) {
+//    val address = formatIOAddress(i)
+//    val value = formatWord(Word(r.nextInt(256)))
+//    val name = names.getOrElse(i, "")
+//    memoryTable.appendChild(tr(td(name), td(address), td(value)).render)
+//  }
+//
+//  val root = div(id := "iomemory", cls := "memory",
+//    div(cls := "flexcolumns",
+//      img(id := "iomemoryicon", src := "img/motherboard/cable.png"), h2("IO Memory")),
+//    div(cls := "memoryTable", memoryTable)).render
+//    
+//  def update() {
+//   //TODO devices  
+//  }
+//  def update(i:InstructionInfo) {
+//   //TODO devices 
+//  }
+//
+//}
 
 class MemoryUI(s: Simulator) extends VonSimUI(s) {
 

@@ -15,6 +15,7 @@ import scala.scalajs.js.timers._
 
 import vonsim.webapp
 import vonsim.simulator.SimulatorProgramExecuting
+import vonsim.assembly.Compiler.CompilationResult
 
 class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends VonSimUI(s) {
 
@@ -31,10 +32,9 @@ class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends 
   editor.getSession().setUseWorker(false)
   editor.renderer.setShowGutter(true)
   
-  val editorControlsUI= new EditorControlsUI(s)
+  
   
   val container = div(id := "aceEditor"
-      ,editorControlsUI.root
       ,editor.container).render
   
 
@@ -64,6 +64,7 @@ class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends 
     update()
   }
   
+  
   def enable(){
     container.disabled=false
   }
@@ -72,40 +73,6 @@ class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends 
   }
 }
 
-class EditorControlsUI(s: Simulator) extends VonSimUI(s) {
-  val quickButton = button(
-    img(src := "img/icons/quickrun.svg", alt := "Quick run")
-    ,"Quick run"
-    ,title := "F1: Reset simulator, load program into memory, run until cpu stops." 
-    ,id := "quickButton").render
-//  quickButton.onclick = (e:dom.MouseEvent) => {println("hola")}
-
-  val loadButton = button(
-    img(src := "img/icons/download3.svg", alt := "Load"),
-    "Load program",
-    title := "F2: Load program into memory without starting execution.", id := "loadButton").render
-  val root = div(id := "editorControls" 
-      ,span(cls := "controlSection", quickButton)
-      ,span(cls := "controlSection", loadButton) 
-      ).render
-  
-  def update() {
-    
-    
-  }
-  def update(i:InstructionInfo) {
-    
-  }
-  
-  def enable(){
-    loadButton.disabled=false
-      quickButton.disabled=false
-  }
-  def disable(){
-    loadButton.disabled=true
-    quickButton.disabled=true
-  }
-}
 
 
 class DelayedJSEvent(val response: () => Unit) {
