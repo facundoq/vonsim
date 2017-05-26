@@ -17,33 +17,60 @@ import vonsim.simulator.Word
 import vonsim.simulator.FullRegister
 import scalatags.JsDom.all._
 import vonsim.simulator.Flag
+import vonsim.simulator.SimulatorProgramLoaded
+import vonsim.simulator.SimulatorProgramExecuting
+import vonsim.simulator.SimulatorNoProgramLoaded
+import vonsim.simulator.SimulatorExecutionError
+import vonsim.simulator.SimulatorExecutionFinished
+
 
 class ControlsUI(s: Simulator) extends VonSimUI(s) {
-  val quickButton = button(
-    img(src := "img/icons/quickrun.svg", alt := "Quick run"), 
-    title := "F1: Reset simulator, load program into memory, run until cpu stops.", 
-    id := "quickButton").render
-//  quickButton.onclick = (e:dom.MouseEvent) => {println("hola")}
+  
   
   val resetButton = button(
-    img(src := "img/icons/loop2.svg", alt := "Reset"), 
-    title := "F2: Reset cpu state and memory.", id := "resetButton").render
-  val loadButton = button(
-    img(src := "img/icons/download3.svg", alt := "Load"), 
-    title := "F3: Load program into memory.", id := "loadButton").render
-
-  val runOneButton = button(img(src := "img/icons/step.svg", alt := "Step"), 
-      title := "F4: Execute a single instruction.", id := "runOneButton").render
-  val runPauseButton = button(img(src := "img/icons/play3.svg", alt := "Run"), 
+    img(src := "img/icons/loop2.svg", alt := "Reset")
+    ,"Reset"
+    ,title := "F3: Reset cpu state to repeat the execution.", id := "resetButton").render
+  val runPauseButton = button(img(src := "img/icons/play3.svg", alt := "Run"),
+      "Run",
       title := "F5: Run program until cpu stops.", id := "runPauseButton").render
+      
+    val runOneButton = button(img(src := "img/icons/step.svg", alt := "Step"),
+      "Step",  
+      title := "F6: Execute a single instruction.", id := "runOneButton").render
+  
 
-  val root = div(id := "controls" 
-      ,span(cls := "controlSection", quickButton) 
-//      ,span(cls := "controlSection", resetButton, loadButton, runOneButton, runPauseButton)
+  val root = div(id := "mainboardControls" 
+     ,span(cls := "controlSection",resetButton)
+     ,span(cls := "controlSection",runOneButton)
+     ,span(cls := "controlSection",runPauseButton)
       ).render
   
   def update() {
-    // TODO check if cpu halted
+    
+    s.state  match{
+      
+      case SimulatorNoProgramLoaded => {
+        resetButton.disabled=true
+        runPauseButton.disabled=true
+        runOneButton.disabled=true
+      }
+      case SimulatorProgramExecuting => {
+        resetButton.disabled=false
+        runPauseButton.disabled=false
+        runOneButton.disabled=false
+      }
+      case SimulatorProgramLoaded => {
+        resetButton.disabled=true
+        runPauseButton.disabled=false
+        runOneButton.disabled=false
+      }
+      case ( SimulatorExecutionFinished | SimulatorExecutionError(_)) => {
+        resetButton.disabled=false
+        runPauseButton.disabled=true
+        runOneButton.disabled=true
+      }
+    }
   }
   def update(i:InstructionInfo) {
     
@@ -57,7 +84,6 @@ class MainboardUI(s: Simulator) extends VonSimUI(s) {
 //  val devicesUI = new DevicesUI(s)
   val controlsUI = new ControlsUI(s)
 
-  controlsUI.loadButton.onclick = (e: dom.MouseEvent) => {} // TODO: run code here
 
   val console = pre("").render
   val consoleDir = div(id := "console",

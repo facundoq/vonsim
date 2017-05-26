@@ -9,16 +9,11 @@ import js.JSConverters._
 
 import scala.collection.mutable
 
-
 import scala.util.parsing.input.OffsetPosition
 import vonsim.assembly.lexer.VonemuPosition
 
-
-
 import vonsim.assembly.Compiler
 import org.scalajs.dom.raw.HTMLElement
-
-
 
 import vonsim.assembly.Location
 import vonsim.assembly.LexerError
@@ -31,6 +26,11 @@ import vonsim.simulator.InstructionInfo
 import vonsim.simulator.DWord
 import vonsim.simulator.Word
 import vonsim.assembly.Compiler.CompilationResult
+import vonsim.assembly.Compiler.SuccessfulCompilation
+import vonsim.simulator.SimulatorProgramLoaded
+import vonsim.simulator.SimulatorProgramExecuting
+import vonsim.assembly.Compiler.CompilationResult
+import vonsim.assembly.Compiler.SuccessfulCompilation
 import vonsim.assembly.Compiler.SuccessfulCompilation
 
 abstract class HTMLUI {
@@ -63,7 +63,8 @@ class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
   val editorUI = new EditorUI(s, defaultCode, () => compile())
   val mainboardUI = new MainboardUI(s)
   val sim = div(id := "main",
-    editorUI.root,
+
+      editorUI.root,
     mainboardUI.root).render
 
   val root = div(id := "pagewrap",
@@ -82,20 +83,24 @@ class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
     }
   } 
   
-  mainboardUI.controlsUI.quickButton.onclick=(e:Any) =>{
-     compilationResult match {
-       case Right(c:SuccessfulCompilation) => {
-         println("Loading program... ")
-         s.load(c)
-         println("Running program... ")
-         s.runInstructions()
-         println("Updating UI..")
-         update()
-         println("Done")
-       }
-       case _ => println("Compilation failed, can't run program")
-     }
-  } 
+  editorUI.editorControlsUI.quickButton.onclick=(e:Any) =>{
+     quickRun()
+  }
+  
+  editorUI.editorControlsUI.loadButton.onclick=(e:Any) =>{
+     loadProgram()
+  }
+  
+  mainboardUI.controlsUI.resetButton.onclick=(e:Any) =>{
+     reset()
+  }
+  mainboardUI.controlsUI.runPauseButton.onclick=(e:Any) =>{
+     
+     runInstructions()
+  }
+  mainboardUI.controlsUI.runOneButton.onclick=(e:Any) =>{
+     stepInstruction()
+  }
      
 
   println("Updating main stuff")
@@ -104,7 +109,7 @@ class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
 
   def compile() {
     println("Compiling..")
-    val s = editorUI.editor.getSession()
+    val session = editorUI.editor.getSession()
     val codeString = editorUI.editor.getValue()
     compilationResult = Compiler(codeString)
     //mainboardUI.console.textContent=instructions.mkString("\n")
@@ -122,36 +127,107 @@ class MainUI(s: Simulator, defaultCode: String) extends VonSimUI(s) {
         })
         val globalErrorAnnotations = f.globalErrors.map(e => Annotation(0, 0, e.msg, "global_error"))
         val a = (annotations ++ globalErrorAnnotations).toJSArray
-        s.setAnnotations(a)
+        session.setAnnotations(a)
 
 //        println(f.instructions)
         val errors = f.instructions.lefts
         val errorLines = errors.map(_.location.line.toDouble - 1).toJSArray
-        val rows = s.getLength().toInt
-        (0 until rows).foreach(l => s.removeGutterDecoration(l, "ace_error "))
-        errorLines.foreach(l => s.addGutterDecoration(l, "ace_error "))
+        val rows = session.getLength().toInt
+        (0 until rows).foreach(l => session.removeGutterDecoration(l, "ace_error "))
+        errorLines.foreach(l => session.addGutterDecoration(l, "ace_error "))
         if (!f.globalErrors.isEmpty) {
-          s.addGutterDecoration(0, "ace_error ")
+          session.addGutterDecoration(0, "ace_error ")
         }
-
+        editorUI.editorControlsUI.disable()
+        
       }
       case Right(f) => {
-        println("Succesfull compilation")
+        println("Succesful compilation")
         val annotations = f.instructions.map(e => { Annotation(e.line.toDouble - 1, 0.toDouble, e.instruction.toString(), "Correct Instruction") })
-        s.setAnnotations(annotations.toJSArray)
-
-        (0 until s.getLength().toInt).foreach(row => s.removeGutterDecoration(row, "ace_error"))
+        session.setAnnotations(annotations.toJSArray)
+        if (s.state == SimulatorProgramExecuting){
+          editorUI.editorControlsUI.disable()
+        }else{
+          editorUI.editorControlsUI.enable()
+        }
+        
+        (0 until session.getLength().toInt).foreach(row => session.removeGutterDecoration(row, "ace_error"))
       }
     }
   }
 
-  def update() {
+  def update(){
+    println("Updating UI... ")
     editorUI.update()
     mainboardUI.update()
   }
   def update(i:InstructionInfo) {
+    println(s"Updating UI for instruction $i")
     editorUI.update(i)
     mainboardUI.update(i)
+  }
+  def reset(){
+    println("Resetting	... ")
+   s.reset()
+   update()
+  }
+  def runInstructions(){
+    println("Running... ")
+     editorUI.disable()
+     val instructions=s.runInstructions()
+     update()
+     if (instructions.length>0 && instructions.last.isLeft){
+       val error = instructions.last.left.get
+       executionError(error)
+     }
+  }
+  def executionError(message:String){
+    dom.window.alert(s"Execution error: $message")
+  }
+
+  def stepInstruction(){
+     println("Step instruction.. ")
+     val i=s.stepInstruction()
+     i match{
+       case Left(message) => executionError(message)
+       case Right(i) => update(i)
+     }
+     
+    
+  }
+  def quickRun(){
+    compilationResult match {
+       case Right(c:SuccessfulCompilation) => {
+//          editorUI.disable()
+//           println("Loading program... ")
+//           s.load(c)
+//           println("Running program... ")
+//           val instructions= s.runInstructions()
+//           update()
+//           if (instructions.length>0 && instructions.last.isLeft){
+//               val error = instructions.last.left.get
+//               executionError(error)
+//             }
+//           println("Done")
+          loadProgram()
+          runInstructions()
+       }
+       case _ => dom.window.alert("Compilation failed, can't run program")
+     }
+   
+    
+  }
+  def loadProgram(){
+    compilationResult match {
+       case Right(c:SuccessfulCompilation) => {
+         println("Loading program... ")
+        s.load(c)
+        update()
+        println("Done")
+       }
+       case _ => dom.window.alert("Compilation failed, can't load program")
+     }
+    
   }
 
 }

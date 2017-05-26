@@ -315,7 +315,7 @@ object Memory{
   }
 }
 
-class Memory(val values:Array[Word]) {
+class Memory(var values:Array[Word]) {
   
   
   def getByte(address: Int) = {
@@ -333,6 +333,10 @@ class Memory(val values:Array[Word]) {
   }
   def update(valuesMap:Map[MemoryAddress,Int]){
     valuesMap.foreach{ case (a,v) => values(a)=Word(v) }
+  }
+  def reset(){
+    val bytes=Memory.randomBytes(values.size)
+    bytes.indices.foreach(i => values(i)=Word(bytes(i)))
   }
 }
 

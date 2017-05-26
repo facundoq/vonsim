@@ -47,6 +47,7 @@ http://paletton.com/#uid=73s2w0kqIZYbi++hH++8R++Ht++
   -webkit-align-items: stretch; /* Safari */
   align-items:         stretch; 
    align-items: center;
+   border-bottom: 1px black ridge;
    
 }
 
@@ -95,9 +96,11 @@ h3{
 	flex-shrink:0;
 	display: flex;                      /* new; nested flex container */
     flex: 1;
-    overflow-y:auto;
+}
+#mainboard{
+	overflow-y:auto;
 }	
 #mainboard,#editor{
 	  box-sizing: border-box;
-	  overflow-y:auto;
+	overflow-y:auto;  
 }

@@ -1,7 +1,7 @@
 
 
 #mainboard{
-    padding:10px 20px;
+    padding:0px 0px;
 	background-image: url("img/circuit_tile.png");
 	background-repeat: repeat;
 
@@ -16,23 +16,24 @@
 /*   -webkit-align-items: stretch; Safari */
 /*   align-items:         stretch; */
 }
-#controls{
+#mainboardControls{
   flex: 0 1 auto;
   display: -webkit-flex; /* Safari */
   display: flex;
-  -webkit-justify-content: space-between; 
-  justify-content:         space-between;
+  -webkit-justify-content: flex-end; 
+  justify-content:         flex-end;
 /*   -webkit-align-items: stretch; */
 /*   align-items:         stretch; */
-/*   background-color: #A9E3FF; */
-  padding:5px;
-  border-radius:5px; 
-  width:100%;   
+  background-color: #34bbfc;
+  padding: 7px;
+  width:100%;
+     
 }
 .controlSection{
 	margin: 0px 10px;
+	
 }
-#controls img{
+#mainboardControls img{
 	height:24px;
 }
 #resetButton{

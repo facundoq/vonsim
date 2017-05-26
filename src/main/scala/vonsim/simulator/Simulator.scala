@@ -14,7 +14,6 @@ object Simulator {
   type IOMemoryAddress = Byte
   def maxMemorySize = 0x4000 // in bytes
   def maxInstructions = 1000000 // max number of instructions to execute
-  //def instructionSize = 2 //in bytes // TODO or 1? check instruction encoding
   
   def encode(instruction:Instruction)={
     
@@ -189,14 +188,28 @@ class InstructionInfo(val line: Int, val instruction: Instruction) {
   }
   
 }
+class SimulatorState
 
+class SimulatorStoppedState extends SimulatorState
+case object SimulatorNoProgramLoaded extends SimulatorStoppedState
+case object SimulatorProgramLoaded extends SimulatorStoppedState
+case object SimulatorProgramExecuting extends SimulatorState
+case class SimulatorExecutionError(val message:String) extends SimulatorStoppedState
+case object SimulatorExecutionFinished extends SimulatorStoppedState
 
 class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, InstructionInfo]) {
+  var state:SimulatorState=SimulatorNoProgramLoaded
   
+  def reset(){
+    cpu.reset()
+    //memory.reset()
+    state=SimulatorNoProgramLoaded  
+  }
   def load(c:SuccessfulCompilation){
     cpu.reset()
     memory.update(c.memory)
     instructions=c.addressToInstruction
+    state=SimulatorProgramLoaded
   }
   
   def currentInstruction() = {
@@ -204,7 +217,8 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       val instruction = instructions(cpu.ip)
       Right(instruction)
     } else {
-      Left("Error: Attempting to interpretate a random memory cell as an instruction. Check that your program contains all the HLT instructions necessary.")
+      val message="Attempting to interpretate a random memory cell as an instruction. Check that your program contains all the HLT instructions necessary."
+      Left(message)
     }
   }
 
@@ -217,7 +231,7 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     var instructions = ListBuffer(instruction)
     var counter = 0
 
-    while (counter < n && instruction.isRight && instruction.right.get.instruction != Hlt && !cpu.halted) {
+    while (counter < n && instruction.isRight && !cpu.halted) {
       val instruction = stepInstruction()
       instructions += instruction
     }
@@ -230,18 +244,26 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     if (instructionInfo.isRight) {
       val instruction = instructionInfo.right.get.instruction
       cpu.ip += Simulator.instructionSize(instruction)
+      state=SimulatorProgramExecuting
       execute(instruction)
-      
     }else{
-      cpu.halted=true
+      stopExecutionForError(instructionInfo.left.get)
     }
     instructionInfo
   }
-
+  def finishExecution(){
+    cpu.halted=true
+    state=SimulatorExecutionFinished
+  }
+  def stopExecutionForError(message:String){
+    cpu.halted=true
+    state=SimulatorExecutionError(message)
+  }
+  
   def execute(i: Instruction){
     i match {
       case Nop           => {}
-      case Hlt           => { cpu.halted = true }
+      case Hlt           => { finishExecution() }
       case Jump(address) => { cpu.ip = address }
       case ConditionalJump(address,condition) => {
         if (cpu.alu.flags.satisfy(condition)){
@@ -301,22 +323,22 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
         update(o, a)
       }
       case Sti=>{
-         error("not implemented")
+         stopExecutionForError("Sti not implemented.")
       }
       case Cli=>{
-         error("not implemented")
+         stopExecutionForError("Cli not implemented.")
       }
       case In(reg,v) =>{
-         error("not implemented")
+         stopExecutionForError("In not implemented.")
       }
       case Out(reg,v) =>{
-         error("not implemented")
+         stopExecutionForError("Out not implemented.")
       }
       case IntN(n) =>{
-         error("not implemented")
+         stopExecutionForError("Int N not implemented.")
       }
       case _ => {
-        error("unknown instruction")
+        stopExecutionForError("Unknown instruction")
       }
     }
 
