@@ -17,7 +17,7 @@ The project is built via [SBT](http://www.scala-sbt.org/), the standard Scala bu
 
 Tests are written with [ScalaTest for ScalaJS](http://www.scalatest.org/user_guide/using_scalajs) and run via sbt.
 
-The webapp uses the [Ace Editor](https://ace.c9.io/) as a code editor and [Clusterize.js](https://github.com/NeXTs/Clusterize.js/) to display the memory as a big table.
+The webapp uses the [Ace Editor](https://ace.c9.io/) as a code editor and [Clusterize.js](https://github.com/NeXTs/Clusterize.js/) to display the memory as a big table. [Bootstrap](getbootstrap.com) and [FontAwesome](http://fontawesome.io/) are also used for the UI.
 
 The Compiler uses Scala's [Parser Combinators API](https://github.com/scala/scala-parser-combinators) to parse the assembly code.
 
