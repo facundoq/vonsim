@@ -24,7 +24,7 @@ import vonsim.simulator.DWord
 import vonsim.simulator.Word
 import vonsim.assembly.Compiler.CompilationResult
 import vonsim.assembly.Compiler.SuccessfulCompilation
-import vonsim.simulator.SimulatorProgramLoaded
+
 import vonsim.simulator.SimulatorProgramExecuting
 import vonsim.assembly.Compiler.CompilationResult
 import vonsim.assembly.Compiler.SuccessfulCompilation
@@ -123,7 +123,7 @@ class MainUI(s: VonSimState, defaultCode: String) extends VonSimUI(s) {
      simulatorEvent()
      if (instructions.length>0 && instructions.last.isLeft){
        val error = instructions.last.left.get
-       executionError(error)
+      // executionError(error.message)
      }
   }
   def executionError(message:String){
@@ -134,7 +134,7 @@ class MainUI(s: VonSimState, defaultCode: String) extends VonSimUI(s) {
      println("Step instruction.. ")
      val i=s.s.stepInstruction()
      i match{
-       case Left(message) => executionError(message)
+       case Left(error) => //executionError(error.message)
        case Right(i) => simulatorEvent(i)
      }
      

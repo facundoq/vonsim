@@ -12,6 +12,9 @@
     padding-left:2px;
     margin-left:15px;
 }
+.controlSection a{
+	min-width:100px;
+}
 .controlSectionSeparator{
 	margin-left:90px;
 }
@@ -32,6 +35,8 @@
     
 }
 
-.simulatorState:active{
-    	
+.simulatorState{
+/* 	pointer-events: none; */
+	pointer-events: auto; 
+	margin-left:20px;
 }

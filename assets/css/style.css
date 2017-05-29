@@ -6,6 +6,13 @@
     display: flex;
     flex-flow: column;
     font-family: 'Fira Sans',sans-serif;
+    background-color: #337ab7;
+}
+#editor{
+	border-top-right-radius:10px;
+}
+#mainboard{
+	border-top-left-radius:10px;
 }
 
 .flexcolumns{

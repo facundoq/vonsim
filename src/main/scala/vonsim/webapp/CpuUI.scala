@@ -18,9 +18,9 @@ import vonsim.simulator.Word
 import vonsim.simulator.FullRegister
 import scalatags.JsDom.all._
 import vonsim.simulator.Flag
-import vonsim.simulator.SimulatorProgramLoaded
+
 import vonsim.simulator.SimulatorProgramExecuting
-import vonsim.simulator.SimulatorNoProgramLoaded
+import vonsim.simulator.SimulatorExecutionStopped
 import vonsim.simulator.SimulatorExecutionError
 import vonsim.simulator.SimulatorExecutionFinished
 import vonsim.assembly.Compiler.CompilationResult
@@ -51,7 +51,7 @@ class RegistersUI(s: VonSimState,val registers:List[FullRegister],title:String,b
     
   val root = div(id := getIdFor("RegistersTable"), cls:="cpuElement",
     div(cls := "flexcolumns",
-      img(cls := "registersIcon", src := "img/motherboard/register_icon.png"), h3(title)),
+      img(cls := "registersIcon", src := "img/mainboard/register_icon.png"), h3(title)),
       registerTable
    ).render
    
@@ -132,7 +132,7 @@ class AluUI(s: VonSimState) extends VonSimUI(s) {
 
 
 
-class CpuUI(s: VonSimState) extends MainboardItemUI(s,"img/motherboard/microchip.png","cpu","CPU") {
+class CpuUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/microchip.png","cpu","CPU") {
   
   val generalPurposeRegistersTable = new RegistersUI(s,List(simulator.AX,simulator.BX,simulator.CX,simulator.DX),"General Purpose Registers","generalPurpose")
   val specialRegistersTable = new RegistersUI(s,List(simulator.IP,simulator.SP),"Special Registers","special")

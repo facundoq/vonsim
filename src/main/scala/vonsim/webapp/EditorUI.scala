@@ -23,12 +23,13 @@ import vonsim.assembly.LexerError
 import vonsim.assembly.ParserError
 import vonsim.assembly.SemanticError
 import vonsim.assembly.CompilationError
+import scala.collection.mutable.ListBuffer
 
 
 class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extends VonSimUI(s) {
 
   //document.body.appendChild(div(id:="aceEditor","asdasdasdasdasd").render)
-
+  val markers=ListBuffer[Int]()
   //val code: TextArea = textarea(cls := "textEditor").render
   //code.value = defaultCode
   val editor = webapp.myace.edit()
@@ -38,6 +39,8 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   editor.setValue(defaultCode)
   editor.getSession().setUseSoftTabs(true)
   editor.getSession().setUseWorker(false)
+  editor.clearSelection()
+  editor.container.classList.add("ace_editor_container")
   editor.renderer.setShowGutter(true)
   
   
@@ -56,7 +59,11 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   //    println("keydown")
   //    keyTyped()
   //  }
-  
+  def removeAllMarkers(){
+    val s=editor.getSession()
+    markers.foreach(m => s.removeMarker(m))
+    markers.clear()
+  }
   def simulatorEvent() {
     // TODO check if code can be run and if the cpu is halted to allow enable buttons    
     if (s.s.state == SimulatorProgramExecuting){
@@ -64,19 +71,30 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
     }else{
       enable()
     }
+    removeAllMarkers()
     
   }
   def simulatorEvent(i:InstructionInfo) {
     // TODO improve
     simulatorEvent()
+      //"ace_active-line"
+    editor.getSession()
+    val r= new AceRange(i.line-1, 0, i.line-1, 1)
+    val id=editor.getSession().addMarker(r, "executedLine", "fullLine",true)
+    markers+=id
+    //editor.getSession().addMarker(new Range(i.line, 0, i.line+1, 1), "executedLine", "fullLine",true)
   }
   
   
   def enable(){
     container.disabled=false
+    root.disabled=false
+    editor.setReadOnly(false)
   }
   def disable(){
     container.disabled=true
+    root.disabled=true
+    editor.setReadOnly(true)
   }
   
   def compilationEvent(){

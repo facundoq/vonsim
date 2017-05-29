@@ -17,9 +17,9 @@ import vonsim.simulator.Word
 import vonsim.simulator.FullRegister
 import scalatags.JsDom.all._
 import vonsim.simulator.Flag
-import vonsim.simulator.SimulatorProgramLoaded
+
 import vonsim.simulator.SimulatorProgramExecuting
-import vonsim.simulator.SimulatorNoProgramLoaded
+import vonsim.simulator.SimulatorExecutionStopped
 import vonsim.simulator.SimulatorExecutionError
 import vonsim.simulator.SimulatorExecutionFinished
 import vonsim.assembly.Compiler.CompilationResult
@@ -40,7 +40,7 @@ class MainboardUI(s: VonSimState) extends VonSimUI(s) {
     console).render
 
   val root = div(id := "mainboard"
-      , div(id := "devices"
+        ,div(id := "devices"
         ,cpuUI.root
         ,memoryUI.root
     )).render
@@ -81,7 +81,7 @@ abstract class MainboardItemUI(s: VonSimState,icon:String,itemId:String,title:St
 }
 
 
-class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/motherboard/ram.png","memory","Memory") {
+class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png","memory","Memory") {
 
   val body = tbody(id := "memoryTableBody", cls := "clusterize-content").render
 

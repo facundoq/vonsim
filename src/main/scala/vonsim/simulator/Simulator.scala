@@ -191,24 +191,39 @@ class InstructionInfo(val line: Int, val instruction: Instruction) {
 class SimulatorState
 
 class SimulatorStoppedState extends SimulatorState
-case object SimulatorNoProgramLoaded extends SimulatorStoppedState
-case object SimulatorProgramLoaded extends SimulatorStoppedState
+case object SimulatorExecutionStopped extends SimulatorStoppedState
+//case object SimulatorProgramLoaded extends SimulatorStoppedState
 case object SimulatorProgramExecuting extends SimulatorState
-case class SimulatorExecutionError(val message:String) extends SimulatorStoppedState
+case class SimulatorExecutionError(val e:ExecutionError) extends SimulatorStoppedState
 case object SimulatorExecutionFinished extends SimulatorStoppedState
 
+
+trait ExecutionError{
+  def message:String
+}
+
+case class GeneralExecutionError(val message:String) extends ExecutionError{
+  
+}
+
+case class InstructionExecutionError(val message:String,val i:InstructionInfo) extends ExecutionError{
+  
+}
+
+
+
 class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, InstructionInfo]) {
-  var state:SimulatorState=SimulatorNoProgramLoaded
+  var state:SimulatorState=SimulatorExecutionStopped
   
   def reset(){
     cpu.reset()
     //memory.reset()
-    state=SimulatorNoProgramLoaded  
+    state=SimulatorExecutionStopped  
   }
   def stop(){
     cpu.reset()
     //memory.reset()
-    state=SimulatorExecutionFinished  
+    state=SimulatorExecutionStopped  
   }
   
   def load(c:SuccessfulCompilation){
@@ -224,7 +239,7 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       Right(instruction)
     } else {
       val message="Attempting to interpretate a random memory cell as an instruction. Check that your program contains all the HLT instructions necessary."
-      Left(message)
+      Left(GeneralExecutionError(message))
     }
   }
 
@@ -262,8 +277,11 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     state=SimulatorExecutionFinished
   }
   def stopExecutionForError(message:String){
+    stopExecutionForError(GeneralExecutionError(message))
+  }
+  def stopExecutionForError(executionError:ExecutionError){
     cpu.halted=true
-    state=SimulatorExecutionError(message)
+    state=SimulatorExecutionError(executionError)
   }
   
   def execute(i: Instruction){

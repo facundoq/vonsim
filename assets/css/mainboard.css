@@ -1,9 +1,6 @@
 #mainboard{
-    padding:0px 0px;
-	background-image: url("../img/circuit_tile.png");
-	background-repeat: repeat;
-
-	
+/*     padding:10px; */
+	background-color: #272822;
 	display: -webkit-flex; /* Safari */
   display: flex;
   flex-direction:column;
@@ -43,10 +40,12 @@
   
   -webkit-justify-content: space-around; /* Safari */
   justify-content:         space-around;
-  
+  border-radius:10px;
   flex-wrap: wrap;
   -webkit-flex-wrap: wrap; /* Safari 6.1+ */
-  
+	background-image: url("../img/mainboard/circuits.svg");
+	background-repeat: repeat;  
+/* 	background-size: 50%; */
 }
 
 

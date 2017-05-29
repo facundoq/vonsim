@@ -13,29 +13,25 @@ class SimulatorStateUI(s: VonSimState) extends VonSimUI(s) {
   def stateToIcon(state:SimulatorState)= state match{
     case SimulatorExecutionError(msg) => "exclamation-circle"
     case SimulatorExecutionFinished => "check-circle"
-    case SimulatorNoProgramLoaded => "circle"
-    case SimulatorProgramLoaded => "play-circle"
+    case SimulatorExecutionStopped => "circle"
     case SimulatorProgramExecuting => "pause-circle"      
   }
   def stateToButtonClass(state:SimulatorState)= state match{
     case SimulatorExecutionError(msg) => "btn-danger"
     case SimulatorExecutionFinished => "btn-success"
-    case SimulatorNoProgramLoaded => "btn-danger"
-    case SimulatorProgramLoaded => "btn-warning"
+    case SimulatorExecutionStopped => "btn-danger"
     case SimulatorProgramExecuting => "btn-warning"      
   }
   def stateToMessage(state:SimulatorState)= state match{
-    case SimulatorExecutionError(msg) => "Error"
+    case SimulatorExecutionError(msg) => "Execution Error"
     case SimulatorExecutionFinished => "Execution Finished"
-    case SimulatorNoProgramLoaded => "No Program Loaded"
-    case SimulatorProgramLoaded => "Program Loaded"
+    case SimulatorExecutionStopped => "No Program Loaded"
     case SimulatorProgramExecuting => "Program executing"      
   }
   def stateToTooltip(state:SimulatorState)= state match{
-    case SimulatorExecutionError(msg) => msg
+    case SimulatorExecutionError(error) => error.message
     case SimulatorExecutionFinished => "The execution has finished or has been stopped. Reload the program to execute again or perform a Quick Run."
-    case SimulatorNoProgramLoaded => "There is no program loaded in the simulator; you must load one before executing, or perform a Quick Run"
-    case SimulatorProgramLoaded => "The program has been loaded succesfully into the simulator and is ready to execute."
+    case SimulatorExecutionStopped => "There is no program loaded in the simulator; you must load one before executing, or perform a Quick Run"
     case SimulatorProgramExecuting => "The program is executing. You can execute instructions one at a time with Step or until the program finishes with Run. While the program is running you cannot modify the code in the editor"      
   }
   
@@ -66,8 +62,8 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
     //http://fontawesome.io/icons/
     class LoadOrStopButton(s:VonSimState) extends VonSimUI(s){
       val hiddenClass="hidden"
-      val loadButton = buttonFactory("Load","F2: Load program into memory without starting execution.","fa-download")
-      val stopButton = buttonFactory("Stop", "F3: Leave step mode.", "fa-stop")
+      val loadButton = buttonFactory("Debug","F2: Load program into memory without starting execution.","fa-bug")
+      val stopButton = buttonFactory("Cancel", "F3: Leave step mode.", "fa-stop")
       stateLoad()
       val root=span(
           loadButton,
@@ -100,7 +96,7 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
           case Right(x) => enable()
            
         }
-        if (s.s.state==SimulatorProgramExecuting || s.s.state==SimulatorProgramLoaded){
+        if (s.s.state==SimulatorProgramExecuting ){
           stateStop()
         }else{
           stateLoad()
@@ -132,7 +128,7 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
         ).render
     }
 
-  val quickButton = buttonFactory("Quick run","F1: Reset simulator, load program into memory, run until cpu stops.","fa-play-circle")
+  val quickButton = buttonFactory("Quick Run","F1: Reset simulator, load program into memory, run until cpu stops.","fa-play-circle")
 
   val loadOrStopButton= new LoadOrStopButton(s)
   
@@ -173,16 +169,12 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
     }
     
     s.s.state  match{
-      case SimulatorNoProgramLoaded => {
+      case SimulatorExecutionStopped => {
         disable(runButton)
         disable(runOneButton)
       }
       case SimulatorProgramExecuting => {
         disable(quickButton)
-        enable(runButton)
-        enable(runOneButton)
-      }
-      case SimulatorProgramLoaded => {
         enable(runButton)
         enable(runOneButton)
       }
