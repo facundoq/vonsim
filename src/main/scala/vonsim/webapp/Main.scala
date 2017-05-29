@@ -25,6 +25,7 @@ import scala.scalajs.concurrent
             .Implicits
             .queue
 import vonsim.simulator.Simulator
+import vonsim.assembly.Compiler
 
             
 
@@ -67,9 +68,13 @@ object Main extends JSApp {
     
   }
   var ui:MainUI=null
-  var s:Simulator=null
+  var s:VonSimState=null
+  
   def initializeUI(initialCode:String){
-    s=Simulator.Empty()
+    val simulator=Simulator.Empty()
+    val compilationResult=Compiler(initialCode)
+    var s=new VonSimState(simulator,compilationResult)
+    
     ui = new MainUI(s,initialCode)
     document.body.appendChild(ui.root)
     ui.editorUI.editor.resize(true)

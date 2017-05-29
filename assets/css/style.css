@@ -24,40 +24,7 @@
     flex-flow: column;
 }
 
-#header{
-	flex: 0 1 auto;
-    
-    text-align: Left;
-    font-size: 2em;
-    background-color: #34bbfc;
-    box-shadow: 20px 20px 5px #000000;
- border-bottom: 8px #34bbfc solid;
-    
-    
-    display: -webkit-flex; /* Safari */
-	display: flex;
-  -webkit-justify-content: start; /* Safari */
-  justify-content:         start;
-  -webkit-align-items: stretch; /* Safari */
-  align-items:         stretch; 
-   align-items: center;
-/*    border-bottom: 1px black ridge; */
-   
-}
 
-#title{
-    font-size:0.8em;
-    padding:5px;
-}
-
-#icon{
-    width:48px;
-/*     height:64px; */
-    padding:0px;
-    margin:0px;
-    padding:4px 20px;
-    
-}
 h2{
     font-size: 1.15em;
     margin-bottom: 10px;
@@ -83,6 +50,8 @@ h3{
 }
 #mainboard{
 	flex: 0 0 60%;
+	border-left: 5px solid #337ab7;
+/* 	3482cd; */
 }
 
 #editor{

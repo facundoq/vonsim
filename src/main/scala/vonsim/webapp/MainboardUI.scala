@@ -26,7 +26,7 @@ import vonsim.assembly.Compiler.CompilationResult
 
 
 
-class MainboardUI(s: Simulator) extends VonSimUI(s) {
+class MainboardUI(s: VonSimState) extends VonSimUI(s) {
   val cpuUI = new CpuUI(s)
   val memoryUI = new MemoryUI(s)
 //  val ioMemoryUI = new IOMemoryUI(s)
@@ -43,63 +43,53 @@ class MainboardUI(s: Simulator) extends VonSimUI(s) {
       , div(id := "devices"
         ,cpuUI.root
         ,memoryUI.root
-//    ,ioMemoryUI.root
-//    ,devicesUI.root
     )).render
     
-   def update() {
-    memoryUI.update()
-    cpuUI.update()
+   def simulatorEvent() {
+    memoryUI.simulatorEvent()
+    cpuUI.simulatorEvent()
     
     
-//    ioMemoryUI.update()
   }
-  def update(i:InstructionInfo) {
-    memoryUI.update(i)
-    cpuUI.update(i)
+  def simulatorEvent(i:InstructionInfo) {
+    memoryUI.simulatorEvent(i)
+    cpuUI.simulatorEvent(i)
 
-//    ioMemoryUI.update(i)
+  }
+  
+  def compilationEvent(){
+     
   }
   
 }
 
-//class IOMemoryUI(s: Simulator) extends VonSimUI(s) {
-//  val memoryTable = table(
-//    thead(th("Name"), th("Address"), th("Value"))).render
-//  val r = new Random()
-//  val names = Map(10 -> "PA", 11 -> "PB", 12 -> "CA", 13 -> "CB")
-//  for (i <- 0 to 128) {
-//    val address = formatIOAddress(i)
-//    val value = formatWord(Word(r.nextInt(256)))
-//    val name = names.getOrElse(i, "")
-//    memoryTable.appendChild(tr(td(name), td(address), td(value)).render)
-//  }
-//
-//  val root = div(id := "iomemory", cls := "memory",
-//    div(cls := "flexcolumns",
-//      img(id := "iomemoryicon", src := "img/motherboard/cable.png"), h2("IO Memory")),
-//    div(cls := "memoryTable", memoryTable)).render
-//    
-//  def update() {
-//   //TODO devices  
-//  }
-//  def update(i:InstructionInfo) {
-//   //TODO devices 
-//  }
-//
-//}
+abstract class MainboardItemUI(s: VonSimState,icon:String,itemId:String,title:String) extends VonSimUI(s){
+  val contentDiv=div().render
+      
+  val root = div(cls:="mainboardItem",
+      div(id := itemId
+      ,div(cls := "flexcolumns"
+        ,img(cls:= "mainboardItemIcon", src := icon), h2(title)
+      )
+      ,contentDiv
+      )
+    ).render
+  
+  def compilationEvent(){
+     
+  }
+}
 
-class MemoryUI(s: Simulator) extends VonSimUI(s) {
+
+class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/motherboard/ram.png","memory","Memory") {
 
   val body = tbody(id := "memoryTableBody", cls := "clusterize-content").render
 
-  val memoryTable = table(
+  val memoryTable = table(cls:="table-hover",
     thead(th("Address"), th("Value")), body).render
   val memoryTableDiv = div(id := "memoryTable", cls := "memoryTable clusterize-scroll", memoryTable).render
-  val root = div(id := "memory", cls := "memory",
-    div(cls := "flexcolumns",
-      img(id:= "memoryicon", src := "img/motherboard/ram.png"), h3("Memory")),
-    memoryTableDiv).render
+  
+  contentDiv.appendChild(memoryTableDiv)
     
   var stringRows=generateRows().toJSArray
   val clusterizePropsElements = new ClusterizeProps {
@@ -111,163 +101,28 @@ class MemoryUI(s: Simulator) extends VonSimUI(s) {
   val clusterize = new Clusterize(clusterizePropsElements)
   
   def generateRows()={
-    (0 until s.memory.values.length).map(generateRow).toArray
+    (0 until s.s.memory.values.length).map(generateRow).toArray
   }
   def generateRow(i:Int)={
     val address = formatAddress(i) 
-    val value = formatWord(s.memory.values(i))
+    val value = formatWord(s.s.memory.values(i))
       s"<tr> <td> $address </td> <td> $value </td> </tr>"
   }
   
   def addressToId(address:String)={
     s"memory_address_$address"
   }
-  def update() {
+  def simulatorEvent() {
     stringRows=generateRows().toJSArray
     clusterize.update(stringRows)
   }
-  def update(i:InstructionInfo) {
+  def simulatorEvent(i:InstructionInfo) {
     // TODO
-    update()
+    simulatorEvent()
   }
+  
 
 }
 
 
-class RegistersUI(s: Simulator,val registers:List[FullRegister],title:String,baseId:String="") extends VonSimUI(s){
-  
-  def getIdFor(part:String)=if (baseId=="") "" else baseId+part
 
-  val body = tbody(id:= getIdFor("TableBody"), cls := "registersTableBody").render
-  var registerToValueL=mutable.Map[FullRegister,TableCell]()
-  var registerToValueH=mutable.Map[FullRegister,TableCell]()
-  
-  registers.foreach(r => {
-    val valueElementH=td("00").render
-    val valueElementL=td("00").render
-    registerToValueL(r)=valueElementL
-    registerToValueH(r)=valueElementH
-    body.appendChild( tr(td(r.toString()),valueElementH,valueElementL).render )
-  })
-  
-  
-  val registerTable = table(cls := "registerTable",
-    thead(th("Register"), th(colspan := 2, "Value")),
-    thead(th(""), th("H"), th("L")),
-    body
-    ).render
-    
-  val root = div(id := getIdFor("RegistersTable"), cls:="cpuElement",
-    div(cls := "flexcolumns",
-      img(cls := "registersIcon", src := "img/motherboard/register_icon.png"), h3(title)),
-      registerTable
-   ).render
-   
-  def update(){
-    registers.foreach(r=>{
-      val value=s.cpu.get(r)
-      registerToValueL(r).textContent=formatWord(value.l)
-      registerToValueH(r).textContent=formatWord(value.h)
-    })
-  }
-  def update(i:InstructionInfo){
-    update()
-  }
-}
-
-class WordUI extends HTMLUI {
-  val wordElement=td("00000000 00000000").render
-  val root=table(cls := "bitTable", tr(wordElement)).render
-  
-  def update(v:DWord){
-    val l=Word(v.l).bitString.reverse
-    val h=Word(v.h).bitString.reverse
-    wordElement.textContent=h+" "+l
-  }
-}
-
-class FlagsUI extends HTMLUI {
-  
-  val flagElements=Flag.all.map(f=> (f,span("0").render)).toMap
-  
-  val root=span(cls := "flagsTable"
-  ).render
-  flagElements.foreach(f => root.appendChild(span(cls:="flag",f._1.toString+" = ",f._2).render))
-  
-  def flagAsString(flag:Boolean)= if (flag) "1" else "0"
-  def update(flags:Flags){
-    flagElements.foreach(f =>{
-      f._2.textContent=flagAsString(flags.get(f._1))
-    })
-    
-  }
-}
-
-class AluUI(s: Simulator) extends VonSimUI(s) {
-  
-  val bitTableA = new WordUI()
-  val bitTableB = new WordUI()
-  val resultBitTable = new WordUI()
-  val flagsUI=new FlagsUI()
-  val operation = span(cls:="operation","--").render
-  val root = div(id := "alu", cls := "cpuElement",
-    h3("ALU")
-    ,div("Operand A:", bitTableA.root)
-    ,div("Operation:", operation)
-    ,div("Operand B:", bitTableB.root)
-    ,hr()
-    ,div("Result:", resultBitTable.root)
-    ,div(span("Flags:"), flagsUI.root)
-    ).render
-    
-  def update(){
-    operation.textContent=s.cpu.alu.op.toString()
-    bitTableA.update(s.cpu.alu.o1)
-    bitTableB.update(s.cpu.alu.o2)
-    resultBitTable.update(s.cpu.alu.res)
-    flagsUI.update(s.cpu.alu.flags)
-  }  
-  def update(i:InstructionInfo){
-    
-  }
-}
-
-class CpuUI(s: Simulator) extends VonSimUI(s) {
-  val generalPurposeRegistersTable = new RegistersUI(s,List(simulator.AX,simulator.BX,simulator.CX,simulator.DX),"General Purpose Registers","generalPurpose")
-  val specialRegistersTable = new RegistersUI(s,List(simulator.IP,simulator.SP),"Special Registers","special")
-  val alu=new AluUI(s)
-  
-
-  val root = div(id := "cpu",
-    div(cls := "flexcolumns",
-      img(id := "cpuicon", src := "img/motherboard/microchip.png"), h2("CPU")),
-    generalPurposeRegistersTable.root,
-    specialRegistersTable.root,
-    alu.root).render
-
-  def update() {
-    generalPurposeRegistersTable.update()
-    specialRegistersTable.update()
-    alu.update()
-  }
-  def update(i:InstructionInfo) {
-    // TODO improve
-    update()
-  }
-}
-
-class DevicesUI(s: Simulator) extends VonSimUI(s) {
-
-  val root = div(id := "iomemory", cls := "memory",
-    div(cls := "flexcolumns",
-      img(id := "devicesicon", src := "img/motherboard/printer.png"), h2("Devices")),
-    "some pretty devices plz here").render
-
-    def update() {
-    //TODO
-  }
-  def update(i:InstructionInfo) {
-    // TODO improve
-    update()
-  }
-}

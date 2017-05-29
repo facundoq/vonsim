@@ -1,0 +1,37 @@
+#header{
+    font-size: 2em;
+    background-color: #34bbfc;
+    border-bottom: 5px solid #337ab7;
+   
+}
+.fa{
+	margin-right:5px;
+}
+
+.controlSection{
+    padding-left:2px;
+    margin-left:15px;
+}
+.controlSectionSeparator{
+	margin-left:90px;
+}
+.controlSectionStart{
+    margin-left:20px;
+}
+#title{
+    font-size:0.8em;
+    padding:5px;
+}
+
+#icon{
+    width:96px;
+/*     height:64px; */
+    padding:0px;
+    margin:0px;
+    padding:4px 20px;
+    
+}
+
+.simulatorState:active{
+    	
+}

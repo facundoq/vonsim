@@ -1,4 +1,5 @@
 package vonsim.webapp
+import vonsim.utils.CollectionUtils._
 import vonsim.simulator.InstructionInfo
 import com.scalawarrior.scalajs.ace._
 import scala.scalajs.js.annotation.ScalaJSDefined
@@ -17,7 +18,14 @@ import vonsim.webapp
 import vonsim.simulator.SimulatorProgramExecuting
 import vonsim.assembly.Compiler.CompilationResult
 
-class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends VonSimUI(s) {
+import vonsim.assembly.Location
+import vonsim.assembly.LexerError
+import vonsim.assembly.ParserError
+import vonsim.assembly.SemanticError
+import vonsim.assembly.CompilationError
+
+
+class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extends VonSimUI(s) {
 
   //document.body.appendChild(div(id:="aceEditor","asdasdasdasdasd").render)
 
@@ -49,19 +57,18 @@ class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends 
   //    keyTyped()
   //  }
   
-  def update() {
-    // TODO check if code can be run and if the cpu is halted to allow enable buttons
-    
-    if (s.state == SimulatorProgramExecuting){
+  def simulatorEvent() {
+    // TODO check if code can be run and if the cpu is halted to allow enable buttons    
+    if (s.s.state == SimulatorProgramExecuting){
       disable()
     }else{
       enable()
     }
     
   }
-  def update(i:InstructionInfo) {
+  def simulatorEvent(i:InstructionInfo) {
     // TODO improve
-    update()
+    simulatorEvent()
   }
   
   
@@ -71,6 +78,56 @@ class EditorUI(s: Simulator, defaultCode: String, onchange: () => Unit) extends 
   def disable(){
     container.disabled=true
   }
+  
+  def compilationEvent(){
+    val session = editor.getSession()
+    
+    //mainboardUI.console.textContent=instructions.mkString("\n")
+    clearGutterDecorations(session)
+    s.c match {
+      case Left(f) => {
+        
+        val annotations=instructionsToAnnotations(f.instructions)
+        val globalErrorAnnotations = f.globalErrors.map(e => Annotation(0, 0, e.msg, "global_error"))
+        val a = (annotations ++ globalErrorAnnotations).toJSArray
+        session.setAnnotations(a)
+
+//        println(f.instructions)
+        val errors = f.instructions.lefts
+        val errorLines = errors.map(_.location.line.toDouble - 1).toJSArray
+        errorLines.foreach(l => session.addGutterDecoration(l, "ace_error "))
+        if (!f.globalErrors.isEmpty) {
+          session.addGutterDecoration(0, "ace_error ")
+        }
+
+      }
+      case Right(f) => {
+        val annotations = f.instructions.map(e => { Annotation(e.line.toDouble - 1, 0.toDouble, e.instruction.toString(), "Correct Instruction") })
+        val warningAnnotations = f.warnings.map(w => { Annotation(w._1.toDouble - 1, 0.toDouble, w._2, "Warning") })
+        
+        session.setAnnotations((annotations++warningAnnotations).toJSArray)
+        warningAnnotations.indices.foreach(i => session.addGutterDecoration(i.toDouble-1, "ace_warning"))
+        
+      }
+    }
+  }
+  
+  
+  def instructionsToAnnotations(instructions:List[Either[CompilationError,InstructionInfo]])={
+    instructions.map(e => {
+          e match {
+            case Left(LexerError(l: Location, m: String))    => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Lexer Error")
+            case Left(ParserError(l: Location, m: String))   => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Parser Error")
+            case Left(SemanticError(l: Location, m: String)) => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Semantic Error")
+            case Right(x)                                    => Annotation(x.line.toDouble - 1, 0.toDouble, x.instruction.toString(), "Correct Instruction")
+          }
+        })
+  }
+  def clearGutterDecorations(session:IEditSession){
+    (0 until session.getLength().toInt).foreach(row => session.removeGutterDecoration(row, "ace_error"))
+    (0 until session.getLength().toInt).foreach(row => session.removeGutterDecoration(row, "ace_warning"))
+  }
+  
 }
 
 

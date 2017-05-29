@@ -205,11 +205,17 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     //memory.reset()
     state=SimulatorNoProgramLoaded  
   }
+  def stop(){
+    cpu.reset()
+    //memory.reset()
+    state=SimulatorExecutionFinished  
+  }
+  
   def load(c:SuccessfulCompilation){
     cpu.reset()
     memory.update(c.memory)
     instructions=c.addressToInstruction
-    state=SimulatorProgramLoaded
+    state=SimulatorProgramExecuting
   }
   
   def currentInstruction() = {
