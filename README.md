@@ -41,4 +41,5 @@ The project is now in an alpha state. There are three planed [milestones](https:
 
 3. Devices: Add support for communication with devices as per the MSX88 specification, as well as using both software and hardware interrupts.
 
-[How to contribute](CONTRIBUTING.md)
+## Contributing
+You can check the [development docs](doc/index.md) to get a general idea of the project structure and the [how to contribute page](CONTRIBUTING.md) to get your development environment set up.
