@@ -64,15 +64,17 @@ class MainboardUI(s: VonSimState) extends VonSimUI(s) {
 }
 
 abstract class MainboardItemUI(s: VonSimState,icon:String,itemId:String,title:String) extends VonSimUI(s){
-  val contentDiv=div().render
+  val contentDiv=div(cls:="mainboardItemContent").render
       
   val root = div(cls:="mainboardItem",
-      div(id := itemId
-      ,div(cls := "flexcolumns"
-        ,img(cls:= "mainboardItemIcon", src := icon), h2(title)
+      div(cls:="mainboardItemPreContainer"
+      ,div(cls:="mainboardItemContainer",id := itemId
+      ,div(cls := "mainboardItemHeader"
+        ,img(cls:= "mainboardItemIcon", src := icon)
+        ,h2(cls:="mainboardItemHeaderText",title)
       )
       ,contentDiv
-      )
+      ))
     ).render
   
   def compilationEvent(){
@@ -85,8 +87,9 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
 
   val body = tbody(id := "memoryTableBody", cls := "clusterize-content").render
 
-  val memoryTable = table(cls:="table-hover",
-    thead(th("Address"), th("Value")), body).render
+  val memoryTable = table(cls:="table-hover"
+//    ,thead(th("Address"), th("Value")) 
+    ,body).render
   val memoryTableDiv = div(id := "memoryTable", cls := "memoryTable clusterize-scroll", memoryTable).render
   
   contentDiv.appendChild(memoryTableDiv)

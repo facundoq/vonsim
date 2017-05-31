@@ -30,29 +30,48 @@ class RegistersUI(s: VonSimState,val registers:List[FullRegister],title:String,b
   
   def getIdFor(part:String)=if (baseId=="") "" else baseId+part
 
-  val body = tbody(id:= getIdFor("TableBody"), cls := "registersTableBody").render
+  
   var registerToValueL=mutable.Map[FullRegister,TableCell]()
   var registerToValueH=mutable.Map[FullRegister,TableCell]()
   
+//  registers.foreach(r => {
+//    val valueElementH=td("00").render
+//    val valueElementL=td("00").render
+//    registerToValueL(r)=valueElementL
+//    registerToValueH(r)=valueElementH
+//    body.appendChild( tr(td(r.toString()),valueElementH,valueElementL).render )
+//  })
+  
+  val names=registers.map(r => td(r.toString))
+  val namesRow=thead(th("")).render
+  val lowRow=tr(td("L")).render
+  val highRow=tr(td("H")).render
   registers.foreach(r => {
     val valueElementH=td("00").render
     val valueElementL=td("00").render
     registerToValueL(r)=valueElementL
     registerToValueH(r)=valueElementH
-    body.appendChild( tr(td(r.toString()),valueElementH,valueElementL).render )
-  })
+    namesRow.appendChild(th(r.toString).render)
+    lowRow.appendChild(valueElementL.render)
+    highRow.appendChild(valueElementH.render)
+    }
+  )
+  val body = tbody(id:= getIdFor("TableBody"), cls := "registersTableBody"
+      ,lowRow
+      ,highRow).render
   
-  
-  val registerTable = table(cls := "registerTable",
-    thead(th("Register"), th(colspan := 2, "Value")),
-    thead(th(""), th("H"), th("L")),
-    body
+  val registerTable = table(cls := "registerTable"
+//    ,thead(th("Register"), th(colspan := 2, "Value"))
+//    ,thead(th(""), th("H"), th("L")),
+    ,namesRow
+    ,body
     ).render
     
   val root = div(id := getIdFor("RegistersTable"), cls:="cpuElement",
-    div(cls := "flexcolumns",
-      img(cls := "registersIcon", src := "img/mainboard/register_icon.png"), h3(title)),
-      registerTable
+    div(cls := "cpuElementHeader"
+      ,i(cls:="icon-file-binary"," ")
+      ,h3(title))
+      ,registerTable
    ).render
    
   def simulatorEvent(){
@@ -85,9 +104,17 @@ class FlagsUI extends HTMLUI {
   
   val flagElements=Flag.all.map(f=> (f,span("0").render)).toMap
   
-  val root=span(cls := "flagsTable"
+  
+  val headerRow=thead().render
+  val valueRow=tr().render
+  flagElements.foreach(f => {
+    headerRow.appendChild(td(f._1.toString).render)
+    valueRow.appendChild(td(f._2).render)
+  })
+  val root=table(cls := "flagsTable"
+      ,headerRow
+      ,tbody(valueRow)
   ).render
-  flagElements.foreach(f => root.appendChild(span(cls:="flag",f._1.toString+" = ",f._2).render))
   
   def flagAsString(flag:Boolean)= if (flag) "1" else "0"
   def update(flags:Flags){
@@ -105,14 +132,19 @@ class AluUI(s: VonSimState) extends VonSimUI(s) {
   val resultBitTable = new WordUI()
   val flagsUI=new FlagsUI()
   val operation = span(cls:="operation","--").render
-  val root = div(id := "alu", cls := "cpuElement",
-    h3("ALU")
-    ,div("Operand A:", bitTableA.root)
-    ,div("Operation:", operation)
-    ,div("Operand B:", bitTableB.root)
-    ,hr()
-    ,div("Result:", resultBitTable.root)
-    ,div(span("Flags:"), flagsUI.root)
+  val root = div(id := "alu", cls := "cpuElement"
+    ,div(cls:="cpuElementHeader",i(cls:="icon-calculator"),h3(" ALU"))
+    ,div(cls:="cpuElementContent"
+      ,div(cls:="aluComputation"
+        ,div(cls:="aluOperation",operation)
+        ,div(cls:="aluOperands"
+          ,div(cls:="aluOperandA",bitTableA.root)
+          ,div(cls:="aluOperandB",bitTableB.root)
+          ,div(cls:="aluResult",resultBitTable.root)
+        ) 
+      )
+      ,div(cls:="aluFlags",i(cls:="fa fa-flag"), flagsUI.root)
+    )
     ).render
     
   def simulatorEvent(){
