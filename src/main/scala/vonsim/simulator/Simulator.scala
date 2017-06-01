@@ -229,9 +229,11 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
   def load(c:SuccessfulCompilation){
     cpu.reset()
     memory.update(c.memory)
+    memory.readOnlyAddresses=c.memory.keys.toList
     instructions=c.addressToInstruction
     state=SimulatorProgramExecuting
   }
+
   
   def currentInstruction() = {
     if (instructions.keySet.contains(cpu.ip)) {
@@ -263,10 +265,11 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     val instructionInfo = currentInstruction()
     //println("Executing instruction: "+instructionInfo)
     if (instructionInfo.isRight) {
-      val instruction = instructionInfo.right.get.instruction
+      val info = instructionInfo.right.get
+      val instruction=info.instruction
       cpu.ip += Simulator.instructionSize(instruction)
       state=SimulatorProgramExecuting
-      execute(instruction)
+      execute(info)
     }else{
       stopExecutionForError(instructionInfo.left.get)
     }
@@ -283,9 +286,13 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     cpu.halted=true
     state=SimulatorExecutionError(executionError)
   }
+  def stopExecutionForError(e:MemoryAccessViolation,i:InstructionInfo){
+    val message=s"Memory address ${e.address} is marked as read-only. It is likely you are attempting to modify a memory cell where part of an instruction is stored."    
+    stopExecutionForError(new InstructionExecutionError(message,i))
+  }
   
-  def execute(i: Instruction){
-    i match {
+  def execute(i: InstructionInfo){
+    i.instruction match {
       case Nop           => {}
       case Hlt           => { finishExecution() }
       case Jump(address) => { cpu.ip = address }
@@ -320,10 +327,10 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       }
       
       case Mov(os: WordBinaryOperands) => {
-        update(os.o1, get(os.o2))
+        checkUpdateResult(update(os.o1, get(os.o2)),i) 
       }
       case Mov(os: DWordBinaryOperands) => {
-        update(os.o1, get(os.o2))
+        checkUpdateResult(update(os.o1, get(os.o2)),i) 
       }
       case ALUBinary(CMP, os: WordBinaryOperands) => {
         cpu.alu.applyOp(SUB, get(os.o1), get(os.o2))
@@ -332,19 +339,19 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
         cpu.alu.applyOp(SUB, get(os.o1), get(os.o2))
       }
       case ALUBinary(op, os: WordBinaryOperands) => {
-        update(os.o1, cpu.alu.applyOp(op, get(os.o1), get(os.o2)))
+        checkUpdateResult(update(os.o1, cpu.alu.applyOp(op, get(os.o1), get(os.o2))),i) 
       }
       case ALUBinary(op, os: DWordBinaryOperands) => {
-        update(os.o1, cpu.alu.applyOp(op, get(os.o1), get(os.o2)))
+        checkUpdateResult(update(os.o1, cpu.alu.applyOp(op, get(os.o1), get(os.o2))),i)
       }
       case ALUUnary(op, o: WordOperand) => {
-        update(o, cpu.alu.applyOp(op, get(o)))
+        checkUpdateResult(update(o, cpu.alu.applyOp(op, get(o))),i)
       }
       case ALUUnary(op, o: DWordOperand) => {
         val v=get(o)
         
         val a=cpu.alu.applyOp(op, v)
-        update(o, a)
+        checkUpdateResult(update(o, a),i)
       }
       case Sti=>{
          stopExecutionForError("Sti not implemented.")
@@ -368,6 +375,12 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
 
   }
 
+  def checkUpdateResult(e:Option[MemoryAccessViolation],i:InstructionInfo){
+    e match{
+          case Some(violation) => stopExecutionForError(violation, i)
+          case None =>
+        }
+  }
   def push(v: Int) {
     cpu.sp -= 2
     memory.setBytes(cpu.sp, DWord(v))
@@ -391,10 +404,10 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     }
   }
 
-  def update(o: DWordOperand, v: DWord) {
+  def update(o: DWordOperand, v: DWord)={
     o match {
       case DWordMemoryAddress(address) => memory.setBytes(address, v)
-      case r: FullRegister             => cpu.set(r, v)
+      case r: FullRegister             => {cpu.set(r, v); None}
       case DWordIndirectMemoryAddress  => memory.setBytes(cpu.get(BX).toInt, v)
     }
   }
@@ -407,10 +420,10 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       case WordIndirectMemoryAddress  => memory.getByte(cpu.get(BX).toInt)
     }
   }
-  def update(o: WordOperand, v: Word) {
+  def update(o: WordOperand, v: Word) ={
     o match {
       case WordMemoryAddress(address) => memory.setByte(address, v)
-      case r: HalfRegister            => cpu.set(r, v)
+      case r: HalfRegister            => {cpu.set(r, v); None}
       case WordIndirectMemoryAddress  => memory.setByte(cpu.get(BX).toInt, v)
     }
   }

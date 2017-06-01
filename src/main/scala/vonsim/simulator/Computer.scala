@@ -315,7 +315,9 @@ object Memory{
   }
 }
 
-class Memory(var values:Array[Word]) {
+class MemoryAccessViolation(val address:Int)
+
+class Memory(var values:Array[Word],var readOnlyAddresses:List[Int]=List()) {
   
   
   def getByte(address: Int) = {
@@ -324,12 +326,27 @@ class Memory(var values:Array[Word]) {
   def getBytes(address: Int): DWord = {
     DWord(values(address), values(address + 1))
   }
-  def setByte(address: Int, v: Word) {
-    values(address) = v
+  def setByte(address: Int, v: Word)={
+    println(s"setting $address to $v ($readOnlyAddresses)")
+    if (readOnlyAddresses.contains(address)){
+      Some(new MemoryAccessViolation(address))
+    }else{
+      values(address) = v
+      None
+    }
+    
   }
-  def setBytes(address: Int, v: DWord) {
-    values(address) = v.l
-    values(address + 1) = v.h
+  def setBytes(address: Int, v: DWord)={
+    println(s"setting $address to $v ($readOnlyAddresses)")
+    if (readOnlyAddresses.contains(address) ){
+      Some(new MemoryAccessViolation(address))
+    }else if(readOnlyAddresses.contains(address+1)){
+      Some(new MemoryAccessViolation(address+1))
+    }else{
+      values(address) = v.l
+      values(address + 1) = v.h
+      None
+    }
   }
   def update(valuesMap:Map[MemoryAddress,Int]){
     valuesMap.foreach{ case (a,v) => values(a)=Word(v) }
