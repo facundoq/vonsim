@@ -124,17 +124,20 @@
 
 
 
-.registerTable td, .registerTable th,.memoryTable td, .memoryTable th {
+.registerTable td, .memoryTable td{
   border: 1px solid black;
   text-align: center;
 }
 
 .memoryTable td, .memoryTable th {
   padding:1px;
+  text-align: center;
 }
 
 .registerTable td, .registerTable th{
   padding:3px;
+  min-width: 2em;
+  text-align: center;
 }
 .registerTable{
 /* 	padding:1px; */

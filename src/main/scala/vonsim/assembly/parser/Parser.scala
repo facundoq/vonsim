@@ -134,9 +134,14 @@ object Parser extends Parsers {
   }
   def tokenAsParser(t:Token)= t ^^^ t
   
-   
+  private def indirect={ 
+     val indirectDWord = (WORD() ~ PTR() ~ INDIRECTBX()) ^^ { case (WORD() ~ PTR() ~ INDIRECTBX()) => DWORDINDIRECTBX()}
+     val indirectWord = (BYTE() ~ PTR() ~ INDIRECTBX()) ^^ { case (BYTE() ~ PTR() ~ INDIRECTBX()) => WORDINDIRECTBX()}
+     indirectDWord | indirectWord |INDIRECTBX()
+  }
   private def mutable = positioned{
-    ((Token.registers map tokenAsParser) reduceLeft(_ | _) ) | identifier | INDIRECTBX()
+    
+    ((Token.registers map tokenAsParser) reduceLeft(_ | _) ) | identifier | indirect
   }
    private def value = positioned{
     mutable | literalInteger

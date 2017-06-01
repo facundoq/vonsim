@@ -37,8 +37,8 @@ object Lexer extends RegexParsers {
   }
   
   def tokens: Parser[List[Token]] = {
-    phrase( rep1(comma | uninitialized | indirectbx | varType |  label | flagsStack | stack | keyword | literal 
-        | ops | io | interrupt |  register | jumps | identifier | newline )) ^^ { rawTokens =>
+    phrase( rep1(comma | uninitialized | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
+        | ops | io | interrupt |  register | jumps |  identifier | newline )) ^^ { rawTokens =>
       rawTokens
     }
   }
@@ -60,6 +60,7 @@ def stack = orall (Token.stack map tokenParserSpace)
 def flagsStack = orall (Token.flagsStack map tokenParser2)
 def varType = orall (Token.varType map tokenParserSpace)
 
+  
 def tokenParser(t:Token,literal:String) = positioned {s"(?i)${literal.toLowerCase}".r ^^^ t}
 def tokenParser2(t:Token) = tokenParser(t,t.toString)
 def tokenParserSpace(t:Token) = tokenParser(t,t.toString+" ")
@@ -113,7 +114,15 @@ def newline = positioned { """(\r?\n)+""".r ^^^ NEWLINE() }
 
 def comma = positioned { "," ^^^ COMMA() }
 def uninitialized = positioned { "?" ^^^ UNINITIALIZED() }
+
 def indirectbx = positioned{"""(?i)\[bx\]""".r ^^^ INDIRECTBX()}
+
+def indirectWord =tokenParser2(BYTE()) 
+def indirectDWord = tokenParser2(WORD())
+def indirectPTR = tokenParser2(PTR())
+def indirect = (indirectWord | indirectDWord | indirectPTR | indirectbx)
+
+
 //def indirectbx = positioned{"""(?i)\Q[BX]\E""".r ^^^ INDIRECTBX()}
 //def brackets = openBracket | closeBracket 
 //def openBracket = positioned { "[" ^^^ OPENBRACKET() }

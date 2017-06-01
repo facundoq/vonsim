@@ -55,6 +55,7 @@ object Compiler {
   def apply(code: String): CompilationResult = {
     val instructions = code.split("\n")
     var optionTokens = instructions map { Lexer(_) }
+//    optionTokens.foreach(f => println(f))
 
     val fixedTokens = Lexer.fixLineNumbers(optionTokens)
     val fixedTokensNoEmpty = fixedTokens.filter(p => {
@@ -438,7 +439,10 @@ object Compiler {
       }
       // TODO check for EQUs when literal strings appear
       case x: lexer.LITERALSTRING => semanticError(x, s"Cannot use literal strings as inmediate operands (${x.str})")
+      // TODO INFER FROM OTHER OPERANDS?
       case x: lexer.INDIRECTBX    => Right(DWordIndirectMemoryAddress)
+      case x: lexer.WORDINDIRECTBX    => Right(WordIndirectMemoryAddress)
+      case x: lexer.DWORDINDIRECTBX    => Right(DWordIndirectMemoryAddress)
 
     }
   }

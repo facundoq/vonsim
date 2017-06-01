@@ -30,9 +30,6 @@ object Token{
   def stack = List(PUSH(),POP())
   def flagsStack = List(PUSHF(),POPF())
   def varType = List(DB(),DW())
-  
-//  def brackets = List(OPENBRACKET(),CLOSEBRACKET())
- 
 }
 
 
@@ -48,7 +45,16 @@ sealed trait IORegister
 
 sealed trait IOAddress
 case class LABEL(str: String) extends Special
+
 case class INDIRECTBX() extends Mutable
+case class WORDINDIRECTBX() extends Mutable
+case class DWORDINDIRECTBX() extends Mutable
+
+case class WORD() extends Special
+case class BYTE() extends Special
+case class PTR() extends Special
+
+
 case class IDENTIFIER(str: String) extends Mutable with IOAddress
 
 sealed trait Literal extends Token
@@ -77,6 +83,8 @@ case class COMMA() extends Special
 case class NEWLINE() extends Special 
 case class EMPTY() extends Special
 case class UNINITIALIZED() extends Special
+
+
 //case class OPENBRACKET() extends Special
 //case class CLOSEBRACKET() extends Special
 

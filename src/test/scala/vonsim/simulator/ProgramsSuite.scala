@@ -428,7 +428,23 @@ f2:  call f1
     assert(compilation.isLeft)
   }
 
-   
+    test("word ptr and byteptr") {
+
+     val program = 
+"""
+  org 2000h
+  mov bx,2
+  mov WORD PTR [bx],3
+  inc bx
+  mov BYTE PTR [bx],5
+  hlt
+  end
+"""
+    val compilation= Compiler(program)
+    println(compilation)
+    assert(compilation.isRight)
+    //TODO ASSERT MORE STUFF (address 2 = 3, address 4=0 then address 4 = 5 
+  }
    
 }
 
