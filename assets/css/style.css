@@ -6,41 +6,7 @@
     display: flex;
     flex-flow: column;
     font-family: 'Fira Sans',sans-serif;
-    background-color: #337ab7;
 }
-#editor{
-	border-top-right-radius:10px;
-}
-#mainboard{
-	border-top-left-radius:10px;
-}
-
-.flexcolumns{
-	display: -webkit-flex; 
-    display: flex;
-    -webkit-justify-content:center; /* Safari */
-    justify-content:center;
-    -webkit-align-items: stretch; /* Safari */
-  align-items:         stretch; 
-   align-items: center;
-}
-
-.flexrows{
-    display: -webkit-flex; 
-    display: flex;
-    flex-flow: column;
-}
-
-
-h2{
-    font-size: 1.15em;
-    margin-bottom: 10px;
-}
-h3{
-    font-size: 1.05em;
-    margin-bottom: 10px;
-}
-
 
 #main{
   flex: 1 1 auto;
@@ -55,10 +21,10 @@ h3{
   width:100%;
   box-sizing: content-box;
 }
+
 #mainboard{
 	flex: 0 0 60%;
 	border-left: 5px solid #337ab7;
-/* 	3482cd; */
 }
 
 #editor{
@@ -67,10 +33,39 @@ h3{
 	display: flex;                      /* new; nested flex container */
     flex: 1;
 }
-#mainboard{
-	overflow-y:auto;
-}	
+
 #mainboard,#editor{
-	  box-sizing: border-box;
+	box-sizing: border-box;
 	overflow-y:auto;  
+}
+
+#main{
+    background-color: #337ab7;
+}
+#editor{
+    border-top-right-radius:10px;
+}
+#mainboard{
+    border-top-left-radius:10px;
+    background-color: #272822;
+    background-image: url(../img/mainboard/circuits.svg);
+    background-repeat: repeat;
+}
+
+
+
+.flexcolumns{
+    display: -webkit-flex; 
+    display: flex;
+    -webkit-justify-content:center; /* Safari */
+    justify-content:center;
+    -webkit-align-items: stretch; /* Safari */
+  align-items:         stretch; 
+   align-items: center;
+}
+
+.flexrows{
+    display: -webkit-flex; 
+    display: flex;
+    flex-flow: column;
 }

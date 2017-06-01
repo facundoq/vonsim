@@ -44,8 +44,8 @@ class RegistersUI(s: VonSimState,val registers:List[FullRegister],title:String,b
   
   val names=registers.map(r => td(r.toString))
   val namesRow=thead(th("")).render
-  val lowRow=tr(td("L")).render
-  val highRow=tr(td("H")).render
+  val lowRow=tr(th("L")).render
+  val highRow=tr(th("H")).render
   registers.foreach(r => {
     val valueElementH=td("00").render
     val valueElementL=td("00").render
@@ -102,14 +102,16 @@ class WordUI extends HTMLUI {
 
 class FlagsUI extends HTMLUI {
   
-  val flagElements=Flag.all.map(f=> (f,span("0").render)).toMap
-  
+  val flagValue=Flag.all.map(f=> (f,span("0").render)).toMap
+  val flagHeader=Flag.all.map(f=> (f,span(f.toString()).render)).toMap
   
   val headerRow=thead().render
   val valueRow=tr().render
-  flagElements.foreach(f => {
-    headerRow.appendChild(td(f._1.toString).render)
+  flagValue.foreach(f => {
     valueRow.appendChild(td(f._2).render)
+  })
+  flagHeader.foreach(f => {
+    headerRow.appendChild(td(f._2).render)
   })
   val root=table(cls := "flagsTable"
       ,headerRow
@@ -118,10 +120,15 @@ class FlagsUI extends HTMLUI {
   
   def flagAsString(flag:Boolean)= if (flag) "1" else "0"
   def update(flags:Flags){
-    flagElements.foreach(f =>{
-      f._2.textContent=flagAsString(flags.get(f._1))
+    Flag.all.foreach(f =>{
+      val value=flagValue(f)
+      val header=flagHeader(f)
+      val v=flagAsString(flags.get(f))
+      value.textContent=v
+      val description=s"Flag $f has value $v"
+      value.title=description
+      header.title=description
     })
-    
   }
 }
 
@@ -143,7 +150,7 @@ class AluUI(s: VonSimState) extends VonSimUI(s) {
           ,div(cls:="aluResult",resultBitTable.root)
         ) 
       )
-      ,div(cls:="aluFlags",i(cls:="fa fa-flag"), flagsUI.root)
+      ,div(cls:="aluFlags",i(cls:="fa fa-flag",title:="Flags"), flagsUI.root)
     )
     ).render
     
