@@ -90,7 +90,8 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
   val memoryTable = table(cls:="table-hover"
 //    ,thead(th("Address"), th("Value")) 
     ,body).render
-  val memoryTableDiv = div(id := "memoryTable", cls := "memoryTable clusterize-scroll", memoryTable).render
+  val memoryTableDiv = div(id := "memoryTable", cls := "memoryTable clusterize-scroll",
+      memoryTable).render
   
   contentDiv.appendChild(memoryTableDiv)
     

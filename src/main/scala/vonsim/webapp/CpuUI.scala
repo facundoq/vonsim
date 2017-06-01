@@ -174,7 +174,7 @@ class AluUI(s: VonSimState) extends VonSimUI(s) {
 class CpuUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/microchip.png","cpu","CPU") {
   
   val generalPurposeRegistersTable = new RegistersUI(s,List(simulator.AX,simulator.BX,simulator.CX,simulator.DX),"General Purpose Registers","generalPurpose")
-  val specialRegistersTable = new RegistersUI(s,List(simulator.IP,simulator.SP),"Special Registers","special")
+  val specialRegistersTable = new RegistersUI(s,List(simulator.IP,simulator.SP,simulator.IR,simulator.MAR,simulator.MBR),"Special Registers","special")
   val alu=new AluUI(s)
   
   contentDiv.appendChild(generalPurposeRegistersTable.root)

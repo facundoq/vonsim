@@ -250,35 +250,40 @@ class ALU {
 
 class CPU {
 
-  //gp registers
-  var sp = Simulator.maxMemorySize
-  var ip = 0x2000
   var halted = false
   val alu = new ALU()
-  var registers = mutable.Map[FullRegister, DWord](AX -> DWord(), BX -> DWord(), CX -> DWord(), DX -> DWord())
-
+  var generalRegisters = mutable.Map[FullRegister, DWord]()
+  var specialRegisters=mutable.Map[SpecialRegister,DWord]()
+  reset()
   def reset() {
-    ip = 0x2000
-    sp = Simulator.maxMemorySize
+    jump(0x2000)
+    setSP(Simulator.maxMemorySize)
     halted = false
-    registers = mutable.Map[FullRegister, DWord](AX -> DWord(), BX -> DWord(), CX -> DWord(), DX -> DWord())
+    generalRegisters = mutable.Map[FullRegister, DWord](AX -> DWord(), BX -> DWord(), CX -> DWord(), DX -> DWord())
+    specialRegisters=mutable.Map[SpecialRegister,DWord](SP -> DWord(Simulator.maxMemorySize),IP -> DWord(0x2000),MBR ->DWord(), MAR-> DWord(),IR -> DWord())
   }
-
+  
+  def ip=specialRegisters(IP).toInt
+  def sp=specialRegisters(SP).toInt
+  
+  
+  def jump(newIP:Int) { specialRegisters(IP)=DWord(newIP) }
+  def setSP(newSP:Int) {  specialRegisters(SP)=DWord(newSP)}
+  
+  
   def get(r: FullRegister): DWord = {
     r match{
-      case SP => DWord(sp)
-      case IP => DWord(ip)
-      case other => registers(r)
+      case x:SpecialRegister => specialRegisters(x)
+      case other => generalRegisters(r)
     }
   }
   def set(r: FullRegister, v: DWord) {
     r match{
-      case SP => sp=v.toInt
-      case IP => ip=v.toInt
-      case other => registers(r) = v
+      case x:SpecialRegister => specialRegisters(x)=v
+      case other => generalRegisters(r) = v
     }
-    
   }
+  def set(r:FullRegister,v:Int){ set(r,DWord(v))}
 
   def get(r: HalfRegister): Word = {
     r match {
@@ -293,6 +298,7 @@ class CPU {
       case r: HighRegister => set(r.full, DWord(get(r.low), v))
     }
   }
+  def set(r:HalfRegister,v:Int){ set(r,Word(v))}
 
 }
 
@@ -327,7 +333,7 @@ class Memory(var values:Array[Word],var readOnlyAddresses:List[Int]=List()) {
     DWord(values(address), values(address + 1))
   }
   def setByte(address: Int, v: Word)={
-    println(s"setting $address to $v ($readOnlyAddresses)")
+//    println(s"setting $address to $v ($readOnlyAddresses)")
     if (readOnlyAddresses.contains(address)){
       Some(new MemoryAccessViolation(address))
     }else{
@@ -337,7 +343,7 @@ class Memory(var values:Array[Word],var readOnlyAddresses:List[Int]=List()) {
     
   }
   def setBytes(address: Int, v: DWord)={
-    println(s"setting $address to $v ($readOnlyAddresses)")
+//    println(s"setting $address to $v ($readOnlyAddresses)")
     if (readOnlyAddresses.contains(address) ){
       Some(new MemoryAccessViolation(address))
     }else if(readOnlyAddresses.contains(address+1)){

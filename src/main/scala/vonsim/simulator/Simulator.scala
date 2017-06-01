@@ -13,7 +13,7 @@ object Simulator {
 
   type IOMemoryAddress = Byte
   def maxMemorySize = 0x4000 // in bytes
-  def maxInstructions = 1000000 // max number of instructions to execute
+  def maxInstructions = 10000 // max number of instructions to execute
   
   def encode(instruction:Instruction)={
     
@@ -35,8 +35,8 @@ object Simulator {
             encoding++=encodeBinaryOperands(i.binaryOperands)
           }
           case i:ALUUnary=>{
-            encoding+= encodeUnaryAddressingMode(i.unaryOperands)
-            encoding++=encodeUnaryOperand(i.unaryOperands)
+            encoding+= encodeUnaryAddressingMode(i.unaryOperand)
+            encoding++=encodeUnaryOperand(i.unaryOperand)
           }
           case i:IntN => encoding++=encodeImmediate(i.v)
           case i:Push => encoding+=encodeRegister(i.r)
@@ -267,7 +267,7 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     if (instructionInfo.isRight) {
       val info = instructionInfo.right.get
       val instruction=info.instruction
-      cpu.ip += Simulator.instructionSize(instruction)
+      cpu.jump(cpu.ip+ Simulator.instructionSize(instruction))
       state=SimulatorProgramExecuting
       execute(info)
     }else{
@@ -290,27 +290,82 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     val message=s"Memory address ${e.address} is marked as read-only. It is likely you are attempting to modify a memory cell where part of an instruction is stored."    
     stopExecutionForError(new InstructionExecutionError(message,i))
   }
+  def setSpecialRegisters(i:Instruction){
+    var encoding=Simulator.encode(i)
+    cpu.set(IR,encoding(0).toDWord()) 
+    cpu.set(MAR,cpu.get(IP))
+    cpu.set(MBR,cpu.get(IR))
+    i match {
+      case (_:JumpInstruction | _:Zeroary | _:IOInstruction | _:IntN | _:Push | _:Pop) => {
+        //nothing to do here        
+      }
+      // if there are memory operand accesses, they'll overwrite the MAR/MBR registers  
+      case i: Mov => {
+        cpu.set(IR,DWord(encoding(0),encoding(1)))
+        setMemoryRegistersIfAccessed(i.binaryOperands)
+      }
+      case i: ALUBinary => {
+        cpu.set(IR,DWord(encoding(0),encoding(1)))
+        setMemoryRegistersIfAccessed(i.binaryOperands)
+      }
+      case i: ALUUnary => {
+        cpu.set(IR,DWord(encoding(0),encoding(1)))
+        setMemoryRegistersIfAccessed(i.unaryOperand)
+        
+      }
+    }
+  }
+  def setMemoryRegistersIfAccessed(o:BinaryOperands){
+    setMemoryRegistersIfAccessed(o.o1)
+    setMemoryRegistersIfAccessed(o.o2)
+  }
+  def setMemoryRegistersIfAccessed(o:UnaryOperand){
+    o match {
+      case x:WordMemoryAddress => {
+        cpu.set(MAR,x.address)
+        cpu.set(MBR,memory.getByte(x.address).toDWord())
+      }
+      case WordIndirectMemoryAddress =>{
+        val address=cpu.get(BX).toInt
+        cpu.set(MAR,address)
+        cpu.set(MBR,memory.getByte(address).toDWord())
+        
+      }
+      case x:DWordMemoryAddress => {
+        cpu.set(MAR,x.address)
+        cpu.set(MBR,memory.getBytes(x.address))
+      }
+      case DWordIndirectMemoryAddress =>{
+        val address=cpu.get(BX).toInt
+        cpu.set(MAR,address)
+        cpu.set(MBR,memory.getBytes(address))
+      }
+      case other =>
+    }
+  }
+  
   
   def execute(i: InstructionInfo){
+    setSpecialRegisters(i.instruction)
     i.instruction match {
       case Nop           => {}
       case Hlt           => { finishExecution() }
-      case Jump(address) => { cpu.ip = address }
+      case Jump(address) => { cpu.jump(address)}
       case ConditionalJump(address,condition) => {
         if (cpu.alu.flags.satisfy(condition)){
-          cpu.ip = address 
+          cpu.jump(address)
         }
       }
       case Call(address) => {
 //        println(s"Calling $address, returning to ${cpu.ip}")
         val ra = push(cpu.ip)
 //        println(memory.getBytes(cpu.sp))
-        cpu.ip = address
+        cpu.jump(address)
       }
       case Ret => {
         val ra = pop()
 //        println(s"Retting to $ra (${ra.toInt}) from ${cpu.ip}")
-        cpu.ip = ra.toInt
+        cpu.jump(ra.toInt)
       }
       case Push(register) => {
         push(cpu.get(register))
@@ -382,16 +437,15 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
         }
   }
   def push(v: Int) {
-    cpu.sp -= 2
-    memory.setBytes(cpu.sp, DWord(v))
+    push(DWord(v))
   }
   def push(v: DWord) {
-    cpu.sp -= 2
+    cpu.setSP(cpu.sp - 2)
     memory.setBytes(cpu.sp, v)
   }
   def pop() = {
     val v = memory.getBytes(cpu.sp)
-    cpu.sp += 2
+    cpu.setSP(cpu.sp +2)
     v
   }
 

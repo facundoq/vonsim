@@ -132,7 +132,7 @@ object Compiler {
         case x: DWordDef           => DWordDef(x.label, vardefLineToAddress(x.address), x.values)
         case x: ALUBinary          => ALUBinary(x.op, replaceLinesForAdresses(x.binaryOperands, vardefLineToAddress))
         case x: Mov                => Mov(replaceLinesForAdresses(x.binaryOperands, vardefLineToAddress))
-        case x: ALUUnary           => ALUUnary(x.op, replaceLinesForAdresses(x.unaryOperands, vardefLineToAddress))
+        case x: ALUUnary           => ALUUnary(x.op, replaceLinesForAdresses(x.unaryOperand, vardefLineToAddress))
         case Call(m)               => Call(executableLineToAddress(m))
         case Jump(m)               => Jump(executableLineToAddress(m))
         case ConditionalJump(m, c) => ConditionalJump(executableLineToAddress(m), c)

@@ -39,7 +39,7 @@ case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefI
 
 case class Mov(binaryOperands:BinaryOperands) extends ExecutableInstruction  
 case class ALUBinary(op:ALUOpBinary,binaryOperands:BinaryOperands) extends ExecutableInstruction 
-case class ALUUnary(op:ALUOpUnary,unaryOperands:UnaryOperandUpdatable) extends ExecutableInstruction 
+case class ALUUnary(op:ALUOpUnary,unaryOperand:UnaryOperandUpdatable) extends ExecutableInstruction 
 
 
 class StackInstruction extends ExecutableInstruction 

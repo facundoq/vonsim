@@ -9,8 +9,6 @@ def replace_string_in_file(file_path,target,replacement):
   with open(file_path, 'w') as f:
       f.write(replaced_contents)
 
-
-
 def makedirs_ifnot(path):
   if not os.path.exists(path):
     print("'{}' path does not exist. Creating folder...".format(path))
@@ -69,3 +67,4 @@ file_util.copy_file(compiled_js_file_map,output_compiled_js_file_map)
 index_path=os.path.join(output_assets_folder,'index.html')
 print("Replacing fastopt.js for opt.js in {}".format(index_path))
 replace_string_in_file(index_path,'fastopt.js','opt.js')
+

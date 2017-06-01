@@ -68,19 +68,24 @@ class LowRegister extends HalfRegister{
 trait IORegister extends Register
 trait IndirectRegister
 trait GeneralPurposeRegister
+trait SpecialRegister 
+
+case object SP extends FullRegister with SpecialRegister 
+case object IP extends FullRegister with SpecialRegister 
+case object MAR extends FullRegister with SpecialRegister 
+case object MBR extends FullRegister with SpecialRegister
+case object IR extends FullRegister with SpecialRegister
 
 case object AX extends FullRegister with IORegister with GeneralPurposeRegister
 case object BX extends FullRegister with IndirectRegister with GeneralPurposeRegister  
 case object CX extends FullRegister with GeneralPurposeRegister
 case object DX extends FullRegister with GeneralPurposeRegister
 
-case object SP extends FullRegister
-case object IP extends FullRegister
 
 case object AH extends HighRegister with GeneralPurposeRegister
 case object BH extends HighRegister with GeneralPurposeRegister
 case object CH extends HighRegister with GeneralPurposeRegister
-case object DH extends HighRegister 
+case object DH extends HighRegister with GeneralPurposeRegister
 
 case object AL extends LowRegister with IORegister with GeneralPurposeRegister
 case object BL extends LowRegister with GeneralPurposeRegister
@@ -90,7 +95,8 @@ case object DL extends LowRegister with GeneralPurposeRegister
 
 
 abstract class BinaryOperands{
-  
+  def o1:UnaryOperand
+  def o2:UnaryOperand
 }
 
 abstract class WordBinaryOperands extends BinaryOperands{
