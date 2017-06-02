@@ -28,6 +28,7 @@ import scala.collection.mutable.ListBuffer
 
 class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extends VonSimUI(s) {
 
+  def session=editor.getSession()
   //document.body.appendChild(div(id:="aceEditor","asdasdasdasdasd").render)
   val markers=ListBuffer[Int]()
   //val code: TextArea = textarea(cls := "textEditor").render
@@ -35,10 +36,10 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   val editor = webapp.myace.edit()
   //  println(editor.container)
   editor.setTheme("ace/theme/monokai")
-  editor.getSession().setMode("ace/mode/assembly_x86")
+  session.setMode("ace/mode/assembly_x86")
   editor.setValue(defaultCode)
-  editor.getSession().setUseSoftTabs(true)
-  editor.getSession().setUseWorker(false)
+  session.setUseSoftTabs(true)
+  session.setUseWorker(false)
   editor.clearSelection()
   editor.container.classList.add("ace_editor_container")
   editor.renderer.setShowGutter(true)
@@ -66,7 +67,7 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   }
   def simulatorEvent() {
     // TODO check if code can be run and if the cpu is halted to allow enable buttons    
-    if (s.s.state == SimulatorProgramExecuting){
+    if (s.isSimulatorExecuting()){
       disable()
     }else{
       enable()

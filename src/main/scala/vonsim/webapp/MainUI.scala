@@ -52,15 +52,39 @@ class MainUI(s: VonSimState, defaultCode: String) extends VonSimUI(s) {
       ,headerUI.root 
       ,sim).render
 
-
-  root.onkeydown = (e: dom.KeyboardEvent) => {
-    //println("Pressed " + e.keyCode + " " + e.ctrlKey)
-    if ((e.ctrlKey || e.metaKey) && e.keyCode == 83) {
-      e.preventDefault()
-      compilationEvent()
-      simulatorEvent()
+  
+  bindkey(root,"ctrl+1",() => {
+    println("asdSD")
+    if (s.canLoadOrQuickRun()){
+      quickRun()
     }
-  } 
+    false
+    })
+  
+  bindkey(root,"ctrl+2",() => {
+    if (s.canLoadOrQuickRun()){
+      loadProgram()
+    }else if (s.isSimulatorExecuting()){
+      stop()
+    }
+    false
+    })
+    
+  bindkey(root,"ctrl+3",() => {
+    if (s.isSimulatorExecuting()){
+      runInstructions()
+    }
+    false
+    })
+    
+  bindkey(root,"ctrl+4",() => {
+    if (s.isSimulatorExecuting()){
+      stepInstruction()
+    }
+    false
+    })
+  
+  
   
   headerUI.controlsUI.quickButton.onclick=(e:Any) =>{quickRun()}
   

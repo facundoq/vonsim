@@ -19,7 +19,7 @@ object Token{
   def ops = List(ORG(),MOV(),CMP())++binaryArithmetic++unaryArithmetic
   def binaryArithmetic = List(ADD(),ADC(),SUB(),SBB(),OR(),XOR(),AND(),CMP())
   def unaryArithmetic = List(INC(),DEC(),NOT())
-  def registers:List[RegisterToken] = lRegisters++hRegisters++xRegisters++List(SP())
+  def registers:List[RegisterToken] = lRegisters++hRegisters++xRegisters++List(SP(),IP())
   def lRegisters =List(AL(),BL(),CL(),DL())
   def hRegisters =List(AH(),BH(),CH(),DH())
   def xRegisters =List(AX(),BX(),CX(),DX())

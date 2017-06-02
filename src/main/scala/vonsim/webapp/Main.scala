@@ -80,29 +80,17 @@ object Main extends JSApp {
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)
       })
-      
-//    val clusterizePropsElements = new ClusterizeProps{
-//      override val scrollElem = Some(ui.mainboardUI.memoryUI.memoryTableDiv).orUndefined
-//      override val contentElem = Some(ui.mainboardUI.memoryUI.body).orUndefined    
-//    }
-//    val clusterize=new Clusterize(clusterizePropsElements)
-  }
+  } 
 
-  def gencode() = {
-    val r = "a b c d".split(" ").toList
-    val rx = r.map(_ + "x")
-    val rh = r.map(_ + "l")
-    val rl = r.map(_ + "h")
-    val ins = "end add nop ret org mov".split(" ").toList
-    val all = rx ++ rh ++ rl ++ ins
+  def defaultCode = """org 1000h
+; variables here
 
-    val lexerdefs = all map { r => s"""def $r = positioned { "$r" ^^ (_ => ${r.toUpperCase}()) }""" }
-    val lexerdefsstr = lexerdefs.foldLeft("")((a, b) => a + "\n" + b)
-    val lexeritems = all.foldLeft("")((a, b) => a + " | " + b) + "\n"
 
-    lexeritems ++ lexerdefsstr
-  }
-  def defaultCode = ""
+org 2000h
+; your code here
+hlt
+end
+"""
 
 }
 

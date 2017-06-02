@@ -397,7 +397,8 @@ object Compiler {
       case (r: WordMemoryAddress, x: WordValue)          => Right(WordMemoryValue(r, x))
       case (r: DWordMemoryAddress, x: WordValue)         => Right(DWordMemoryValue(r, DWordValue(x.v)))
       case (r: DWordMemoryAddress, x: DWordValue)        => Right(DWordMemoryValue(r, x))
-
+      
+      
       case (DWordIndirectMemoryAddress, x: DWordValue)   => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, x))
       case (WordIndirectMemoryAddress, x: WordValue)     => Right(WordIndirectMemoryValue(WordIndirectMemoryAddress, x))
       case (DWordIndirectMemoryAddress, x: WordValue)    => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, DWordValue(x.v)))
@@ -450,7 +451,7 @@ object Compiler {
   val jumpConditions = Map(
     lexer.JC() -> JC, lexer.JNC() -> JNC, lexer.JZ() -> JZ, lexer.JNZ() -> JNZ, lexer.JO() -> JO, lexer.JNO() -> JNO, lexer.JS() -> JS, lexer.JNS() -> JNS)
   val fullRegisters = Map(
-    lexer.AX() -> AX, lexer.BX() -> BX, lexer.CX() -> CX, lexer.DX() -> DX, lexer.SP() -> IP, lexer.IP() -> SP)
+    lexer.AX() -> AX, lexer.BX() -> BX, lexer.CX() -> CX, lexer.DX() -> DX, lexer.SP() -> SP, lexer.IP() -> IP)
   val halfRegisters = Map(
     lexer.AL() -> AL, lexer.AH() -> AH, lexer.BL() -> BL, lexer.BH() -> BH, lexer.CL() -> CL, lexer.CH() -> CH, lexer.DL() -> DL, lexer.DH() -> DH)
   val registers = fullRegisters ++ halfRegisters
