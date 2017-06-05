@@ -428,6 +428,21 @@ f2:  call f1
     assert(compilation.isLeft)
   }
 
+
+    test("indirect register with immediate value fails if BYTE PTR or WORD PTR not defined") {
+
+     val program = 
+"""
+  org 2000h
+  mov bx,2
+  mov [bx],3
+  hlt
+  end
+"""
+    val compilation= Compiler(program)
+    assert(compilation.isLeft)
+}   
+    
     test("word ptr and byteptr") {
 
      val program = 
@@ -435,15 +450,40 @@ f2:  call f1
   org 2000h
   mov bx,2
   mov WORD PTR [bx],3
-  inc bx
   mov BYTE PTR [bx],5
+  mov ax,6
+  mov [bx],ax
+  mov al,8
+  mov [bx],al
   hlt
   end
 """
-    val compilation= Compiler(program)
-    println(compilation)
-    assert(compilation.isRight)
+//    val compilation= Compiler(program)
+//    println(compilation)
+//    assert(compilation.isRight)
+    val s=simulator(program)
+    s.memory.setByte(2, Word(4))
+    s.memory.setByte(3, Word(4))
+    s.stepInstruction()
+    assertResult(DWord(2))(s.cpu.get(BX))
+    s.stepInstruction()
+    assertResult(DWord(3))(s.memory.getBytes(2))
+    s.stepInstruction()
+    assertResult(Word(5))(s.memory.getByte(2))
+    assertResult(Word(0))(s.memory.getByte(3))
+    s.stepInstruction()
+    assertResult(DWord(6))(s.cpu.get(AX))
+    s.stepInstruction()
+    assertResult(DWord(6))(s.memory.getBytes(2))
+    s.stepInstruction()
+    assertResult(Word(8))(s.cpu.get(AL))
+    s.stepInstruction()
+    assertResult(Word(8))(s.memory.getByte(2))
+    assertResult(Word(0))(s.memory.getByte(3))
+    s.stepInstruction()
+    assert(s.cpu.halted)
     //TODO ASSERT MORE STUFF (address 2 = 3, address 4=0 then address 4 = 5 
+    
   }
    
 }

@@ -226,7 +226,7 @@ class DWord(var l:Byte, var h:Byte) extends ComputerWord{
   def toBits() = (0 to bits-1) map {bit(_)}
   
   def bitString= toBits().mkString("")
-  override def toString()=s"DWord(${this.bitString})"
+  override def toString()=s"DWord(${this.bitString.reverse})"
   
    override def equals(o: Any) = o match {
     case that: DWord => that.l==l && that.h==h

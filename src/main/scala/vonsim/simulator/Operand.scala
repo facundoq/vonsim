@@ -15,6 +15,7 @@ case class DWordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  w
 case class WordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  with WordOperand
 
 trait IndirectMemoryAddressOperand extends MemoryOperand
+case object UndefinedIndirectMemoryAddress extends IndirectMemoryAddressOperand   with DWordOperand
 case object DWordIndirectMemoryAddress extends IndirectMemoryAddressOperand   with DWordOperand 
 case object WordIndirectMemoryAddress extends IndirectMemoryAddressOperand  with WordOperand
 

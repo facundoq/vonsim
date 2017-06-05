@@ -14,6 +14,14 @@ import scala.util.parsing.input.Positional
 import vonsim.assembly.lexer.VarType
 import scala.collection.mutable.ListBuffer
 import vonsim.assembly.parser.VarDef
+import vonsim.simulator.UndefinedIndirectMemoryAddress
+import PositionalExtension._
+
+object PositionalExtension{
+  implicit class RichPositional(p:Positional){
+    def location=new Location(p.pos.line, p.pos.column)
+  }
+}
 
 sealed trait CompilationError {
   def location: Location
@@ -22,7 +30,25 @@ sealed trait CompilationError {
 
 case class LexerError(location: Location, msg: String) extends CompilationError
 case class ParserError(location: Location, msg: String) extends CompilationError
-case class SemanticError(location: Location, msg: String) extends CompilationError
+abstract class SemanticError extends CompilationError
+
+abstract class InstructionSemanticError(i:parser.Instruction) extends SemanticError{  
+  def location=i.location
+}
+case class MemoryMemoryReferenceError(i:parser.Instruction) extends InstructionSemanticError(i){
+  def msg="Both operands access memory. Cannot access two memory locations in the same instruction."
+}
+
+case class IndirectPointerTypeUndefined(i:parser.Instruction) extends InstructionSemanticError(i){
+  def msg="Indirect addressing with an immediate operand requires specifying the type of pointer with WORD PTR or BYTE PTR before [BX]."
+}
+case class OperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
+  def msg="The second operand needs 16 bits to be encoded, but the first one only has 8 bits."
+}
+
+case class GenericSemanticError(p:Positional,msg:String) extends SemanticError{
+  def location=p.location
+}
 
 case class GlobalError(location: Option[Location], msg: String)
 
@@ -333,9 +359,11 @@ object Compiler {
       case x: parser.Mov =>
         parserToSimulatorBinaryOperands(x, x.m, x.v, vardefLabelToType, vardefLabelToLine).right.flatMap(
           op => successfulTransformation(x, Mov(op)))
-      case x: parser.BinaryArithmetic =>
+      case x: parser.BinaryArithmetic =>{        
         parserToSimulatorBinaryOperands(x, x.m, x.v, vardefLabelToType, vardefLabelToLine).right.flatMap(
           operands => successfulTransformation(x, ALUBinary(binaryOperations(x.op), operands)))
+          
+      }
       case x: parser.UnaryArithmetic =>
         parserToSimulatorOperand(x.m, vardefLabelToType, vardefLabelToLine).right.flatMap(
           _ match {
@@ -374,9 +402,11 @@ object Compiler {
   def successfulTransformation[T](x: parser.Instruction, y: Instruction) = {
     Right[T, InstructionInfo](new InstructionInfo(x.pos.line, y))
   }
+  
   def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Mutable, y: lexer.Value, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, BinaryOperands] = {
     parserToSimulatorOperand(x, labelToType, labelToAddress).right.flatMap(o1 =>
       parserToSimulatorOperand(y, labelToType, labelToAddress).right.flatMap(o2 =>
+        
         unaryOperandsToBinaryOperands(i, o1, o2)))
   }
 
@@ -391,7 +421,9 @@ object Compiler {
       case (r: FullRegister, x: DWordMemoryAddress)      => Right(DWordRegisterMemory(r, x))
       case (r: HalfRegister, WordIndirectMemoryAddress)  => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
       case (r: FullRegister, DWordIndirectMemoryAddress) => Right(DWordRegisterIndirectMemory(r, DWordIndirectMemoryAddress))
-
+      case (r: HalfRegister, UndefinedIndirectMemoryAddress)  => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
+      case (r: FullRegister, UndefinedIndirectMemoryAddress) => Right(DWordRegisterIndirectMemory(r, DWordIndirectMemoryAddress))
+      
       case (r: DWordMemoryAddress, x: FullRegister)      => Right(DWordMemoryRegister(r, x))
       case (r: WordMemoryAddress, x: HalfRegister)       => Right(WordMemoryRegister(r, x))
       case (r: WordMemoryAddress, x: WordValue)          => Right(WordMemoryValue(r, x))
@@ -402,18 +434,22 @@ object Compiler {
       case (DWordIndirectMemoryAddress, x: DWordValue)   => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, x))
       case (WordIndirectMemoryAddress, x: WordValue)     => Right(WordIndirectMemoryValue(WordIndirectMemoryAddress, x))
       case (DWordIndirectMemoryAddress, x: WordValue)    => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, DWordValue(x.v)))
+      
       case (DWordIndirectMemoryAddress, x: FullRegister) => Right(DWordIndirectMemoryRegister(DWordIndirectMemoryAddress, x))
       case (WordIndirectMemoryAddress, x: HalfRegister)  => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress, x))
-
-      case (r: MemoryOperand, x: MemoryOperand)          => semanticError(i, "Both operands access memory. Cannot read two memory locations in the same instruction.")
-      case (r: WordOperand, x: DWordOperand)             => semanticError(i, "The second operand needs 16 bits to be encoded, but the first one only has 8 bits ")
+      case (UndefinedIndirectMemoryAddress, x: FullRegister) => Right(DWordIndirectMemoryRegister(DWordIndirectMemoryAddress, x))
+      case (UndefinedIndirectMemoryAddress, x: HalfRegister)  => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress, x))
+      
+      case (UndefinedIndirectMemoryAddress, x: ImmediateOperand)    => Left(IndirectPointerTypeUndefined(i))
+      case (r: MemoryOperand, x: MemoryOperand)          => Left(MemoryMemoryReferenceError(i))
+      case (r: WordOperand, x: DWordOperand)             => Left(OperandSizeMismatchError(i))  
       case other                                         => semanticError(i, "Invalid operands.")
     }
 
   }
+  
   def semanticError[T](p: Positional, message: String): Left[SemanticError, T] = {
-    Left(new SemanticError(new Location(p.pos.line, p.pos.column), message))
-
+    Left(new GenericSemanticError(p, message))
   }
   def parserToSimulatorOperand(op: lexer.Value, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, UnaryOperand] = {
     op match {
@@ -441,7 +477,7 @@ object Compiler {
       // TODO check for EQUs when literal strings appear
       case x: lexer.LITERALSTRING => semanticError(x, s"Cannot use literal strings as inmediate operands (${x.str})")
       // TODO INFER FROM OTHER OPERANDS?
-      case x: lexer.INDIRECTBX    => Right(DWordIndirectMemoryAddress)
+      case x: lexer.INDIRECTBX    => Right(UndefinedIndirectMemoryAddress)
       case x: lexer.WORDINDIRECTBX    => Right(WordIndirectMemoryAddress)
       case x: lexer.DWORDINDIRECTBX    => Right(DWordIndirectMemoryAddress)
 

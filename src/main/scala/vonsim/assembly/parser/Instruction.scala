@@ -8,7 +8,9 @@ trait LabelDefinition{
   def label:String
 }
 
-trait Instruction extends Positional with Product with Serializable
+abstract class Instruction extends Positional with Product with Serializable{
+
+}
 
 
 trait NonAddressableInstruction extends Instruction

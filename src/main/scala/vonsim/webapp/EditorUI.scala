@@ -137,7 +137,7 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
           e match {
             case Left(LexerError(l: Location, m: String))    => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Lexer Error")
             case Left(ParserError(l: Location, m: String))   => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Parser Error")
-            case Left(SemanticError(l: Location, m: String)) => Annotation(l.line.toDouble - 1, l.column.toDouble, m, "Semantic Error")
+            case Left(x:SemanticError) => Annotation(x.location.line.toDouble - 1, x.location.column.toDouble, x.msg, "Semantic Error")
             case Right(x)                                    => Annotation(x.line.toDouble - 1, 0.toDouble, x.instruction.toString(), "Correct Instruction")
           }
         })
