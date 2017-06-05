@@ -45,6 +45,7 @@ sealed trait IORegister
 
 sealed trait IOAddress
 case class LABEL(str: String) extends Special
+case class OFFSETLABEL(str: String) extends Special
 
 case class INDIRECTBX() extends Mutable
 case class WORDINDIRECTBX() extends Mutable
@@ -57,9 +58,6 @@ case class PTR() extends Special
 
 case class IDENTIFIER(str: String) extends Mutable with IOAddress
 
-sealed trait Literal extends Token
-case class LITERALSTRING(str: String) extends Literal with Value
-case class LITERALINTEGER(v: Int) extends Literal with Value with IOAddress
 
 sealed trait Interrupt extends InstructionToken
 case class CLI() extends Interrupt
@@ -156,6 +154,18 @@ case class CH() extends HighRegisterToken
 case class DH() extends HighRegisterToken
 
 
+sealed trait Literal extends Token
+case class LITERALSTRING(str: String) extends Literal with Value
+case class LITERALINTEGER(v: Int) extends Literal with Value with IOAddress
 
+trait ExpressionToken extends Token
+
+trait ExpressionOperation extends ExpressionToken
+case class PlusOp() extends ExpressionOperation 
+case class MinusOp() extends ExpressionOperation
+
+trait ExpressionTokenParen extends ExpressionToken
+case class OpenParen() extends ExpressionTokenParen
+case class CloseParen() extends ExpressionTokenParen 
 
 

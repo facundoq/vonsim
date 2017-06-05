@@ -393,7 +393,6 @@ f2:  call f1
     assert(s.cpu.halted)
   }
   test("no org should throw error") {
-
      val program = 
 """
   mov ax,3
@@ -417,7 +416,6 @@ f2:  call f1
   }
     
    test("end before last line should throw error") {
-
      val program = 
 """
   org 2000h
@@ -430,7 +428,6 @@ f2:  call f1
 
 
     test("indirect register with immediate value fails if BYTE PTR or WORD PTR not defined") {
-
      val program = 
 """
   org 2000h
@@ -444,7 +441,6 @@ f2:  call f1
 }   
     
     test("word ptr and byteptr") {
-
      val program = 
 """
   org 2000h
@@ -481,9 +477,7 @@ f2:  call f1
     assertResult(Word(8))(s.memory.getByte(2))
     assertResult(Word(0))(s.memory.getByte(3))
     s.stepInstruction()
-    assert(s.cpu.halted)
-    //TODO ASSERT MORE STUFF (address 2 = 3, address 4=0 then address 4 = 5 
-    
+    assert(s.cpu.halted) 
   }
    
 }

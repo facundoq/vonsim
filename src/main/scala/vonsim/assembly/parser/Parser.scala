@@ -144,14 +144,18 @@ object Parser extends Parsers {
     ((Token.registers map tokenAsParser) reduceLeft(_ | _) ) | identifier | indirect
   }
    private def value = positioned{
-    mutable | literalInteger
+    mutable | integerExpression
   }
   
   private def fullRegister = positioned{
     (Token.xRegisters map tokenAsParser) reduceLeft(_ | _)
   }
   private def ioaddress = positioned{
-    identifier | literalInteger | DX()
+    integerExpression 
+  }
+  private def integerExpression = positioned{
+    literalInteger
+    
   }
   
   

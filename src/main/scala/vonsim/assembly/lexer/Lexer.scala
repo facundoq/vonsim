@@ -38,7 +38,7 @@ object Lexer extends RegexParsers {
   
   def tokens: Parser[List[Token]] = {
     phrase( rep1(comma | uninitialized | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
-        | ops | io | interrupt |  register | jumps |  identifier | newline )) ^^ { rawTokens =>
+        | ops | io | interrupt |  register | jumps | expression |  identifier | newline )) ^^ { rawTokens =>
       rawTokens
     }
   }
@@ -123,10 +123,13 @@ def indirectPTR = tokenParser2(PTR())
 def indirect = (indirectWord | indirectDWord | indirectPTR | indirectbx)
 
 
-//def indirectbx = positioned{"""(?i)\Q[BX]\E""".r ^^^ INDIRECTBX()}
-//def brackets = openBracket | closeBracket 
-//def openBracket = positioned { "[" ^^^ OPENBRACKET() }
-//def closeBracket = positioned { "]" ^^^ CLOSEBRACKET() }
+def symbolParser(token:Token,symbol:String) = positioned {s"[$symbol]".r ^^^ token}
+def expression = ( symbolParser(PlusOp(),"+") 
+                   | symbolParser(MinusOp(),"-") 
+                   | symbolParser(OpenParen(),"(")
+                   | symbolParser(CloseParen(),")")
+                  )
+
  
 
 def fixLineNumbers(a: Array[Either[LexerError, List[Token]]])={
