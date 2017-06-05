@@ -125,7 +125,8 @@ def indirect = (indirectWord | indirectDWord | indirectPTR | indirectbx)
 
 def symbolParser(token:Token,symbol:String) = positioned {s"[$symbol]".r ^^^ token}
 def expression = ( symbolParser(PlusOp(),"+") 
-                   | symbolParser(MinusOp(),"-") 
+                   | symbolParser(MinusOp(),"-")
+                   | symbolParser(MultOp(),"*")
                    | symbolParser(OpenParen(),"(")
                    | symbolParser(CloseParen(),")")
                   )

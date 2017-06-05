@@ -163,6 +163,8 @@ trait ExpressionToken extends Token
 trait ExpressionOperation extends ExpressionToken
 case class PlusOp() extends ExpressionOperation 
 case class MinusOp() extends ExpressionOperation
+case class MultOp() extends ExpressionOperation
+case class DivOp() extends ExpressionOperation
 
 trait ExpressionTokenParen extends ExpressionToken
 case class OpenParen() extends ExpressionTokenParen

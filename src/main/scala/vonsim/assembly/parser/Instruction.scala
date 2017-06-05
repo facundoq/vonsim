@@ -61,9 +61,9 @@ case class ConditionalJump(op:ConditionalJumpToken,label:String) extends Jump
 case class IO(op:IOToken,r:IORegister,add:IOAddress) extends Instruction
 
 class Expression
-case class BinaryExpression(op:ExpressionOperation,l:Expression,r:Expression) extends Expression
-case class IntegerExpression(v:Integer) extends Expression
-case class LabelExpression(l:String) extends Expression
-case class OffsetLabelExpression(l:String) extends Expression
+case class BinaryExpression(val op:ExpressionOperation,l:Expression,r:Expression) extends Expression
+case class ConstantExpression(val v:Integer) extends Expression
+case class EquLabelExpression(val l:String) extends Expression
+case class OffsetLabelExpression(val l:String) extends Expression
 
 

@@ -479,6 +479,8 @@ f2:  call f1
     s.stepInstruction()
     assert(s.cpu.halted) 
   }
+    
+        
    
 }
 

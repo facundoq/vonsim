@@ -143,20 +143,37 @@ object Parser extends Parsers {
     
     ((Token.registers map tokenAsParser) reduceLeft(_ | _) ) | identifier | indirect
   }
-   private def value = positioned{
-    mutable | integerExpression
-  }
+  def value = mutable | integerExpression
+  
   
   private def fullRegister = positioned{
     (Token.xRegisters map tokenAsParser) reduceLeft(_ | _)
   }
-  private def ioaddress = positioned{
-    integerExpression 
-  }
-  private def integerExpression = positioned{
-    literalInteger
-    
-  }
+  private def ioaddress = integerExpression 
+  
+  private def integerExpression = addExpression
+  def offsetLabel = accept("offset label", { case lit @ OFFSETLABEL(v) => OffsetLabelExpression(v)})
+  def integer = accept("integer literal", { case lit @ LITERALINTEGER(v) => ConstantExpression(v) })
+  def equLabel = accept("equ label", { case lit @ LABEL(v) => EquLabelExpression(v)})
+  
+  def operand:Parser[Expression] = (integer | equLabel | offsetLabel) 
+  def parenOperand:Parser[Expression] = operand | OpenParen() ~> addExpression <~ CloseParen()
+  
+  def multOp= MultOp() | DivOp()
+  def multExpression():Parser[Expression] = 
+    (parenOperand | (parenOperand ~ multOp ~ parenOperand)) ^^ {
+    case ( (l:Expression) ~ (op:ExpressionOperation) ~ (r:Expression)) => BinaryExpression(op,l,r)
+    case (a:Expression) => a
+     
+    }
+  
+  def addOp= MinusOp() | PlusOp()
+  def addExpression():Parser[Expression]= (multExpression | (multExpression ~ addOp ~ multExpression))  ^^ {
+    case ( (l:Expression) ~ (op:ExpressionOperation) ~ (r:Expression)) => BinaryExpression(op,l,r)
+    case (a:Expression) => a 
+    }
+  
+  
   
   
 }

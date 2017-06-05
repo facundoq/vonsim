@@ -16,6 +16,7 @@ import scala.collection.mutable.ListBuffer
 import vonsim.assembly.parser.VarDef
 import vonsim.simulator.UndefinedIndirectMemoryAddress
 import PositionalExtension._
+import vonsim.assembly.parser.ConstantExpression
 
 object PositionalExtension{
   implicit class RichPositional(p:Positional){
@@ -81,7 +82,7 @@ object Compiler {
   def apply(code: String): CompilationResult = {
     val instructions = code.split("\n")
     var optionTokens = instructions map { Lexer(_) }
-//    optionTokens.foreach(f => println(f))
+    optionTokens.foreach(f => println(f))
 
     val fixedTokens = Lexer.fixLineNumbers(optionTokens)
     val fixedTokensNoEmpty = fixedTokens.filter(p => {
@@ -93,7 +94,9 @@ object Compiler {
     }
 
     val parsedInstructions = fixedTokensNoEmpty map parseValidTokens toList
-
+    
+    parsedInstructions.foreach(f => println(f))
+    
     val compilation = transformToSimulatorInstructions(parsedInstructions)
     compilation
 
@@ -472,6 +475,20 @@ object Compiler {
           case 1 => Right(WordValue(x.v))
           case 2 => Right(DWordValue(x.v))
           case _ => semanticError(x, s"The number ${x.v} cannot be represented with 8 or 16 bits")
+        }
+      }
+      
+      case x: parser.Expression => {
+        def valueToWord(v:Integer)={
+          ComputerWord.bytesFor(v) match {
+            case 1 => Right(WordValue(v))
+            case 2 => Right(DWordValue(v))
+            case _ => semanticError(x, s"The number ${v} cannot be represented with 8 or 16 bits")
+          }
+        }
+        x match {
+          case c:ConstantExpression => valueToWord(c.v)
+          case other => Right(DWordValue(-1))
         }
       }
       // TODO check for EQUs when literal strings appear

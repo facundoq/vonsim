@@ -46,7 +46,7 @@
     border-top-right-radius:10px;
 }
 #mainboard{
-    border-top-left-radius:10px;
+    border-top-left-radius:12px;
     background-color: #272822;
     background-image: url(../img/mainboard/circuits.svg);
     background-repeat: repeat;
