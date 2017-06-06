@@ -72,7 +72,13 @@ object Parser extends Parsers {
   }
   
   def mov= positioned {
-    (MOV() ~ mutable ~ COMMA() ~ value) ^^ { case ( MOV() ~ (m:Mutable) ~ _ ~ (v:Value)) => Mov(m,v)}
+    (MOV() ~ mutable ~ COMMA() ~ value) ^^ { 
+      case ( MOV() ~ (m:Mutable) ~ _ ~ (v:Value)) => Mov(m,v)
+      case other => {
+        println("Pattern matching failure"+other)
+        Hlt()
+        }
+      }
   }
   
   def zeroary= positioned {
@@ -154,7 +160,7 @@ object Parser extends Parsers {
   private def integerExpression = addExpression
   def offsetLabel = accept("offset label", { case lit @ OFFSETLABEL(v) => OffsetLabelExpression(v)})
   def integer = accept("integer literal", { case lit @ LITERALINTEGER(v) => ConstantExpression(v) })
-  def equLabel = accept("equ label", { case lit @ LABEL(v) => EquLabelExpression(v)})
+  def equLabel = accept("equ label", { case lit @ IDENTIFIER(v) => EquLabelExpression(v)})
   
   def operand:Parser[Expression] = (integer | equLabel | offsetLabel) 
   def parenOperand:Parser[Expression] = operand | OpenParen() ~> addExpression <~ CloseParen()
@@ -172,7 +178,9 @@ object Parser extends Parsers {
     case ( (l:Expression) ~ (op:ExpressionOperation) ~ (r:Expression)) => BinaryExpression(op,l,r)
     case (a:Expression) => a 
     }
-  
+  def simpleadd():Parser[Expression]= ((multExpression ~ addOp ~ multExpression))  ^^ {
+    case ( (l:Expression) ~ (op:ExpressionOperation) ~ (r:Expression)) => BinaryExpression(op,l,r)
+  }
   
   
   

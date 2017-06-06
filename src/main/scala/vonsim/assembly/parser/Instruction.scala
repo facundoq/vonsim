@@ -60,7 +60,7 @@ case class ConditionalJump(op:ConditionalJumpToken,label:String) extends Jump
 
 case class IO(op:IOToken,r:IORegister,add:IOAddress) extends Instruction
 
-class Expression
+trait Expression extends Value
 case class BinaryExpression(val op:ExpressionOperation,l:Expression,r:Expression) extends Expression
 case class ConstantExpression(val v:Integer) extends Expression
 case class EquLabelExpression(val l:String) extends Expression

@@ -38,8 +38,8 @@ sealed trait Token extends Positional with Product with Serializable
 
 case class UNKNOWN() extends Token
 
-sealed trait Value extends Token
-sealed trait Mutable extends Value
+trait Value extends Token
+trait Mutable extends Value
 
 sealed trait IORegister
 

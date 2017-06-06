@@ -26,12 +26,12 @@ class ExpressionSuite extends FunSuite {
 """
   org 2000h
   ;mov ax,2
-  mov ax,2+2
+  add ax, 2 + 2
   hlt
   end
 """
     val compilation= Compiler(program)
-    println(compilation)
+    println("Compilation output:"+compilation)
     assert(compilation.isRight)
 }   
 

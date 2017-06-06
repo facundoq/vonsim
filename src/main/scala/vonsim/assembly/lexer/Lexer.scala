@@ -37,7 +37,7 @@ object Lexer extends RegexParsers {
   }
   
   def tokens: Parser[List[Token]] = {
-    phrase( rep1(comma | uninitialized | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
+    phrase( rep1(comma | uninitialized | offsetLabel | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
         | ops | io | interrupt |  register | jumps | expression |  identifier | newline )) ^^ { rawTokens =>
       rawTokens
     }
@@ -130,7 +130,12 @@ def expression = ( symbolParser(PlusOp(),"+")
                    | symbolParser(OpenParen(),"(")
                    | symbolParser(CloseParen(),")")
                   )
-
+def offsetLabel= positioned {
+    """(?i)OFFSET [a-zA-Z][a-zA-Z0-9_]*""".r ^^ { str =>
+      val content = str.substring(7, str.length)
+      OFFSETLABEL(content)
+    }
+}
  
 
 def fixLineNumbers(a: Array[Either[LexerError, List[Token]]])={
