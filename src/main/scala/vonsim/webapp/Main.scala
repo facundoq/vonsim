@@ -26,6 +26,7 @@ import scala.scalajs.concurrent
             .queue
 import vonsim.simulator.Simulator
 import vonsim.assembly.Compiler
+import java.awt.Window
 
             
 
@@ -62,20 +63,25 @@ object Main extends JSApp {
       }
       
     }else{
-      initializeUI(defaultCode)
+      val lastCode=dom.window.localStorage.getItem(saveCodeKey)
+      if (lastCode!=null){
+        initializeUI(lastCode)
+      }else{
+        initializeUI(defaultCode)
+      }
     }
     
     
   }
   var ui:MainUI=null
   var s:VonSimState=null
-  
+  def saveCodeKey="code"
   def initializeUI(initialCode:String){
     val simulator=Simulator.Empty()
     val compilationResult=Compiler(initialCode)
     var s=new VonSimState(simulator,compilationResult)
     
-    ui = new MainUI(s,initialCode)
+    ui = new MainUI(s,initialCode,saveCodeKey)
     document.body.appendChild(ui.root)
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)

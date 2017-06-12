@@ -1,25 +1,24 @@
 package vonsim.simulator
 
 
+
 trait Zeroary
 trait Unary
 
 abstract class Instruction
 
 abstract class ExecutableInstruction extends Instruction
+abstract class NonExecutableInstruction extends Instruction
 
 case object Hlt extends ExecutableInstruction with Zeroary 
 case object Nop extends ExecutableInstruction with Zeroary
-case object End extends Instruction
+case object End extends NonExecutableInstruction
 
-case class Org(address:Int) extends Instruction
+case class Org(address:Int) extends NonExecutableInstruction
 
-abstract class EquInstruction
+ 
 
-case class EquWord(label:String,value:Word) extends EquInstruction
-case class EquDWord(label:String,value:DWord) extends EquInstruction
-
-abstract class VarDefInstruction extends Instruction{
+abstract class VarDefInstruction extends NonExecutableInstruction{
   def label:String
   def address:Int
   def bytes:Int
@@ -82,3 +81,6 @@ class IOInstruction(val r:IORegister,val a:Simulator.IOMemoryAddress) extends Ex
 
 case class In(rr:IORegister,aa:Simulator.IOMemoryAddress) extends IOInstruction(rr,aa)
 case class Out(rr:IORegister,aa:Simulator.IOMemoryAddress) extends IOInstruction(rr,aa)
+
+
+case class EQUDef(label:String,value:Int) extends NonExecutableInstruction

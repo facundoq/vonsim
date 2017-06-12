@@ -36,9 +36,13 @@ import vonsim.assembly.Compiler.CompilationResult
 
 
 
-class MainUI(s: VonSimState, defaultCode: String) extends VonSimUI(s) {
+class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends VonSimUI(s) {
+  
   println("Setting up UI..")
-  val editorUI = new EditorUI(s, defaultCode, () => compile())
+  val editorUI = new EditorUI(s, defaultCode, () => {
+   saveCode()
+   compile()   
+  })
  
   
   
@@ -125,7 +129,7 @@ class MainUI(s: VonSimState, defaultCode: String) extends VonSimUI(s) {
   }
   
   def compile(){
-    val codeString = editorUI.editor.getValue()
+    val codeString = editorUI.getCode()
     s.c= Compiler(codeString)
     compilationEvent()
   }
@@ -186,6 +190,9 @@ class MainUI(s: VonSimState, defaultCode: String) extends VonSimUI(s) {
        case _ => dom.window.alert("Compilation failed, can't load program")
      }
     
+  }
+  def saveCode(){
+    dom.window.localStorage.setItem(saveCodeKey, editorUI.getCode())
   }
 
 }

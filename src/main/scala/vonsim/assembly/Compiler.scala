@@ -17,6 +17,16 @@ import vonsim.assembly.parser.VarDef
 import vonsim.simulator.UndefinedIndirectMemoryAddress
 import PositionalExtension._
 import vonsim.assembly.parser.ConstantExpression
+import vonsim.assembly.parser.BinaryExpression
+import vonsim.assembly.lexer.ExpressionOperation
+import vonsim.assembly.lexer.PlusOp
+import sun.awt.geom.AreaOp.SubOp
+import vonsim.assembly.lexer.MultOp
+import vonsim.assembly.lexer.DivOp
+import vonsim.assembly.lexer.MinusOp
+import vonsim.assembly.parser.LabelExpression
+import vonsim.assembly.parser.EQUDef
+import vonsim.assembly.parser.OffsetLabelExpression
 
 object PositionalExtension{
   implicit class RichPositional(p:Positional){
@@ -63,6 +73,47 @@ case class Location(line: Int, column: Int) {
   override def toString = s"$line:$column"
 }
 
+abstract class BaseExpressionEvaluator{
+  def expression(e:parser.Expression):Int
+  def jumpLabelAddress(label:String):Int
+  def vardefLabelAddress(label:String):Int
+  
+}
+
+class DummyExpressionEvaluator extends BaseExpressionEvaluator{
+  def expression(e:parser.Expression)= -1
+  
+  def jumpLabelAddress(label:String)= -1
+  def vardefLabelAddress(label:String)= -1
+}
+
+class ExpressionEvaluator(val vardefLabelToAddress:Map[String,Int],val jumpLabelToAddress:Map[String,Int],val equ:Map[String,parser.Expression]) extends BaseExpressionEvaluator{
+  
+  def expression(e:parser.Expression)= e match{
+    case ConstantExpression(c) => c
+    case BinaryExpression(op,a,b) => expression(op,expression(a),expression(b))
+    case LabelExpression(l) => {
+      if (vardefLabelToAddress.keySet.contains(l)){
+          vardefLabelToAddress(l)
+      }else{
+         expression(equ(l))
+      }
+    }
+    case OffsetLabelExpression(l) =>{
+      vardefLabelToAddress(l)
+    }
+  }
+  def expression(op:ExpressionOperation,a:Int,b:Int)= op match{
+    case PlusOp() => a+b
+    case MinusOp() => a-b
+    case MultOp() => a*b
+    case DivOp() => a / b
+  }
+  
+  def jumpLabelAddress(label:String)=vardefLabelToAddress(label)
+  def vardefLabelAddress(label:String)=jumpLabelToAddress(label)
+}
+
 object Compiler {
 
   class SuccessfulCompilation(val instructions: List[InstructionInfo], val addressToInstruction: Map[MemoryAddress, InstructionInfo], val memory: Map[MemoryAddress, Int], val warnings: List[Warning]) {
@@ -98,11 +149,11 @@ object Compiler {
 
     val parsedInstructions = fixedTokensNoEmpty map parseValidTokens toList
     
+    println("Compiler: parsed instructions")
     parsedInstructions.foreach(f => println(f))
     
     val compilation = transformToSimulatorInstructions(parsedInstructions)
     compilation
-
   }
 
   def transformToSimulatorInstructions(instructions: ParsingResult): CompilationResult = {
@@ -118,9 +169,10 @@ object Compiler {
     }
     ins = checkRepeatedEnds(ins)
     ins = checkRepeatedLabels(ins)
+    ins = checkLoopsInLabels(ins)
     ins = checkFirstOrgBeforeInstructionsWithAddress(ins)
 
-    val equ = ins.collect({ case Right(x: parser.EQUDef) => (x.label, x.value) }).toMap
+
 
     val (vardefLabelToLine, vardefLabelToType, jumpLabelToLine) = getLabelToLineMappings(ins)
 //    println("Vardef label to line " + vardefLabelToLine)
@@ -132,8 +184,11 @@ object Compiler {
     val warnings = ListBuffer[Warning]()
 
     //Transform from parser.Instruction to simulator.Instruction 
-    // Note that at this point the jumps and memory addresses are actually line numbers  
-    val r = unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x, vardefLabelToType, vardefLabelToLine, jumpLabelToLine))
+    // Note that at this point the jumps and memory addresses are actually line numbers
+    val dummyEvaluator=new DummyExpressionEvaluator()
+    val r = unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x, dummyEvaluator,vardefLabelToType, vardefLabelToLine, jumpLabelToLine))
+    
+    
     if (r.allRight && globalErrors.isEmpty) {
       //      println(s"Instructions $r")
       var instructions = r.rights
@@ -142,13 +197,21 @@ object Compiler {
         warnings += hltWarning
       }
       //Build a db of information after getting correctly parsed instructions
+      val equ = ins.collect({ case Right(x: parser.EQUDef) => (x.label, x.value) }).toMap
       val (vardefLineToAddress, executableLineToAddress) = getMemoryLayout(instructions)
+      val vardefLabelToAddress=vardefLabelToLine.map(x => (x._1,vardefLineToAddress(x._2)))
+      val jumpLabelToAddress=jumpLabelToLine.map(x => (x._1,executableLineToAddress(x._2)))
+      
+      val expressionEvaluator=new ExpressionEvaluator(jumpLabelToAddress,vardefLabelToAddress,equ)
+      val r2= unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,dummyEvaluator, vardefLabelToType, vardefLabelToLine, jumpLabelToLine))
+      instructions=r2.rights()
+      
+      
       //    println("Memory"+memory)
 //      println("Vardef address" + vardefLineToAddress)
 //      println("executable" + executableLineToAddress)
 
-
-      instructions = replaceLinesForAddresses(instructions, vardefLineToAddress, executableLineToAddress)
+      //instructions = replaceLinesForAddresses(instructions, vardefLineToAddress, executableLineToAddress)
       val memory = getMemory(instructions,executableLineToAddress)
       val executableInstructions = instructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
       val addressToInstruction = executableInstructions.map(x => (executableLineToAddress(x.line), x)).toMap
@@ -173,33 +236,32 @@ object Compiler {
       }
       new InstructionInfo(i.line, updatedInstruction)
     })
-
   }
+  
   def replaceLinesForAdresses(x: BinaryOperands, vardefLineToAddress: Map[Int, Int]) = {
     x match {
       case DWordRegisterMemory(o1, o2) => DWordRegisterMemory(o1, replaceLineForAdress(o2, vardefLineToAddress))
-      case WordRegisterMemory(o1, o2)  => WordRegisterMemory(o1, replaceLineForAdress(o2, vardefLineToAddress))
+      case WordRegisterMemory(o1, o2)  => WordRegisterMemory(o1, replaceLineForAddress(o2, vardefLineToAddress))
       case DWordMemoryRegister(o1, o2) => DWordMemoryRegister(replaceLineForAdress(o1, vardefLineToAddress), o2)
-      case WordMemoryRegister(o1, o2)  => WordMemoryRegister(replaceLineForAdress(o1, vardefLineToAddress), o2)
+      case WordMemoryRegister(o1, o2)  => WordMemoryRegister(replaceLineForAddress(o1, vardefLineToAddress), o2)
       case DWordMemoryValue(o1, o2)    => DWordMemoryValue(replaceLineForAdress(o1, vardefLineToAddress), o2)
-      case WordMemoryValue(o1, o2)     => WordMemoryValue(replaceLineForAdress(o1, vardefLineToAddress), o2)
+      case WordMemoryValue(o1, o2)     => WordMemoryValue(replaceLineForAddress(o1, vardefLineToAddress), o2)
       case x                           => x
     }
   }
   def replaceLineForAdress(mem: DWordMemoryAddress, vardefLineToAddress: Map[Int, Int]) = {
     DWordMemoryAddress(vardefLineToAddress(mem.address))
   }
-  def replaceLineForAdress(mem: WordMemoryAddress, vardefLineToAddress: Map[Int, Int]) = {
+  def replaceLineForAddress(mem: WordMemoryAddress, vardefLineToAddress: Map[Int, Int]) = {
     WordMemoryAddress(vardefLineToAddress(mem.address))
   }
 
   def replaceLinesForAdresses(x: UnaryOperandUpdatable, vardefLineToAddress: Map[Int, Int]) = {
     x match {
       case a: DWordMemoryAddress => replaceLineForAdress(a, vardefLineToAddress)
-      case a: WordMemoryAddress  => replaceLineForAdress(a, vardefLineToAddress)
+      case a: WordMemoryAddress  => replaceLineForAddress(a, vardefLineToAddress)
       case z                     => z
     }
-
   }
 
   def checkRepeatedEnds(ins: ParsingResult) = {
@@ -215,12 +277,26 @@ object Compiler {
       case other => Right(other)
     })
   }
+  def checkLoopsInLabels(ins: ParsingResult) = {
+    //TODO
+    ins
+  }
   def checkRepeatedLabels(ins: ParsingResult) = {
-    val labels = ins.rights.collect { case x: parser.LabelDefinition => x.label }
+    val labels = ins.rights.collect { 
+      case x: parser.LabelDefinition => x.label
+      case x: parser.EQUDef => x.label
+      }
     val labelCounts = mutable.Map[String, Int]()
     labels.foreach(label => labelCounts(label) = labelCounts.getOrElse(label, 0) + 1)
 
     ins.mapRightEither(_ match {
+      case x: parser.LabelDefinition => {
+        if (labelCounts(x.label) > 1) {
+          semanticError(x, s"Label ${x.label} has multiple definitions")
+        } else {
+          Right(x)
+        }
+      }
       case x: parser.LabelDefinition => {
         if (labelCounts(x.label) > 1) {
           semanticError(x, s"Label ${x.label} has multiple definitions")
@@ -339,7 +415,7 @@ object Compiler {
     })
   }
 
-  def parserToSimulatorInstruction(i: parser.Instruction,
+  def parserToSimulatorInstruction(i: parser.Instruction,expressionEvaluator:BaseExpressionEvaluator,
                                    vardefLabelToType: Map[String, lexer.VarType], vardefLabelToLine: Map[String, MemoryAddress], jumpLabelToLine: Map[String, MemoryAddress]): Either[CompilationError, simulator.InstructionInfo] = {
 
     val zeroary = Map(parser.Popf() -> Popf, parser.Pushf() -> Pushf, parser.Hlt() -> Hlt, parser.Nop() -> Nop, parser.IRet() -> Iret, parser.Ret() -> Ret, parser.Cli() -> Cli, parser.Sti() -> Sti, parser.End() -> End)
@@ -398,6 +474,9 @@ object Compiler {
 
         }
 
+      }
+      case x: parser.EQUDef => {
+        successfulTransformation(x, EQUDef(x.label,expressionEvaluator(x.value)))
       }
       case other => semanticError(other, "Not Supported:" + other)
 

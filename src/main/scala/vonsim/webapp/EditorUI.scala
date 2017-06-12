@@ -65,6 +65,8 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
     markers.foreach(m => s.removeMarker(m))
     markers.clear()
   }
+  def getCode()= editor.getValue()
+  
   def simulatorEvent() {
     // TODO check if code can be run and if the cpu is halted to allow enable buttons    
     if (s.isSimulatorExecuting()){
