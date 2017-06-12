@@ -43,8 +43,11 @@ case class MemoryMemoryReferenceError(i:parser.Instruction) extends InstructionS
 case class IndirectPointerTypeUndefined(i:parser.Instruction) extends InstructionSemanticError(i){
   def msg="Indirect addressing with an immediate operand requires specifying the type of pointer with WORD PTR or BYTE PTR before [BX]."
 }
-case class OperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
+case class WordDWordOperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
   def msg="The second operand needs 16 bits to be encoded, but the first one only has 8 bits."
+}
+case class DWordWordOperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
+  def msg="The second operand needs only 8 bits to be encoded, but the first operand has 16 bits, so it is not clear if you want to set the first or last 8 bits."
 }
 
 case class GenericSemanticError(p:Positional,msg:String) extends SemanticError{
@@ -117,7 +120,7 @@ object Compiler {
     ins = checkRepeatedLabels(ins)
     ins = checkFirstOrgBeforeInstructionsWithAddress(ins)
 
-    val equ = ins.collect({ case Right(x: parser.EQU) => (x.label, x.value) }).toMap
+    val equ = ins.collect({ case Right(x: parser.EQUDef) => (x.label, x.value) }).toMap
 
     val (vardefLabelToLine, vardefLabelToType, jumpLabelToLine) = getLabelToLineMappings(ins)
 //    println("Vardef label to line " + vardefLabelToLine)
@@ -406,7 +409,7 @@ object Compiler {
     Right[T, InstructionInfo](new InstructionInfo(x.pos.line, y))
   }
   
-  def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Mutable, y: lexer.Value, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, BinaryOperands] = {
+  def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Operand, y: lexer.Operand, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, BinaryOperands] = {
     parserToSimulatorOperand(x, labelToType, labelToAddress).right.flatMap(o1 =>
       parserToSimulatorOperand(y, labelToType, labelToAddress).right.flatMap(o2 =>
         
@@ -445,7 +448,8 @@ object Compiler {
       
       case (UndefinedIndirectMemoryAddress, x: ImmediateOperand)    => Left(IndirectPointerTypeUndefined(i))
       case (r: MemoryOperand, x: MemoryOperand)          => Left(MemoryMemoryReferenceError(i))
-      case (r: WordOperand, x: DWordOperand)             => Left(OperandSizeMismatchError(i))  
+      case (r: WordOperand, x: DWordOperand)             => Left(WordDWordOperandSizeMismatchError(i))
+      case (r: DWordOperand, x: WordOperand)             => Left(DWordWordOperandSizeMismatchError(i))
       case other                                         => semanticError(i, "Invalid operands.")
     }
 
@@ -454,7 +458,7 @@ object Compiler {
   def semanticError[T](p: Positional, message: String): Left[SemanticError, T] = {
     Left(new GenericSemanticError(p, message))
   }
-  def parserToSimulatorOperand(op: lexer.Value, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, UnaryOperand] = {
+  def parserToSimulatorOperand(op: lexer.Operand, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, UnaryOperand] = {
     op match {
       case x: lexer.IDENTIFIER => {
         if (!labelToType.keySet.contains(x.str)) {

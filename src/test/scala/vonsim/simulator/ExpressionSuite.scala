@@ -24,15 +24,26 @@ class ExpressionSuite extends FunSuite {
         test("integer expressions") {
      val program = 
 """
+  org 1000h
+ hola: dw 20
   org 2000h
-  ;mov ax,2
-  add ax, 2 + 2
+  mov ax,2
+  mov ax, 2 + 4
+  mov ax, 2+3+4
+  mov ax, 2+3*4
+  mov ax, (2+3)*4
+  mov ax, 2+ hola
+  mov ax, hola + 2
+  mov ax, hola
+  mov hola,ax
+  
   hlt
   end
 """
     val compilation= Compiler(program)
     println("Compilation output:"+compilation)
     assert(compilation.isRight)
+    
 }   
 
    

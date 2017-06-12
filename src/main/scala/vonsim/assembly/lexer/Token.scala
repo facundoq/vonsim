@@ -15,7 +15,7 @@ import scala.util.parsing.input.Positional
 object Token{
   
   def special = List(COMMA(),NEWLINE(),EMPTY())
-  def keyword= List( END(),NOP(),RET(),HLT())
+  def keyword= List( END(),NOP(),RET(),HLT(),EQU())
   def ops = List(ORG(),MOV(),CMP())++binaryArithmetic++unaryArithmetic
   def binaryArithmetic = List(ADD(),ADC(),SUB(),SBB(),OR(),XOR(),AND(),CMP())
   def unaryArithmetic = List(INC(),DEC(),NOT())
@@ -38,8 +38,8 @@ sealed trait Token extends Positional with Product with Serializable
 
 case class UNKNOWN() extends Token
 
-trait Value extends Token
-trait Mutable extends Value
+trait Operand extends Token
+trait Mutable extends Operand
 
 sealed trait IORegister
 
@@ -54,9 +54,10 @@ case class DWORDINDIRECTBX() extends Mutable
 case class WORD() extends Special
 case class BYTE() extends Special
 case class PTR() extends Special
+case class EQU() extends Special
 
 
-case class IDENTIFIER(str: String) extends Mutable with IOAddress
+case class IDENTIFIER(str: String) extends Token 
 
 
 sealed trait Interrupt extends InstructionToken
@@ -82,9 +83,6 @@ case class NEWLINE() extends Special
 case class EMPTY() extends Special
 case class UNINITIALIZED() extends Special
 
-
-//case class OPENBRACKET() extends Special
-//case class CLOSEBRACKET() extends Special
 
 trait InstructionToken extends Token
 case class RET() extends InstructionToken
@@ -132,7 +130,7 @@ case class JZ() extends ConditionalJumpToken
 case class JNZ() extends ConditionalJumpToken
 
 
-trait RegisterToken extends Token with Mutable with Value
+trait RegisterToken extends Token with Mutable with Operand
 case class SP() extends RegisterToken
 case class IP() extends RegisterToken
 
@@ -155,8 +153,8 @@ case class DH() extends HighRegisterToken
 
 
 sealed trait Literal extends Token
-case class LITERALSTRING(str: String) extends Literal with Value
-case class LITERALINTEGER(v: Int) extends Literal with Value with IOAddress
+case class LITERALSTRING(str: String) extends Literal with Operand
+case class LITERALINTEGER(v: Int) extends Literal with Operand with IOAddress
 
 trait ExpressionToken extends Token
 

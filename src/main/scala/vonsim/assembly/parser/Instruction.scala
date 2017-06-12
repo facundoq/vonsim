@@ -37,15 +37,15 @@ case class Popf() extends ExecutableInstruction with ZeroAry
 case class IRet() extends ExecutableInstruction with ZeroAry with IpModifyingInstruction
 case class Ret() extends ExecutableInstruction with ZeroAry with IpModifyingInstruction
 
-case class Mov(m:Mutable,v:Value) extends ExecutableInstruction
+case class Mov(m:Operand,v:Operand) extends ExecutableInstruction
 
 trait Arithmetic extends ExecutableInstruction
-case class BinaryArithmetic(op:BinaryArithmeticOp,m:Mutable,v:Value) extends Arithmetic
-case class UnaryArithmetic(op:UnaryArithmeticOp,m:Mutable) extends Arithmetic
-case class Cmp(m:Value,v:Value) extends Arithmetic
+case class BinaryArithmetic(op:BinaryArithmeticOp,m:Operand,v:Operand) extends Arithmetic
+case class UnaryArithmetic(op:UnaryArithmeticOp,m:Operand) extends Arithmetic
+case class Cmp(m:Operand,v:Operand) extends Arithmetic
 
 case class VarDef(label:String,t:VarType,values:List[Int]) extends Instruction with LabelDefinition
-case class EQU(label:String,t:VarType,value:Int) extends Instruction with NonAddressableInstruction with LabelDefinition
+case class EQUDef(label:String,value:Expression) extends Instruction with NonAddressableInstruction with LabelDefinition
 
 
 
@@ -60,10 +60,17 @@ case class ConditionalJump(op:ConditionalJumpToken,label:String) extends Jump
 
 case class IO(op:IOToken,r:IORegister,add:IOAddress) extends Instruction
 
-trait Expression extends Value
-case class BinaryExpression(val op:ExpressionOperation,l:Expression,r:Expression) extends Expression
+trait Expression extends Operand{
+  def memoryAddressExpression=false
+  def valueExpression= memoryAddressExpression==false
+  
+}
+
+case class BinaryExpression(val op:ExpressionOperation,l:Expression,r:Expression) extends Expression{
+  override def memoryAddressExpression=l.memoryAddressExpression || r.memoryAddressExpression
+}
 case class ConstantExpression(val v:Integer) extends Expression
-case class EquLabelExpression(val l:String) extends Expression
+case class LabelExpression(val l:String) extends Expression{
+  override def memoryAddressExpression=true
+}
 case class OffsetLabelExpression(val l:String) extends Expression
-
-

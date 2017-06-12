@@ -35,19 +35,22 @@ object Parser extends Parsers {
     (label ~ instruction) ^^{case LABEL(l) ~ (o:Instruction) => LabeledInstruction(l,o)}
   }
   def instruction = positioned{
-    zeroary | org | mov | jump  | arithmetic | io | intn | stack | vardef 
+    zeroary | org | mov | jump  | arithmetic | io | intn | stack | vardef | equ 
+  }
+  def equ = positioned{
+    (identifier ~ EQU() ~ expression) ^^{case ((i:IDENTIFIER) ~ (o:EQU) ~ (e:Expression) ) => EQUDef(i.str,e) } 
   }
   def arithmetic= positioned {
     binaryArithmetic | unaryArithmetic 
   }
   
   def binaryArithmetic: Parser[Instruction] = positioned {
-    (binary ~ mutable ~ COMMA() ~ value) ^^ { case ( (o:BinaryArithmeticOp) ~ (m:Mutable) ~ _ ~ (v:Value)) => BinaryArithmetic(o,m,v)}
+    (binary ~ operand ~ COMMA() ~ operand) ^^ { case ( (o:BinaryArithmeticOp) ~ (m:Operand) ~ _ ~ (v:Operand)) => BinaryArithmetic(o,m,v)}
   }
   def binary= (Token.binaryArithmetic map tokenAsParser) reduceLeft(_ | _)
   
   def unaryArithmetic: Parser[Instruction] = positioned {
-    (unary ~ mutable) ^^ { case ( (o:UnaryArithmeticOp) ~ (m:Mutable)) => UnaryArithmetic(o,m)}      
+    (unary ~ operand) ^^ { case ( (o:UnaryArithmeticOp) ~ (m:Operand)) => UnaryArithmetic(o,m)}      
   }
   def unary = (Token.unaryArithmetic map tokenAsParser) reduceLeft(_ | _)
   
@@ -57,7 +60,7 @@ object Parser extends Parsers {
   }
   
   def cmp = positioned {
-    (CMP() ~ (value) ~ COMMA() ~ (value) ~ (newline)) ^^ { case ( CMP() ~ (v1:Value) ~ _ ~ (v2:Value) ~ _) => Cmp(v1,v2)} 
+    (CMP() ~ (operand) ~ COMMA() ~ (operand) ~ (newline)) ^^ { case ( CMP() ~ (v1:Operand) ~ _ ~ (v2:Operand) ~ _) => Cmp(v1,v2)} 
   }
   
   
@@ -72,8 +75,8 @@ object Parser extends Parsers {
   }
   
   def mov= positioned {
-    (MOV() ~ mutable ~ COMMA() ~ value) ^^ { 
-      case ( MOV() ~ (m:Mutable) ~ _ ~ (v:Value)) => Mov(m,v)
+    (MOV() ~ operand ~ COMMA() ~ operand) ^^ { 
+      case ( MOV() ~ (m:Mutable) ~ _ ~ (v:Operand)) => Mov(m,v)
       case other => {
         println("Pattern matching failure"+other)
         Hlt()
@@ -145,42 +148,42 @@ object Parser extends Parsers {
      val indirectWord = (BYTE() ~ PTR() ~ INDIRECTBX()) ^^ { case (BYTE() ~ PTR() ~ INDIRECTBX()) => WORDINDIRECTBX()}
      indirectDWord | indirectWord |INDIRECTBX()
   }
-  private def mutable = positioned{
-    
-    ((Token.registers map tokenAsParser) reduceLeft(_ | _) ) | identifier | indirect
-  }
-  def value = mutable | integerExpression
   
+  def operand = expression | allRegisters | indirect 
   
+  private def allRegisters=(Token.registers map tokenAsParser) reduceLeft(_ | _) 
   private def fullRegister = positioned{
     (Token.xRegisters map tokenAsParser) reduceLeft(_ | _)
   }
-  private def ioaddress = integerExpression 
+  private def ioaddress = expression 
   
-  private def integerExpression = addExpression
+  
   def offsetLabel = accept("offset label", { case lit @ OFFSETLABEL(v) => OffsetLabelExpression(v)})
   def integer = accept("integer literal", { case lit @ LITERALINTEGER(v) => ConstantExpression(v) })
-  def equLabel = accept("equ label", { case lit @ IDENTIFIER(v) => EquLabelExpression(v)})
+  def expressionLabel = accept("equ label", { case lit @ IDENTIFIER(v) => LabelExpression(v)})
   
-  def operand:Parser[Expression] = (integer | equLabel | offsetLabel) 
-  def parenOperand:Parser[Expression] = operand | OpenParen() ~> addExpression <~ CloseParen()
-  
-  def multOp= MultOp() | DivOp()
-  def multExpression():Parser[Expression] = 
-    (parenOperand | (parenOperand ~ multOp ~ parenOperand)) ^^ {
-    case ( (l:Expression) ~ (op:ExpressionOperation) ~ (r:Expression)) => BinaryExpression(op,l,r)
-    case (a:Expression) => a
-     
+    def parens:Parser[Expression] = OpenParen() ~> expression <~ CloseParen()
+    def term = ( integer | offsetLabel | expressionLabel |  parens )
+
+    def binaryOp(level:Int):Parser[((Expression,Expression)=>Expression)] = {
+        level match {
+            case 1 =>
+                PlusOp() ^^^ { (a:Expression, b:Expression) => BinaryExpression(PlusOp() ,a,b) } |
+                MinusOp() ^^^ { (a:Expression, b:Expression) => BinaryExpression(MinusOp(),a,b) }
+            case 2 =>
+                MultOp() ^^^ { (a:Expression, b:Expression) => BinaryExpression(MultOp(),a,b) } |
+                DivOp() ^^^ { (a:Expression, b:Expression) => BinaryExpression(DivOp(),a,b) }
+            case _ => throw new RuntimeException("bad precedence level "+level)
+        }
     }
-  
-  def addOp= MinusOp() | PlusOp()
-  def addExpression():Parser[Expression]= (multExpression | (multExpression ~ addOp ~ multExpression))  ^^ {
-    case ( (l:Expression) ~ (op:ExpressionOperation) ~ (r:Expression)) => BinaryExpression(op,l,r)
-    case (a:Expression) => a 
-    }
-  def simpleadd():Parser[Expression]= ((multExpression ~ addOp ~ multExpression))  ^^ {
-    case ( (l:Expression) ~ (op:ExpressionOperation) ~ (r:Expression)) => BinaryExpression(op,l,r)
-  }
+    val minPrec = 1
+    val maxPrec = 2
+
+    def binary(level:Int):Parser[Expression] =
+        if (level>maxPrec) term
+        else binary(level+1) * binaryOp(level)
+
+    def expression = ( binary(minPrec) | term )
   
   
   
