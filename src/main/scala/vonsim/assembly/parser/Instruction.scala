@@ -62,15 +62,16 @@ case class IO(op:IOToken,r:IORegister,add:IOAddress) extends Instruction
 
 trait Expression extends Operand{
   def memoryAddressExpression=false
-  def valueExpression= memoryAddressExpression==false
-  
+  def memoryAddressReferences=0
+  def valueExpression= memoryAddressExpression==false  
 }
 
 case class BinaryExpression(val op:ExpressionOperation,l:Expression,r:Expression) extends Expression{
-  override def memoryAddressExpression=l.memoryAddressExpression || r.memoryAddressExpression
 }
+
 case class ConstantExpression(val v:Integer) extends Expression
 case class LabelExpression(val l:String) extends Expression{
   override def memoryAddressExpression=true
+  override def memoryAddressReferences=1
 }
 case class OffsetLabelExpression(val l:String) extends Expression

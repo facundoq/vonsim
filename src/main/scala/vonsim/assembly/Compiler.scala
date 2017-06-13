@@ -25,7 +25,6 @@ import vonsim.assembly.lexer.MultOp
 import vonsim.assembly.lexer.DivOp
 import vonsim.assembly.lexer.MinusOp
 import vonsim.assembly.parser.LabelExpression
-import vonsim.assembly.parser.EQUDef
 import vonsim.assembly.parser.OffsetLabelExpression
 
 object PositionalExtension{
@@ -73,27 +72,68 @@ case class Location(line: Int, column: Int) {
   override def toString = s"$line:$column"
 }
 
-abstract class BaseExpressionEvaluator{
+
+class MemoryAccessSize
+case object DWordAccessSize extends MemoryAccessSize
+case object WordAccessSize extends MemoryAccessSize
+case object UndefinedAccessSize extends MemoryAccessSize
+
+abstract class Resolver{
   def expression(e:parser.Expression):Int
   def jumpLabelAddress(label:String):Int
   def vardefLabelAddress(label:String):Int
+  def vardefLabelType(label:String):VarType
+  
+  def vardefDefined(label:String):Boolean
+  def jumpLabelDefined(label:String):Boolean
+  def equLabelDefined(label:String):Boolean
+  
+  def isMemoryExpression(e:parser.Expression)=memoryReferences(e) ==1
+  def memoryReferences(e:parser.Expression):Int= e match{
+    case ConstantExpression(c) => 0
+    case BinaryExpression(o,l,r) => memoryReferences(l) + memoryReferences(r)
+    case LabelExpression(l) => if (equLabelDefined(l)) 0 else 1
+    case OffsetLabelExpression(l) => 0
+  }
+  def memoryExpressionType(e:parser.Expression):Option[lexer.VarType]
+  
+  def getMemoryLabelFromMemoryExpression(e:parser.Expression):Option[String]= e match{
+    case BinaryExpression(op,a,b) => getMemoryLabelFromMemoryExpression(a) match{
+      case None => getMemoryLabelFromMemoryExpression(b)
+      case other => other
+    }
+    case LabelExpression(l) => {
+      if (vardefDefined(l)){
+          Some(l)
+      }else{
+         None
+      }
+    }
+    case other =>None
+  }
   
 }
 
-class DummyExpressionEvaluator extends BaseExpressionEvaluator{
+// Dummy resolver for the first pass
+class FirstPassResolver(vardefLabels:List[String],val vardefLabelToType:Map[String,lexer.VarType],jumpLabels:List[String],val equ:Map[String,parser.Expression]) extends Resolver{
   def expression(e:parser.Expression)= -1
   
   def jumpLabelAddress(label:String)= -1
   def vardefLabelAddress(label:String)= -1
+  def vardefDefined(label:String)=vardefLabels.contains(label)
+  def jumpLabelDefined(label:String)=jumpLabels.contains(label)
+  def equLabelDefined(label:String)=equ.keySet.contains(label)
+  def memoryExpressionType(e:parser.Expression)=Some(lexer.DW())
+  def vardefLabelType(label:String)=vardefLabelToType(label)
 }
 
-class ExpressionEvaluator(val vardefLabelToAddress:Map[String,Int],val jumpLabelToAddress:Map[String,Int],val equ:Map[String,parser.Expression]) extends BaseExpressionEvaluator{
+class SecondPassResolver(val vardefLabelToAddress:Map[String,Int],val vardefLabelToType:Map[String,lexer.VarType],val jumpLabelToAddress:Map[String,Int],val equ:Map[String,parser.Expression]) extends Resolver{
   
   def expression(e:parser.Expression)= e match{
     case ConstantExpression(c) => c
     case BinaryExpression(op,a,b) => expression(op,expression(a),expression(b))
     case LabelExpression(l) => {
-      if (vardefLabelToAddress.keySet.contains(l)){
+      if (vardefDefined(l)){
           vardefLabelToAddress(l)
       }else{
          expression(equ(l))
@@ -112,6 +152,17 @@ class ExpressionEvaluator(val vardefLabelToAddress:Map[String,Int],val jumpLabel
   
   def jumpLabelAddress(label:String)=vardefLabelToAddress(label)
   def vardefLabelAddress(label:String)=jumpLabelToAddress(label)
+  def vardefDefined(label:String)=vardefLabelToAddress.keySet.contains(label)
+  def jumpLabelDefined(label:String)=jumpLabelToAddress.keySet.contains(label)
+  def equLabelDefined(label:String)=equ.keySet.contains(label)
+  
+  def vardefLabelType(label:String)= vardefLabelToType(label)
+    
+  
+  def memoryExpressionType(e:parser.Expression)= getMemoryLabelFromMemoryExpression(e) match{
+    case None => None
+    case Some(l) => Some(vardefLabelType(l))
+  }
 }
 
 object Compiler {
@@ -185,8 +236,9 @@ object Compiler {
 
     //Transform from parser.Instruction to simulator.Instruction 
     // Note that at this point the jumps and memory addresses are actually line numbers
-    val dummyEvaluator=new DummyExpressionEvaluator()
-    val r = unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x, dummyEvaluator,vardefLabelToType, vardefLabelToLine, jumpLabelToLine))
+    val equ = ins.collect({ case Right(x: parser.EQUDef) => (x.label, x.value) }).toMap
+    val firstPassResolver=new FirstPassResolver(vardefLabelToLine.keys.toList,vardefLabelToType,jumpLabelToLine.keys.toList,equ)
+    val r = unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x, firstPassResolver))
     
     
     if (r.allRight && globalErrors.isEmpty) {
@@ -196,14 +248,15 @@ object Compiler {
         val hltWarning = (0, "No Hlt instructions found.")
         warnings += hltWarning
       }
+      
       //Build a db of information after getting correctly parsed instructions
-      val equ = ins.collect({ case Right(x: parser.EQUDef) => (x.label, x.value) }).toMap
+      
       val (vardefLineToAddress, executableLineToAddress) = getMemoryLayout(instructions)
       val vardefLabelToAddress=vardefLabelToLine.map(x => (x._1,vardefLineToAddress(x._2)))
       val jumpLabelToAddress=jumpLabelToLine.map(x => (x._1,executableLineToAddress(x._2)))
+      val secondPassResolver=new SecondPassResolver(vardefLabelToAddress,vardefLabelToType,jumpLabelToAddress,equ)
       
-      val expressionEvaluator=new ExpressionEvaluator(jumpLabelToAddress,vardefLabelToAddress,equ)
-      val r2= unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,dummyEvaluator, vardefLabelToType, vardefLabelToLine, jumpLabelToLine))
+      val r2= unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,secondPassResolver))
       instructions=r2.rights()
       
       
@@ -297,7 +350,7 @@ object Compiler {
           Right(x)
         }
       }
-      case x: parser.LabelDefinition => {
+      case x: parser.EQUDef => {
         if (labelCounts(x.label) > 1) {
           semanticError(x, s"Label ${x.label} has multiple definitions")
         } else {
@@ -415,8 +468,7 @@ object Compiler {
     })
   }
 
-  def parserToSimulatorInstruction(i: parser.Instruction,expressionEvaluator:BaseExpressionEvaluator,
-                                   vardefLabelToType: Map[String, lexer.VarType], vardefLabelToLine: Map[String, MemoryAddress], jumpLabelToLine: Map[String, MemoryAddress]): Either[CompilationError, simulator.InstructionInfo] = {
+  def parserToSimulatorInstruction(i: parser.Instruction,resolver:Resolver): Either[CompilationError, simulator.InstructionInfo] = {
 
     val zeroary = Map(parser.Popf() -> Popf, parser.Pushf() -> Pushf, parser.Hlt() -> Hlt, parser.Nop() -> Nop, parser.IRet() -> Iret, parser.Ret() -> Ret, parser.Cli() -> Cli, parser.Sti() -> Sti, parser.End() -> End)
     i match {
@@ -424,11 +476,11 @@ object Compiler {
       case x: parser.IntN => successfulTransformation(x, IntN(WordValue(x.n)))
       case x: parser.Org  => successfulTransformation(x, Org(x.dir))
       case x: parser.Jump => {
-        if (jumpLabelToLine.keySet.contains(x.label)) {
+        if (resolver.jumpLabelDefined(x.label)) {
           successfulTransformation(x, x match {
-            case x: parser.ConditionalJump   => ConditionalJump(jumpLabelToLine(x.label), jumpConditions(x.op))
-            case x: parser.Call              => Call(jumpLabelToLine(x.label))
-            case x: parser.UnconditionalJump => Jump(jumpLabelToLine(x.label))
+            case x: parser.ConditionalJump   => ConditionalJump(resolver.jumpLabelAddress(x.label), jumpConditions(x.op))
+            case x: parser.Call              => Call(resolver.jumpLabelAddress(x.label))
+            case x: parser.UnconditionalJump => Jump(resolver.jumpLabelAddress(x.label))
           })
         } else {
           semanticError(x, s"Label ${x.label} undefined")
@@ -439,15 +491,15 @@ object Compiler {
         case st: lexer.PUSH => Push(fullRegisters(x.r))
       })
       case x: parser.Mov =>
-        parserToSimulatorBinaryOperands(x, x.m, x.v, vardefLabelToType, vardefLabelToLine).right.flatMap(
+        parserToSimulatorBinaryOperands(x, x.m, x.v, resolver).right.flatMap(
           op => successfulTransformation(x, Mov(op)))
       case x: parser.BinaryArithmetic =>{        
-        parserToSimulatorBinaryOperands(x, x.m, x.v, vardefLabelToType, vardefLabelToLine).right.flatMap(
+        parserToSimulatorBinaryOperands(x, x.m, x.v, resolver).right.flatMap(
           operands => successfulTransformation(x, ALUBinary(binaryOperations(x.op), operands)))
           
       }
       case x: parser.UnaryArithmetic =>
-        parserToSimulatorOperand(x.m, vardefLabelToType, vardefLabelToLine).right.flatMap(
+        parserToSimulatorOperand(x.m, resolver).right.flatMap(
           _ match {
             case operand: UnaryOperandUpdatable => successfulTransformation(x, ALUUnary(unaryOperations(x.op), operand))
             case other                          => semanticError(x, s"Operand $other is not updatable")
@@ -464,11 +516,11 @@ object Compiler {
               if (!values.map(_.isInstanceOf[Word]).fold(true)(_ && _)) {
                 semanticError(x, "Some values do not fit into an 8 bit representation.")
               } else {
-                successfulTransformation(x, WordDef(x.label, vardefLabelToLine(x.label), values.asInstanceOf[List[Word]]))
+                successfulTransformation(x, WordDef(x.label, resolver.vardefLabelAddress(x.label), values.asInstanceOf[List[Word]]))
               }
             }
             case t: lexer.DW => {
-              successfulTransformation(x, DWordDef(x.label, vardefLabelToLine(x.label), values.map(_.toDWord)))
+              successfulTransformation(x, DWordDef(x.label, resolver.vardefLabelAddress(x.label), values.map(_.toDWord)))
             }
           }
 
@@ -476,7 +528,7 @@ object Compiler {
 
       }
       case x: parser.EQUDef => {
-        successfulTransformation(x, EQUDef(x.label,expressionEvaluator(x.value)))
+        successfulTransformation(x, EQUDef(x.label,resolver.expression(x.value)))
       }
       case other => semanticError(other, "Not Supported:" + other)
 
@@ -488,12 +540,13 @@ object Compiler {
     Right[T, InstructionInfo](new InstructionInfo(x.pos.line, y))
   }
   
-  def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Operand, y: lexer.Operand, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, BinaryOperands] = {
-    parserToSimulatorOperand(x, labelToType, labelToAddress).right.flatMap(o1 =>
-      parserToSimulatorOperand(y, labelToType, labelToAddress).right.flatMap(o2 =>
+  def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Operand, y: lexer.Operand, resolver:Resolver): Either[SemanticError, BinaryOperands] = {
+    parserToSimulatorOperand(x, resolver).right.flatMap(o1 =>
+      parserToSimulatorOperand(y, resolver).right.flatMap(o2 =>
         
         unaryOperandsToBinaryOperands(i, o1, o2)))
   }
+  
 
   def unaryOperandsToBinaryOperands(i: parser.Instruction, op1: UnaryOperand, op2: UnaryOperand): Either[SemanticError, BinaryOperands] = {
     (op1, op2) match {
@@ -537,46 +590,53 @@ object Compiler {
   def semanticError[T](p: Positional, message: String): Left[SemanticError, T] = {
     Left(new GenericSemanticError(p, message))
   }
-  def parserToSimulatorOperand(op: lexer.Operand, labelToType: Map[String, lexer.VarType], labelToAddress: Map[String, MemoryAddress]): Either[SemanticError, UnaryOperand] = {
+  def parserToSimulatorOperand(op: lexer.Operand, resolver:Resolver): Either[SemanticError, UnaryOperand] = {
     op match {
-      case x: lexer.IDENTIFIER => {
-        if (!labelToType.keySet.contains(x.str)) {
-          semanticError(op, s"Undefined identifier ${x.str}")
-        } else {
-          val varType = labelToType(x.str)
-          val varAddress = labelToAddress(x.str)
-          Right(varType match {
-            case lexer.DB() => WordMemoryAddress(varAddress)
-            case lexer.DW() => DWordMemoryAddress(varAddress)
-          })
-        }
-      }
+//      case x: lexer.IDENTIFIER => {
+//        if (!resolver.vardefDefined(x.str)) {
+//          semanticError(op, s"Undefined identifier ${x.str}")
+//        } else {
+//          val varType = resolver.labelToType(x.str)
+//          val varAddress = resolver.vardefLabelAddress(x.str)
+//          
+//          Right(varType match {
+//            case lexer.DB() => WordMemoryAddress(varAddress)
+//            case lexer.DW() => DWordMemoryAddress(varAddress)
+//          })
+//        }
+//      }
       //        case x:lexer.SP => semanticError(x, s"Using SP as a register is not supported")
       case x: lexer.RegisterToken => Right(registers(x))
-      case x: lexer.LITERALINTEGER => {
-        ComputerWord.bytesFor(x.v) match {
-          case 1 => Right(WordValue(x.v))
-          case 2 => Right(DWordValue(x.v))
-          case _ => semanticError(x, s"The number ${x.v} cannot be represented with 8 or 16 bits")
-        }
-      }
       
-      case x: parser.Expression => {
+      case e: parser.Expression => {
         def valueToWord(v:Integer)={
           ComputerWord.bytesFor(v) match {
             case 1 => Right(WordValue(v))
             case 2 => Right(DWordValue(v))
-            case _ => semanticError(x, s"The number ${v} cannot be represented with 8 or 16 bits")
+            case _ => semanticError(e, s"The number ${v} cannot be represented with 8 or 16 bits")
           }
         }
-        x match {
-          case c:ConstantExpression => valueToWord(c.v)
-          case other => Right(DWordValue(-1))
+        def valueToMemoryAddress(v:Integer)={
+          
+          resolver.memoryExpressionType(e) match{
+            case None => semanticError(e,s"Cannot determine type of memory reference")
+            case Some(varType) => Right(varType match {
+              case lexer.DB() => WordMemoryAddress(v)
+              case lexer.DW() => DWordMemoryAddress(v)
+              })
+          }
+        }
+        val expressionValue=resolver.expression(e)
+        if (resolver.isMemoryExpression(e)){
+          valueToMemoryAddress(expressionValue)
+        }else{
+          valueToWord(expressionValue)
         }
       }
+      
       // TODO check for EQUs when literal strings appear
       case x: lexer.LITERALSTRING => semanticError(x, s"Cannot use literal strings as inmediate operands (${x.str})")
-      // TODO INFER FROM OTHER OPERANDS?
+      // TODO remove UndefinedIndirectMemoryAddress and use hints to remove its need
       case x: lexer.INDIRECTBX    => Right(UndefinedIndirectMemoryAddress)
       case x: lexer.WORDINDIRECTBX    => Right(WordIndirectMemoryAddress)
       case x: lexer.DWORDINDIRECTBX    => Right(DWordIndirectMemoryAddress)
