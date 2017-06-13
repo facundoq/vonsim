@@ -20,150 +20,11 @@ import vonsim.assembly.parser.ConstantExpression
 import vonsim.assembly.parser.BinaryExpression
 import vonsim.assembly.lexer.ExpressionOperation
 import vonsim.assembly.lexer.PlusOp
-import sun.awt.geom.AreaOp.SubOp
 import vonsim.assembly.lexer.MultOp
 import vonsim.assembly.lexer.DivOp
 import vonsim.assembly.lexer.MinusOp
 import vonsim.assembly.parser.LabelExpression
 import vonsim.assembly.parser.OffsetLabelExpression
-
-object PositionalExtension{
-  implicit class RichPositional(p:Positional){
-    def location=new Location(p.pos.line, p.pos.column)
-  }
-}
-
-sealed trait CompilationError {
-  def location: Location
-  def msg: String
-}
-
-case class LexerError(location: Location, msg: String) extends CompilationError
-case class ParserError(location: Location, msg: String) extends CompilationError
-abstract class SemanticError extends CompilationError
-
-abstract class InstructionSemanticError(i:parser.Instruction) extends SemanticError{  
-  def location=i.location
-}
-case class MemoryMemoryReferenceError(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="Both operands access memory. Cannot access two memory locations in the same instruction."
-}
-
-case class IndirectPointerTypeUndefined(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="Indirect addressing with an immediate operand requires specifying the type of pointer with WORD PTR or BYTE PTR before [BX]."
-}
-case class WordDWordOperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="The second operand needs 16 bits to be encoded, but the first one only has 8 bits."
-}
-case class DWordWordOperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="The second operand needs only 8 bits to be encoded, but the first operand has 16 bits, so it is not clear if you want to set the first or last 8 bits."
-}
-
-case class GenericSemanticError(p:Positional,msg:String) extends SemanticError{
-  def location=p.location
-}
-
-case class GlobalError(location: Option[Location], msg: String)
-
-object Location {
-  def apply(line: Int) = new Location(line, 0)
-}
-case class Location(line: Int, column: Int) {
-  override def toString = s"$line:$column"
-}
-
-
-class MemoryAccessSize
-case object DWordAccessSize extends MemoryAccessSize
-case object WordAccessSize extends MemoryAccessSize
-case object UndefinedAccessSize extends MemoryAccessSize
-
-abstract class Resolver{
-  def expression(e:parser.Expression):Int
-  def jumpLabelAddress(label:String):Int
-  def vardefLabelAddress(label:String):Int
-  def vardefLabelType(label:String):VarType
-  
-  def vardefDefined(label:String):Boolean
-  def jumpLabelDefined(label:String):Boolean
-  def equLabelDefined(label:String):Boolean
-  
-  def isMemoryExpression(e:parser.Expression)=memoryReferences(e) ==1
-  def memoryReferences(e:parser.Expression):Int= e match{
-    case ConstantExpression(c) => 0
-    case BinaryExpression(o,l,r) => memoryReferences(l) + memoryReferences(r)
-    case LabelExpression(l) => if (equLabelDefined(l)) 0 else 1
-    case OffsetLabelExpression(l) => 0
-  }
-  def memoryExpressionType(e:parser.Expression):Option[lexer.VarType]
-  
-  def getMemoryLabelFromMemoryExpression(e:parser.Expression):Option[String]= e match{
-    case BinaryExpression(op,a,b) => getMemoryLabelFromMemoryExpression(a) match{
-      case None => getMemoryLabelFromMemoryExpression(b)
-      case other => other
-    }
-    case LabelExpression(l) => {
-      if (vardefDefined(l)){
-          Some(l)
-      }else{
-         None
-      }
-    }
-    case other =>None
-  }
-  
-}
-
-// Dummy resolver for the first pass
-class FirstPassResolver(vardefLabels:List[String],val vardefLabelToType:Map[String,lexer.VarType],jumpLabels:List[String],val equ:Map[String,parser.Expression]) extends Resolver{
-  def expression(e:parser.Expression)= -1
-  
-  def jumpLabelAddress(label:String)= -1
-  def vardefLabelAddress(label:String)= -1
-  def vardefDefined(label:String)=vardefLabels.contains(label)
-  def jumpLabelDefined(label:String)=jumpLabels.contains(label)
-  def equLabelDefined(label:String)=equ.keySet.contains(label)
-  def memoryExpressionType(e:parser.Expression)=Some(lexer.DW())
-  def vardefLabelType(label:String)=vardefLabelToType(label)
-}
-
-class SecondPassResolver(val vardefLabelToAddress:Map[String,Int],val vardefLabelToType:Map[String,lexer.VarType],val jumpLabelToAddress:Map[String,Int],val equ:Map[String,parser.Expression]) extends Resolver{
-  
-  def expression(e:parser.Expression)= e match{
-    case ConstantExpression(c) => c
-    case BinaryExpression(op,a,b) => expression(op,expression(a),expression(b))
-    case LabelExpression(l) => {
-      if (vardefDefined(l)){
-          vardefLabelToAddress(l)
-      }else{
-         expression(equ(l))
-      }
-    }
-    case OffsetLabelExpression(l) =>{
-      vardefLabelToAddress(l)
-    }
-  }
-  def expression(op:ExpressionOperation,a:Int,b:Int)= op match{
-    case PlusOp() => a+b
-    case MinusOp() => a-b
-    case MultOp() => a*b
-    case DivOp() => a / b
-  }
-  
-  def jumpLabelAddress(label:String)=vardefLabelToAddress(label)
-  def vardefLabelAddress(label:String)=jumpLabelToAddress(label)
-  def vardefDefined(label:String)=vardefLabelToAddress.keySet.contains(label)
-  def jumpLabelDefined(label:String)=jumpLabelToAddress.keySet.contains(label)
-  def equLabelDefined(label:String)=equ.keySet.contains(label)
-  
-  def vardefLabelType(label:String)= vardefLabelToType(label)
-    
-  
-  def memoryExpressionType(e:parser.Expression)= getMemoryLabelFromMemoryExpression(e) match{
-    case None => None
-    case Some(l) => Some(vardefLabelType(l))
-  }
-}
 
 object Compiler {
 
@@ -187,7 +48,7 @@ object Compiler {
   def apply(code: String): CompilationResult = {
     val instructions = code.split("\n")
     var optionTokens = instructions map { Lexer(_) }
-    optionTokens.foreach(f => println(f))
+    //optionTokens.foreach(f => println(f))
 
     val fixedTokens = Lexer.fixLineNumbers(optionTokens)
     val fixedTokensNoEmpty = fixedTokens.filter(p => {
@@ -200,8 +61,8 @@ object Compiler {
 
     val parsedInstructions = fixedTokensNoEmpty map parseValidTokens toList
     
-    println("Compiler: parsed instructions")
-    parsedInstructions.foreach(f => println(f))
+//    println("Compiler: parsed instructions")
+//    parsedInstructions.foreach(f => println(f))
     
     val compilation = transformToSimulatorInstructions(parsedInstructions)
     compilation
@@ -223,97 +84,41 @@ object Compiler {
     ins = checkLoopsInLabels(ins)
     ins = checkFirstOrgBeforeInstructionsWithAddress(ins)
 
-
-
-    val (vardefLabelToLine, vardefLabelToType, jumpLabelToLine) = getLabelToLineMappings(ins)
+    val firstPassResolver=new FirstPassResolver(ins)
+    
 //    println("Vardef label to line " + vardefLabelToLine)
 //    println("Vardef label to type" + vardefLabelToType)
 //    println("jump label to line" + jumpLabelToLine)
 
     val unlabeledInstructions = unlabelInstructions(ins)
 
-    val warnings = ListBuffer[Warning]()
-
     //Transform from parser.Instruction to simulator.Instruction 
-    // Note that at this point the jumps and memory addresses are actually line numbers
-    val equ = ins.collect({ case Right(x: parser.EQUDef) => (x.label, x.value) }).toMap
-    val firstPassResolver=new FirstPassResolver(vardefLabelToLine.keys.toList,vardefLabelToType,jumpLabelToLine.keys.toList,equ)
-    val r = unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x, firstPassResolver))
+    // Note that at this point the jump and memory addresses are actually dummy values    
+    val firstPassResult = unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x, firstPassResolver))
     
-    
-    if (r.allRight && globalErrors.isEmpty) {
+    if (firstPassResult.allRight && globalErrors.isEmpty) {
       //      println(s"Instructions $r")
-      var instructions = r.rights
-      if (instructions.filter(_.instruction == Hlt).isEmpty) {
+      val firstPassInstructions = firstPassResult.rights
+      val warnings = ListBuffer[Warning]()
+      if (firstPassInstructions.filter(_.instruction == Hlt).isEmpty) {
         val hltWarning = (0, "No Hlt instructions found.")
         warnings += hltWarning
       }
       
       //Build a db of information after getting correctly parsed instructions
-      
-      val (vardefLineToAddress, executableLineToAddress) = getMemoryLayout(instructions)
-      val vardefLabelToAddress=vardefLabelToLine.map(x => (x._1,vardefLineToAddress(x._2)))
-      val jumpLabelToAddress=jumpLabelToLine.map(x => (x._1,executableLineToAddress(x._2)))
-      val secondPassResolver=new SecondPassResolver(vardefLabelToAddress,vardefLabelToType,jumpLabelToAddress,equ)
-      
-      val r2= unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,secondPassResolver))
-      instructions=r2.rights()
-      
-      
-      //    println("Memory"+memory)
-//      println("Vardef address" + vardefLineToAddress)
-//      println("executable" + executableLineToAddress)
+      val secondPassResolver=new SecondPassResolver(firstPassInstructions,firstPassResolver)
+      //println("Memory"+memory)
+      //println("Vardef address" + vardefLineToAddress)
+      //println("executable" + executableLineToAddress)
+      val secondPassResult= unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,secondPassResolver))
+      val secondPassInstructions=secondPassResult.rights()
 
-      //instructions = replaceLinesForAddresses(instructions, vardefLineToAddress, executableLineToAddress)
-      val memory = getMemory(instructions,executableLineToAddress)
-      val executableInstructions = instructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
-      val addressToInstruction = executableInstructions.map(x => (executableLineToAddress(x.line), x)).toMap
-      Right(new SuccessfulCompilation(instructions, addressToInstruction, memory, warnings.toList))
+      val memory = getMemory(secondPassInstructions,secondPassResolver.executableLineToAddress)
+      val executableInstructions = secondPassInstructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
+      val addressToInstruction = executableInstructions.map(x => (secondPassResolver.executableLineToAddress(x.line), x)).toMap
+      Right(new SuccessfulCompilation(secondPassInstructions, addressToInstruction, memory, warnings.toList))
     } else {
-      Left(new FailedCompilation(r, globalErrors.toList))
-    }
-  }
-  def replaceLinesForAddresses(instructions: List[InstructionInfo], vardefLineToAddress: Map[Int, Int], executableLineToAddress: Map[Int, Int]) = {
-
-    instructions.map(i => {
-      val updatedInstruction = i.instruction match {
-        case x: WordDef            => WordDef(x.label, vardefLineToAddress(x.address), x.values)
-        case x: DWordDef           => DWordDef(x.label, vardefLineToAddress(x.address), x.values)
-        case x: ALUBinary          => ALUBinary(x.op, replaceLinesForAdresses(x.binaryOperands, vardefLineToAddress))
-        case x: Mov                => Mov(replaceLinesForAdresses(x.binaryOperands, vardefLineToAddress))
-        case x: ALUUnary           => ALUUnary(x.op, replaceLinesForAdresses(x.unaryOperand, vardefLineToAddress))
-        case Call(m)               => Call(executableLineToAddress(m))
-        case Jump(m)               => Jump(executableLineToAddress(m))
-        case ConditionalJump(m, c) => ConditionalJump(executableLineToAddress(m), c)
-        case x                     => x
-      }
-      new InstructionInfo(i.line, updatedInstruction)
-    })
-  }
-  
-  def replaceLinesForAdresses(x: BinaryOperands, vardefLineToAddress: Map[Int, Int]) = {
-    x match {
-      case DWordRegisterMemory(o1, o2) => DWordRegisterMemory(o1, replaceLineForAdress(o2, vardefLineToAddress))
-      case WordRegisterMemory(o1, o2)  => WordRegisterMemory(o1, replaceLineForAddress(o2, vardefLineToAddress))
-      case DWordMemoryRegister(o1, o2) => DWordMemoryRegister(replaceLineForAdress(o1, vardefLineToAddress), o2)
-      case WordMemoryRegister(o1, o2)  => WordMemoryRegister(replaceLineForAddress(o1, vardefLineToAddress), o2)
-      case DWordMemoryValue(o1, o2)    => DWordMemoryValue(replaceLineForAdress(o1, vardefLineToAddress), o2)
-      case WordMemoryValue(o1, o2)     => WordMemoryValue(replaceLineForAddress(o1, vardefLineToAddress), o2)
-      case x                           => x
-    }
-  }
-  def replaceLineForAdress(mem: DWordMemoryAddress, vardefLineToAddress: Map[Int, Int]) = {
-    DWordMemoryAddress(vardefLineToAddress(mem.address))
-  }
-  def replaceLineForAddress(mem: WordMemoryAddress, vardefLineToAddress: Map[Int, Int]) = {
-    WordMemoryAddress(vardefLineToAddress(mem.address))
-  }
-
-  def replaceLinesForAdresses(x: UnaryOperandUpdatable, vardefLineToAddress: Map[Int, Int]) = {
-    x match {
-      case a: DWordMemoryAddress => replaceLineForAdress(a, vardefLineToAddress)
-      case a: WordMemoryAddress  => replaceLineForAddress(a, vardefLineToAddress)
-      case z                     => z
+      Left(new FailedCompilation(firstPassResult, globalErrors.toList))
     }
   }
 
@@ -406,60 +211,10 @@ object Compiler {
   }
   
 
-  def getMemoryLayout(instructions: List[InstructionInfo]) = {
+  
 
-    val vardefLineToAddress = mutable.Map[Line, MemoryAddress]()
-    val executableLineToAddress = mutable.Map[Line, MemoryAddress]()
 
-    val firstOrgIndex = instructions.indexWhere(_.instruction.isInstanceOf[Org])
-    if (firstOrgIndex >= 0) {
-      val firstOrg = instructions(firstOrgIndex).instruction.asInstanceOf[Org]
-      var address = firstOrg.address
-      instructions.indices.foreach(i => {
-        val line = instructions(i).line
-        instructions(i).instruction match {
-          case x: Org => {
-            address = x.address
-          }
-          case x: VarDefInstruction => {
-            vardefLineToAddress(line) = address
-            address += x.bytes
-          }
-          case x: ExecutableInstruction => {
-            executableLineToAddress(line) = address
-            address += Simulator.instructionSize(x)
-          }
-          case other => {}
-        }
-      })
-    }
-
-    (vardefLineToAddress.toMap, executableLineToAddress.toMap)
-  }
-
-  def instructionSize(x: parser.Instruction) = {
-    2
-  }
-
-  def getLabelToLineMappings(instructions: ParsingResult): (Map[String, Line], Map[String, VarType], Map[String, Line]) = {
-    val vardefLabelToLine = mutable.Map[String, Line]()
-    val vardefLabelToType = mutable.Map[String, VarType]()
-    val jumpLabelToLine = mutable.Map[String, Line]()
-
-    val unlabeledInstructions = instructions.rights.foreach(
-      _ match {
-        case li: parser.LabeledInstruction => {
-          jumpLabelToLine(li.label) = li.pos.line
-        }
-        case v: parser.VarDef => {
-          vardefLabelToLine(v.label) = v.pos.line
-          vardefLabelToType(v.label) = v.t
-        }
-        case other => {}
-      })
-
-    (vardefLabelToLine.toMap, vardefLabelToType.toMap, jumpLabelToLine.toMap)
-  }
+ 
   def unlabelInstructions(instructions: ParsingResult): ParsingResult = {
 
     instructions.mapRight(_ match {
@@ -592,19 +347,7 @@ object Compiler {
   }
   def parserToSimulatorOperand(op: lexer.Operand, resolver:Resolver): Either[SemanticError, UnaryOperand] = {
     op match {
-//      case x: lexer.IDENTIFIER => {
-//        if (!resolver.vardefDefined(x.str)) {
-//          semanticError(op, s"Undefined identifier ${x.str}")
-//        } else {
-//          val varType = resolver.labelToType(x.str)
-//          val varAddress = resolver.vardefLabelAddress(x.str)
-//          
-//          Right(varType match {
-//            case lexer.DB() => WordMemoryAddress(varAddress)
-//            case lexer.DW() => DWordMemoryAddress(varAddress)
-//          })
-//        }
-//      }
+
       //        case x:lexer.SP => semanticError(x, s"Using SP as a register is not supported")
       case x: lexer.RegisterToken => Right(registers(x))
       

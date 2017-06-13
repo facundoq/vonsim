@@ -32,7 +32,7 @@ object Parser extends Parsers {
      (labeledInstruction | instruction) ~ newline ^^{case (o:Instruction) ~ _  => o }  
   }
   def labeledInstruction =positioned {
-    (label ~ instruction) ^^{case LABEL(l) ~ (o:Instruction) => LabeledInstruction(l,o)}
+    (label ~ instruction) ^^{ case LABEL(l) ~ (o:ExecutableInstruction) => LabeledInstruction(l,o) }
   }
   def instruction = positioned{
     zeroary | org | mov | jump  | arithmetic | io | intn | stack | vardef | equ 
@@ -76,12 +76,8 @@ object Parser extends Parsers {
   
   def mov= positioned {
     (MOV() ~ operand ~ COMMA() ~ operand) ^^ { 
-      case ( MOV() ~ (m:Mutable) ~ _ ~ (v:Operand)) => Mov(m,v)
-      case other => {
-        println("Pattern matching failure"+other)
-        Hlt()
-        }
-      }
+      case ( MOV() ~ (m:Operand) ~ _ ~ (v:Operand)) => Mov(m,v)
+    }
   }
   
   def zeroary= positioned {
