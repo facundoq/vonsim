@@ -61,17 +61,18 @@ case class ConditionalJump(op:ConditionalJumpToken,label:String) extends Jump
 case class IO(op:IOToken,r:IORegister,add:IOAddress) extends Instruction
 
 trait Expression extends Operand{
-  def memoryAddressExpression=false
-  def memoryAddressReferences=0
-  def valueExpression= memoryAddressExpression==false  
+  def labels=List[String]()    
 }
 
 case class BinaryExpression(val op:ExpressionOperation,l:Expression,r:Expression) extends Expression{
+  override def labels=l.labels++r.labels
 }
 
 case class ConstantExpression(val v:Integer) extends Expression
 case class LabelExpression(val l:String) extends Expression{
-  override def memoryAddressExpression=true
-  override def memoryAddressReferences=1
+  override def labels=List(l)
 }
-case class OffsetLabelExpression(val l:String) extends Expression
+case class OffsetLabelExpression(val l:String) extends Expression{
+  override def labels=List(l)
+}
+

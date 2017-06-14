@@ -86,10 +86,10 @@ object Compiler {
 
     val firstPassResolver=new FirstPassResolver(ins)
     
-//    println("Vardef label to line " + vardefLabelToLine)
-//    println("Vardef label to type" + vardefLabelToType)
-//    println("jump label to line" + jumpLabelToLine)
-
+    println("Vardef label to line " + firstPassResolver.vardefLabelToLine)
+    println("Vardef label to type" + firstPassResolver.vardefLabelToType)
+    println("jump label to line" + firstPassResolver.jumpLabelToLine)
+    ins.foreach(println(_))
     val unlabeledInstructions = unlabelInstructions(ins)
 
     //Transform from parser.Instruction to simulator.Instruction 
@@ -224,7 +224,7 @@ object Compiler {
   }
 
   def parserToSimulatorInstruction(i: parser.Instruction,resolver:Resolver): Either[CompilationError, simulator.InstructionInfo] = {
-
+//    println(s"Transforming $i")
     val zeroary = Map(parser.Popf() -> Popf, parser.Pushf() -> Pushf, parser.Hlt() -> Hlt, parser.Nop() -> Nop, parser.IRet() -> Iret, parser.Ret() -> Ret, parser.Cli() -> Cli, parser.Sti() -> Sti, parser.End() -> End)
     i match {
       case x: ZeroAry     => successfulTransformation(x, zeroary(x))
@@ -283,7 +283,13 @@ object Compiler {
 
       }
       case x: parser.EQUDef => {
-        successfulTransformation(x, EQUDef(x.label,resolver.expression(x.value)))
+        val undefinedLabels=resolver.undefinedLabels(x.value)
+        if (undefinedLabels.isEmpty){
+          successfulTransformation(x, EQUDef(x.label,resolver.expression(x.value)))
+        }else{
+          semanticError(x,s"Labels ${undefinedLabels.mkString(", ")} are undefined")
+        }
+        
       }
       case other => semanticError(other, "Not Supported:" + other)
 
@@ -346,6 +352,7 @@ object Compiler {
     Left(new GenericSemanticError(p, message))
   }
   def parserToSimulatorOperand(op: lexer.Operand, resolver:Resolver): Either[SemanticError, UnaryOperand] = {
+    
     op match {
 
       //        case x:lexer.SP => semanticError(x, s"Using SP as a register is not supported")
@@ -369,15 +376,21 @@ object Compiler {
               })
           }
         }
+        
         val expressionValue=resolver.expression(e)
-        if (resolver.isMemoryExpression(e)){
-          valueToMemoryAddress(expressionValue)
+        val undefinedLabels=resolver.undefinedLabels(e)
+//        println(s"Compiler:Undefined labels = $undefinedLabels for expression $e")
+        if (undefinedLabels.isEmpty){
+          if (resolver.isMemoryExpression(e)){
+            valueToMemoryAddress(expressionValue)
+          }else{
+            valueToWord(expressionValue)
+          }
         }else{
-          valueToWord(expressionValue)
+          semanticError(e,s"Labels $undefinedLabels are undefined")
         }
       }
       
-      // TODO check for EQUs when literal strings appear
       case x: lexer.LITERALSTRING => semanticError(x, s"Cannot use literal strings as inmediate operands (${x.str})")
       // TODO remove UndefinedIndirectMemoryAddress and use hints to remove its need
       case x: lexer.INDIRECTBX    => Right(UndefinedIndirectMemoryAddress)

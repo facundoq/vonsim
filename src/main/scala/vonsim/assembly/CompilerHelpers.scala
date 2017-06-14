@@ -78,18 +78,19 @@ abstract class Resolver{
   def vardefLabelAddress(label:String):Int
   def vardefLabelType(label:String):lexer.VarType
   
-  def vardefDefined(label:String):Boolean
+  def vardefLabelDefined(label:String):Boolean
   def jumpLabelDefined(label:String):Boolean
   def equLabelDefined(label:String):Boolean
+  def equ:Map[String,parser.Expression]
   
   def isMemoryExpression(e:parser.Expression)=memoryReferences(e) ==1
   def memoryReferences(e:parser.Expression):Int= e match{
     case ConstantExpression(c) => 0
     case BinaryExpression(o,l,r) => memoryReferences(l) + memoryReferences(r)
-    case LabelExpression(l) => if (equLabelDefined(l)) 0 else 1
+    case LabelExpression(l) => if (equLabelDefined(l)) memoryReferences(equ(l)) else 1
     case OffsetLabelExpression(l) => 0
   }
-  def memoryExpressionType(e:parser.Expression):Option[lexer.VarType]
+  
   
   def getMemoryLabelFromMemoryExpression(e:parser.Expression):Option[String]= e match{
     case BinaryExpression(op,a,b) => getMemoryLabelFromMemoryExpression(a) match{
@@ -97,13 +98,28 @@ abstract class Resolver{
       case other => other
     }
     case LabelExpression(l) => {
-      if (vardefDefined(l)){
+      if (vardefLabelDefined(l)){
           Some(l)
       }else{
-         None
+         getMemoryLabelFromMemoryExpression(equ(l))
       }
     }
     case other =>None
+  }
+  
+  def memoryExpressionType(e:parser.Expression)= getMemoryLabelFromMemoryExpression(e) match{
+    case None => None
+    case Some(l) => Some(vardefLabelType(l))
+  }
+
+  def equOrVardefLabelDefined(label:String)= equLabelDefined(label) || vardefLabelDefined(label)
+  def undefinedLabels(e:parser.Expression):List[String]={
+    e match{
+      case ConstantExpression(c) => List()
+      case BinaryExpression(o,l,r) => undefinedLabels(l) ++ undefinedLabels(r)
+      case LabelExpression(l) => if (equOrVardefLabelDefined(l)) List() else List(l)
+      case OffsetLabelExpression(l) =>  if (vardefLabelDefined(l)) List() else List(l)
+    }
   }
   
 }
@@ -122,10 +138,10 @@ class FirstPassResolver(instructions: ParsingResult) extends Resolver{
   
   def jumpLabelAddress(label:String)= -1
   def vardefLabelAddress(label:String)= -1
-  def vardefDefined(label:String)=vardefLabelToLine.keySet.contains(label)
+  
+  def vardefLabelDefined(label:String)=vardefLabelToLine.keySet.contains(label)
   def jumpLabelDefined(label:String)=jumpLabelToLine.keySet.contains(label)
   def equLabelDefined(label:String)=equ.keySet.contains(label)
-  def memoryExpressionType(e:parser.Expression)=Some(lexer.DB())
   def vardefLabelType(label:String)=vardefLabelToType(label)
   
    def getLabelToLineMappings(instructions: ParsingResult): (Map[String, Compiler.Line], Map[String, VarType], Map[String, Compiler.Line]) = {
@@ -162,24 +178,18 @@ class SecondPassResolver(val instructions:List[InstructionInfo],val firstPassRes
   def vardefLabelAddress(label:String)=vardefLabelToAddress(label)
   def vardefLabelType(label:String)= vardefLabelToType(label)
   
-  def vardefDefined(label:String)=vardefLabelToAddress.keySet.contains(label)
+  def vardefLabelDefined(label:String)=vardefLabelToAddress.keySet.contains(label)
   def jumpLabelDefined(label:String)=jumpLabelToAddress.keySet.contains(label)
   def equLabelDefined(label:String)=equ.keySet.contains(label)
   
   
-    
-  
-  def memoryExpressionType(e:parser.Expression)= getMemoryLabelFromMemoryExpression(e) match{
-    case None => None
-    case Some(l) => Some(vardefLabelType(l))
-  }
   
       
   def expression(e:parser.Expression)= e match{
     case ConstantExpression(c) => c
     case BinaryExpression(op,a,b) => expression(op,expression(a),expression(b))
     case LabelExpression(l) => {
-      if (vardefDefined(l)){
+      if (vardefLabelDefined(l)){
           vardefLabelToAddress(l)
       }else{
          expression(equ(l))
