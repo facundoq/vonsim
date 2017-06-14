@@ -20,6 +20,7 @@ import vonsim.simulator.VarDefInstruction
 import vonsim.simulator.ExecutableInstruction
 import vonsim.simulator.Org
 import vonsim.simulator.Simulator
+import scala.math.Equiv
 
 object PositionalExtension{
   implicit class RichPositional(p:Positional){
@@ -236,4 +237,25 @@ class SecondPassResolver(val instructions:List[InstructionInfo],val firstPassRes
 
     (vardefLineToAddress.toMap, executableLineToAddress.toMap)
   }
+  
+  def checkLoopsInLabels(ins: ParsingResult) = {
+    val graph = graphFromInstructions(ins)
+    ins
+  }
+  
+  type Node = List[String]
+  def graphFromInstructions(ins:ParsingResult)={
+    val graph = mutable.Map[String,Node]()
+    ins.rights().foreach( i =>{
+      i match {
+        case parser.EQUDef(l,e) => {
+          graph(l)=e.labels
+        }
+        case parser.BinaryArithmetic(o,l,r) => 
+      }
+    })
+    
+  }
+  
+  
 }

@@ -81,6 +81,7 @@ object Compiler {
     }
     ins = checkRepeatedEnds(ins)
     ins = checkRepeatedLabels(ins)
+    ins = checkExpressionLabelReferences(ins)
     ins = checkLoopsInLabels(ins)
     ins = checkFirstOrgBeforeInstructionsWithAddress(ins)
 
@@ -135,8 +136,14 @@ object Compiler {
       case other => Right(other)
     })
   }
+  
+  def checkExpressionLabelReferences(ins: ParsingResult) = {
+      ins
+    
+  }
+  
   def checkLoopsInLabels(ins: ParsingResult) = {
-    //TODO
+    
     ins
   }
   def checkRepeatedLabels(ins: ParsingResult) = {
