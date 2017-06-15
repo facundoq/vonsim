@@ -41,6 +41,7 @@ abstract class HTMLUI {
 
 class VonSimState(var s:Simulator, var c:CompilationResult){
   
+  
   def simulatorStopped()={
     s.state==SimulatorExecutionFinished || s.state==SimulatorExecutionStopped || s.state.isInstanceOf[SimulatorExecutionError]
   }

@@ -131,7 +131,7 @@ class FirstPassResolver(instructions: ParsingResult) extends Resolver{
 //  val vardefLabels:List[String]
 //  val vardefLabelToType:Map[String,lexer.VarType]
 //  val jumpLabels:List[String]
-  val equ=instructions.collect({ case Right(x: parser.EQUDef) => (x.label, x.value) }).toMap
+  val equ=instructions.collect({ case Right(x: parser.EQUDef) => (x.label, x.expression) }).toMap
   val (vardefLabelToLine, vardefLabelToType, jumpLabelToLine) = getLabelToLineMappings(instructions)
   
   def expression(e:parser.Expression)= -1
@@ -238,24 +238,8 @@ class SecondPassResolver(val instructions:List[InstructionInfo],val firstPassRes
     (vardefLineToAddress.toMap, executableLineToAddress.toMap)
   }
   
-  def checkLoopsInLabels(ins: ParsingResult) = {
-    val graph = graphFromInstructions(ins)
-    ins
-  }
   
-  type Node = List[String]
-  def graphFromInstructions(ins:ParsingResult)={
-    val graph = mutable.Map[String,Node]()
-    ins.rights().foreach( i =>{
-      i match {
-        case parser.EQUDef(l,e) => {
-          graph(l)=e.labels
-        }
-        case parser.BinaryArithmetic(o,l,r) => 
-      }
-    })
-    
-  }
+  
   
   
 }

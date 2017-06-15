@@ -136,21 +136,26 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
      
       ).render
 
-  def disable(bootstrapButton:Anchor){
+  def disableButton(bootstrapButton:Anchor){
     bootstrapButton.classList.add("disabled")
   }
-  def enable(bootstrapButton:Anchor){
+  def enableButton(bootstrapButton:Anchor){
     bootstrapButton.classList.remove("disabled")
   }
   def setEnabled(bootstrapButton:Anchor,state:Boolean){
     if (state){
-      enable(bootstrapButton)
+      enableButton(bootstrapButton)
     }else{
-      disable(bootstrapButton)
+      disableButton(bootstrapButton)
     }
       
   }
-  
+  def disable(){
+    setEnabled(quickButton,false)
+    setEnabled(runButton,false)
+    setEnabled(runOneButton,false)
+    loadOrStopButton.disable()
+  }
   def updateUI(){  
     
     setEnabled(quickButton,s.canLoadOrQuickRun())
@@ -161,7 +166,7 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
     if (s.canLoadOrQuickRun()){
       loadOrStopButton.stateLoad()
       loadOrStopButton.enable()
-    }else if (s.isSimulatorExecuting()){
+    }else if (s.isSimulatorExecuting() ){
       loadOrStopButton.stateStop()
       loadOrStopButton.enable()
     }else{

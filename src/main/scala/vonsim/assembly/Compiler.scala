@@ -81,16 +81,16 @@ object Compiler {
     }
     ins = checkRepeatedEnds(ins)
     ins = checkRepeatedLabels(ins)
-    ins = checkExpressionLabelReferences(ins)
+//    ins = checkExpressionLabelReferences(ins)
     ins = checkLoopsInLabels(ins)
     ins = checkFirstOrgBeforeInstructionsWithAddress(ins)
 
     val firstPassResolver=new FirstPassResolver(ins)
     
-    println("Vardef label to line " + firstPassResolver.vardefLabelToLine)
-    println("Vardef label to type" + firstPassResolver.vardefLabelToType)
-    println("jump label to line" + firstPassResolver.jumpLabelToLine)
-    ins.foreach(println(_))
+//    println("Vardef label to line " + firstPassResolver.vardefLabelToLine)
+//    println("Vardef label to type" + firstPassResolver.vardefLabelToType)
+//    println("jump label to line" + firstPassResolver.jumpLabelToLine)
+//    ins.foreach(println(_))
     val unlabeledInstructions = unlabelInstructions(ins)
 
     //Transform from parser.Instruction to simulator.Instruction 
@@ -144,25 +144,55 @@ object Compiler {
   
   def checkLoopsInLabels(ins: ParsingResult) = {
     
-    ins
+    val graph =makeGraph(ins)
+    val loopyLabels=loopyEquStatements(graph)
+    ins.mapRightEither(_ match{
+      case x@parser.EQUDef(l,e) => if (loopyLabels.contains(l)) semanticError(x,s"Loops detected in EQU statement references.") else Right(x) 
+      case other => Right(other)
+    })
+    
   }
+  def makeGraph(ins:ParsingResult)={
+    val equ=ins.collect{case Right(parser.EQUDef(l,e))=> (l,e)}
+    val equLabels=equ.map(_._1).toSet
+    val graphPairs=equ.map(p => (p._1,p._2.labels.toSet.intersect(equLabels)))
+    makeMutable(graphPairs.toMap)
+  }
+  
+  def loopyEquStatements(g:mutable.Map[String,Set[String]]) = {
+    var graph=g
+    var inDegrees=getInDegrees(graph)
+    var edges=inDegrees.filter(_._2==0 ).map(_._1).toSet
+    while (!edges.isEmpty){
+      graph--=edges
+      graph= graph.map(p => (p._1,p._2.filterNot(s => edges.contains(s))))
+      inDegrees=getInDegrees(graph)
+      edges=inDegrees.filter(_._2==0 ).map(_._1).toSet
+    }
+    graph.keySet
+  }
+  
+  def makeMutable[E,T](a:Map[E,T]):mutable.Map[E,T]={
+    mutable.Map(a.toSeq: _*)
+  }
+  def getInDegrees(graph:mutable.Map[String,Set[String]])={
+    val init=graph.keys.map(k => (k,0))
+    val inDegrees= makeMutable(init.toMap)
+    graph.foreach( p => p._2.foreach( l => {
+      inDegrees(l)=inDegrees(l)+1 
+      }))
+    inDegrees
+  }
+
   def checkRepeatedLabels(ins: ParsingResult) = {
-    val labels = ins.rights.collect { 
+    val labels = ins.rights.collect {
       case x: parser.LabelDefinition => x.label
-      case x: parser.EQUDef => x.label
       }
     val labelCounts = mutable.Map[String, Int]()
     labels.foreach(label => labelCounts(label) = labelCounts.getOrElse(label, 0) + 1)
 
     ins.mapRightEither(_ match {
       case x: parser.LabelDefinition => {
-        if (labelCounts(x.label) > 1) {
-          semanticError(x, s"Label ${x.label} has multiple definitions")
-        } else {
-          Right(x)
-        }
-      }
-      case x: parser.EQUDef => {
         if (labelCounts(x.label) > 1) {
           semanticError(x, s"Label ${x.label} has multiple definitions")
         } else {
@@ -218,7 +248,7 @@ object Compiler {
   }
   
 
-  
+
 
 
  
@@ -290,9 +320,9 @@ object Compiler {
 
       }
       case x: parser.EQUDef => {
-        val undefinedLabels=resolver.undefinedLabels(x.value)
+        val undefinedLabels=resolver.undefinedLabels(x.expression)
         if (undefinedLabels.isEmpty){
-          successfulTransformation(x, EQUDef(x.label,resolver.expression(x.value)))
+          successfulTransformation(x, EQUDef(x.label,resolver.expression(x.expression)))
         }else{
           semanticError(x,s"Labels ${undefinedLabels.mkString(", ")} are undefined")
         }
@@ -366,6 +396,7 @@ object Compiler {
       case x: lexer.RegisterToken => Right(registers(x))
       
       case e: parser.Expression => {
+
         def valueToWord(v:Integer)={
           ComputerWord.bytesFor(v) match {
             case 1 => Right(WordValue(v))

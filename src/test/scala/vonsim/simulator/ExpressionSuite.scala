@@ -41,10 +41,50 @@ class ExpressionSuite extends FunSuite {
   end
 """
     val compilation= Compiler(program)
-    println("Compilation output:"+compilation)
-    assert(compilation.isRight)
-    
-}   
+//    println("Compilation output:"+compilation)
+    assert(compilation.isRight)    
+}           
+                test("equ definitions") {
+     val program = 
+"""
+  a equ 10
+  b equ 20
+  c equ a+b
+  d equ a+c+2
+  e equ hola+3
+  f equ offset hola + c + 2
+  
+  org 1000h
+ hola: dw 20
+  org 2000h  
+  hlt
+  end
+"""
+    val compilation= Compiler(program)
+//    println("Compilation output:"+compilation)
+    assert(compilation.isRight)    
+}
+                
+  test("loopy equ definitions should not compile") {
+     val program = 
+"""
+  a equ 10
+  b equ 20
+  c equ a+b
+  rr equ bb
+  bb equ ii
+  ii equ rr
+  
+  org 1000h
+ hola: dw 20
+  org 2000h  
+  hlt
+  end
+"""
+    val compilation= Compiler(program)
+//    println("Compilation output:"+compilation)
+    assert(compilation.isLeft)    
+}
 
    
 }

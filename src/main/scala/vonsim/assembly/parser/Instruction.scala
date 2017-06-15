@@ -45,7 +45,7 @@ case class UnaryArithmetic(op:UnaryArithmeticOp,m:Operand) extends Arithmetic
 case class Cmp(m:Operand,v:Operand) extends Arithmetic
 
 case class VarDef(label:String,t:VarType,values:List[Int]) extends Instruction with LabelDefinition
-case class EQUDef(label:String,value:Expression) extends Instruction with NonAddressableInstruction with LabelDefinition
+case class EQUDef(label:String,expression:Expression) extends Instruction with NonAddressableInstruction with LabelDefinition
 
 
 

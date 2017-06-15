@@ -7,7 +7,7 @@ import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom
 import scala.scalajs.js
 import js.JSConverters._
-
+import scala.scalajs.js.timers._
 import scala.collection.mutable
 
 import scala.util.parsing.input.OffsetPosition
@@ -88,6 +88,9 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
     false
     })
   
+  bindkey(root,"ctrl+s",() => {
+    false
+  })
   
   
   headerUI.controlsUI.quickButton.onclick=(e:Any) =>{quickRun()}
@@ -145,14 +148,18 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
    simulatorEvent()
   }
   def runInstructions(){
-    println("Running... ")
+     println("Running... ")
      editorUI.disable()
-     val instructions=s.s.runInstructions()
-     simulatorEvent()
-     if (instructions.length>0 && instructions.last.isLeft){
-       val error = instructions.last.left.get
-      // executionError(error.message)
-     }
+     headerUI.controlsUI.disable()
+     setTimeout(50)({ 
+       val instructions=s.s.runInstructions()
+       simulatorEvent()
+       if (instructions.length>0 && instructions.last.isLeft){
+         val error = instructions.last.left.get
+        // executionError(error.message)
+       }
+      })
+
   }
   def executionError(message:String){
     dom.window.alert(s"Execution error: $message")
@@ -172,7 +179,9 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
     s.c match {
        case Right(c:SuccessfulCompilation) => {
           loadProgram()
-          runInstructions()
+          runInstructions() 
+          
+          
        }
        case _ => dom.window.alert("Compilation failed, can't run program")
      }

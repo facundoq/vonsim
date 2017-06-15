@@ -8,6 +8,7 @@ import scala.Right
 
 import vonsim.assembly.ParserError
 import vonsim.assembly.Location
+import scala.util.parsing.input.Positional
 
 
 object Parser extends Parsers {
@@ -153,10 +154,14 @@ object Parser extends Parsers {
   }
   private def ioaddress = expression 
   
+  def copyPosition[T <: Positional,E <: Positional](to:T,from:E)={
+    to.pos=from.pos
+    to
+  }
+  def offsetLabel = accept("offset label", { case lit @ OFFSETLABEL(v) => copyPosition(OffsetLabelExpression(v),lit)})
+  def integer = accept("integer literal", { case lit @ LITERALINTEGER(v) => copyPosition(ConstantExpression(v),lit) })
+  def expressionLabel = accept("equ label", { case lit @ IDENTIFIER(v) => copyPosition(LabelExpression(v),lit)})
   
-  def offsetLabel = accept("offset label", { case lit @ OFFSETLABEL(v) => OffsetLabelExpression(v)})
-  def integer = accept("integer literal", { case lit @ LITERALINTEGER(v) => ConstantExpression(v) })
-  def expressionLabel = accept("equ label", { case lit @ IDENTIFIER(v) => LabelExpression(v)})
   
     def parens:Parser[Expression] = OpenParen() ~> expression <~ CloseParen()
     def term = ( integer | offsetLabel | expressionLabel |  parens )
