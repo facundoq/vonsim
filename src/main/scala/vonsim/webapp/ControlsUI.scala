@@ -42,6 +42,7 @@ class SimulatorStateUI(s: VonSimState) extends VonSimUI(s) {
       ,stateTitle
       ).render
   simulatorEvent()
+  
   def simulatorEvent() {
     val color=stateToButtonClass(s.s.state)
     root.className="btn "+color+" simulatorState"

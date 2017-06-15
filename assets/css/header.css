@@ -2,7 +2,11 @@
     font-size: 2em;
     background-color: #34bbfc;
     border-bottom: 5px solid #337ab7;
-   
+    padding:5px;
+    display:flex;
+    justify-content:space-between;
+      align-items: center;
+       
 }
 .fa{
 	margin-right:5px;
@@ -27,8 +31,8 @@
 }
 
 #icon{
-    width:96px;
-/*     height:64px; */
+/*     width:96px; */
+    height:48px;
     padding:0px;
     margin:0px;
     padding:4px 20px;
@@ -39,4 +43,31 @@
 /* 	pointer-events: none; */
 	pointer-events: auto; 
 	margin-left:20px;
+
+}
+#help{
+	margin-left:auto;
+	margin-right:20px;
+}
+
+#help .fa{
+    margin-right:0px;
+}
+#help h4{
+    font-size: 1em;
+}
+#help p{
+	font-size: 0.5em;
+}
+
+.modal-backdrop {
+/*    background-color: red; */
+}
+body.modal-open .modal {
+    display: flex !important;
+    height: 100%;
+} 
+
+body.modal-open .modal .modal-dialog {
+    margin: auto;
 }
