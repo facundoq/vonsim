@@ -2,11 +2,14 @@ package vonsim.webapp
 
 import vonsim.simulator.Simulator
 
+import scalajs.js
 import org.scalajs.dom.html._
 import scalatags.JsDom.all._
 import vonsim.simulator._
 import vonsim.assembly.Compiler.CompilationResult
 import vonsim.assembly.Compiler.FailedCompilation
+
+
 
 
 class SimulatorStateUI(s: VonSimState) extends VonSimUI(s) {
@@ -37,11 +40,19 @@ class SimulatorStateUI(s: VonSimState) extends VonSimUI(s) {
   
   val stateIcon=i(cls:="").render
   val stateTitle=span().render
-  val root=span(cls:=""
+  val root=a(cls:=""
+//      ,href:="#"
+//      ,rel:="tooltip"
+//      ,data("html"):="true"
+//      ,data("toggle"):="tooltip"
+//      ,title:="<div> <h1> HOLAHOLA </h1> <p> Chau </p> </div>"
       ,stateIcon
       ,stateTitle
       ).render
+      
+      
   simulatorEvent()
+  
   
   def simulatorEvent() {
     val color=stateToButtonClass(s.s.state)
@@ -49,11 +60,14 @@ class SimulatorStateUI(s: VonSimState) extends VonSimUI(s) {
     root.title=stateToTooltip(s.s.state)
     stateTitle.textContent=stateToMessage(s.s.state)
     stateIcon.className="fa fa-"+stateToIcon(s.s.state)
+    
   }
   def simulatorEvent(i: InstructionInfo) {
     simulatorEvent()
+    
   }
   def compilationEvent(){
+    
     
   }
       

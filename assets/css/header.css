@@ -80,6 +80,9 @@ body.modal-open .modal .modal-dialog {
 .modal-header{
 	background-color:#34bbfc;
 	border-bottom: 5px solid #337ab7;
+}
+.modal-header-help{
+	
 	display:flex;
 	justify-content:space-between;
     align-items: center;

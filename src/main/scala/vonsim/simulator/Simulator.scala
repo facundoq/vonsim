@@ -229,8 +229,9 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     cpu.reset()
     memory.update(c.variablesMemory)
     memory.update(c.instructionsMemory)
+//    println("Memory addresses set:"+c.variablesMemory.keys.toList.sorted)
+//    println("Instructions addresses set:"+c.instructionsMemory.keys.toList.sorted)
     memory.readOnlyAddresses=c.instructionsMemory.keys.toList
-    println(memory.readOnlyAddresses)
     instructions=c.addressToInstruction
     state=SimulatorProgramExecuting
   }
