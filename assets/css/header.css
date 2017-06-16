@@ -5,7 +5,7 @@
     padding:5px;
     display:flex;
     justify-content:space-between;
-      align-items: center;
+    align-items: center;
        
 }
 .fa{
@@ -47,9 +47,13 @@
 }
 #help{
 	margin-left:auto;
-	margin-right:20px;
+	margin-right:10px;
 }
 
+.helpButton{
+	cursor: pointer;
+	font-size: 0.8em;
+}
 #help .fa{
     margin-right:0px;
 }
@@ -67,7 +71,37 @@ body.modal-open .modal {
     display: flex !important;
     height: 100%;
 } 
-
+.modal-body a{
+	margin-right:10px;
+}
 body.modal-open .modal .modal-dialog {
     margin: auto;
+}
+.modal-header{
+	background-color:#34bbfc;
+	border-bottom: 5px solid #337ab7;
+	display:flex;
+	justify-content:space-between;
+    align-items: center;
+}
+.modal-header button{
+	
+	margin-left:auto;
+}
+.modal-footer{
+	border-top: 5px solid #337ab7;
+	background-color:#34bbfc;
+}
+
+.modal-content{
+	    overflow:hidden;
+	border-radius: 10px;
+	
+}
+.modal-title{
+	font-family: Lato;
+}
+.modal-icon{
+	margin-right:auto;
+	height:48px;	
 }

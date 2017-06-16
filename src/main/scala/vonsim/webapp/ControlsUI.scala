@@ -117,12 +117,10 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
     }
 
   val quickButton = buttonFactory("Quick Run","F1: Reset simulator, load program into memory, run until cpu stops.","fa-play-circle")
-
   val loadOrStopButton= new LoadOrStopButton(s)
-  
   val runOneButton   = buttonFactory("Step", "F6: Execute a single instruction.", "fa-step-forward")
   val runButton  = buttonFactory("Finish", "F5: Run program until cpu stops..", "fa-play")
-  
+  val simulatorStateUI= new SimulatorStateUI(s)
           
  
 
@@ -134,7 +132,7 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
       ,span(cls := "controlSection", loadOrStopButton.root)
       ,span(cls := "controlSection",runButton)
      ,span(cls := "controlSection",runOneButton)
-     
+     ,span(cls := "controlSection",simulatorStateUI.root)
       ).render
 
   def disableButton(bootstrapButton:Anchor){
@@ -181,12 +179,14 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
   
   def simulatorEvent() {
     updateUI()
-    
+    simulatorStateUI.simulatorEvent()
   }
   def simulatorEvent(i:InstructionInfo) {
     simulatorEvent()
+    simulatorStateUI.simulatorEvent(i)
   }
   def compilationEvent(){
-    updateUI()   
+    updateUI()
+    simulatorStateUI.compilationEvent()
   }
 }

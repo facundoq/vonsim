@@ -172,10 +172,9 @@ object Simulator {
     new Simulator(new CPU(), Memory(Simulator.maxMemorySize), Map[Int, InstructionInfo]())
   }
   def apply(c:SuccessfulCompilation)={
-    val cpu= new CPU()
-    val memory=Memory(c.memory,Simulator.maxMemorySize)
-    
-    new Simulator(cpu,memory,c.addressToInstruction)
+    val s= Empty()
+    s.load(c)
+    s
   }
 
 }
@@ -228,8 +227,10 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
   
   def load(c:SuccessfulCompilation){
     cpu.reset()
-    memory.update(c.memory)
-    memory.readOnlyAddresses=c.memory.keys.toList
+    memory.update(c.variablesMemory)
+    memory.update(c.instructionsMemory)
+    memory.readOnlyAddresses=c.instructionsMemory.keys.toList
+    println(memory.readOnlyAddresses)
     instructions=c.addressToInstruction
     state=SimulatorProgramExecuting
   }

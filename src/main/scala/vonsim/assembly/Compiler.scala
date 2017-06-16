@@ -28,7 +28,11 @@ import vonsim.assembly.parser.OffsetLabelExpression
 
 object Compiler {
 
-  class SuccessfulCompilation(val instructions: List[InstructionInfo], val addressToInstruction: Map[MemoryAddress, InstructionInfo], val memory: Map[MemoryAddress, Int], val warnings: List[Warning]) {
+  class SuccessfulCompilation(val instructions: List[InstructionInfo] 
+     ,val addressToInstruction: Map[MemoryAddress, InstructionInfo]
+     ,val variablesMemory: Map[MemoryAddress, Int]
+     ,val instructionsMemory : Map[MemoryAddress, Int]
+     , val warnings: List[Warning]) {
     override def toString() = {
       s"SuccessfulCompilation(${instructions.length} instructions)"
     }
@@ -114,10 +118,10 @@ object Compiler {
       val secondPassResult= unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,secondPassResolver))
       val secondPassInstructions=secondPassResult.rights()
 
-      val memory = getMemory(secondPassInstructions,secondPassResolver.executableLineToAddress)
+      val (variablesMemory,instructionsMemory ) = getMemory(secondPassInstructions,secondPassResolver.executableLineToAddress)
       val executableInstructions = secondPassInstructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
       val addressToInstruction = executableInstructions.map(x => (secondPassResolver.executableLineToAddress(x.line), x)).toMap
-      Right(new SuccessfulCompilation(secondPassInstructions, addressToInstruction, memory, warnings.toList))
+      Right(new SuccessfulCompilation(secondPassInstructions, addressToInstruction, variablesMemory,instructionsMemory , warnings.toList))
     } else {
       Left(new FailedCompilation(firstPassResult, globalErrors.toList))
     }
@@ -221,21 +225,22 @@ object Compiler {
     }
   }
   def getMemory(instructions: List[InstructionInfo],executableLineToAddress:Map[Int,Int]) = {
-    val memory = mutable.Map[MemoryAddress, Int]()
+    val variablesMemory = mutable.Map[MemoryAddress, Int]()
+    val instructionsMemory = mutable.Map[MemoryAddress, Int]()
     
     instructions.foreach(f =>
       f.instruction match{
       case v:VarDefInstruction =>
-        setMemory(memory,v.address,v.values)
+        setMemory(variablesMemory,v.address,v.values)
         
       case x:ExecutableInstruction =>{
-        setMemory(memory,executableLineToAddress(f.line),Simulator.encode(x))
+        setMemory(instructionsMemory,executableLineToAddress(f.line),Simulator.encode(x))
       }
       case other => 
       
     })
     
-    memory.toMap
+    (variablesMemory.toMap,instructionsMemory.toMap)
   }
   def setMemory(memory:mutable.Map[MemoryAddress, Int],baseAddress:Int,values:List[ComputerWord]){
     var address = baseAddress
