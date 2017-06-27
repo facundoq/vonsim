@@ -12,6 +12,9 @@ import vonsim.simulator.SimulatorStoppedState
 import vonsim.simulator.SimulatorExecutionFinished
 import vonsim.simulator.SimulatorExecutionStopped
 import vonsim.simulator.SimulatorExecutionError
+import vonsim.webapp.i18n.UILanguage
+import vonsim.webapp.i18n.English
+import vonsim.webapp.i18n.UILanguage
 
 abstract class HTMLUI {
   def root: HTMLElement
@@ -39,7 +42,7 @@ abstract class HTMLUI {
   
 }
 
-class VonSimState(var s:Simulator, var c:CompilationResult){
+class VonSimState(var s:Simulator, var c:CompilationResult,var uil:UILanguage){
   
   
   def simulatorStopped()={
@@ -61,7 +64,9 @@ abstract class VonSimUI(val s: VonSimState) extends HTMLUI{
   def compilationEvent()
 
   
+  
   def formatIOAddress(a:Int)={
+    s.uil.formatIOAddress(a)
     "%02X".format(a)
   }
   def formatAddress(a:Int)={

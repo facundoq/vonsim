@@ -83,7 +83,7 @@ abstract class MainboardItemUI(s: VonSimState,icon:String,itemId:String,title:St
 }
 
 
-class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png","memory","Memory") {
+class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png","memory",s.uil.memoryTitle) {
 
   val body = tbody(id := "memoryTableBody", cls := "clusterize-content").render
 
@@ -107,10 +107,13 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
   def generateRows()={
     (0 until s.s.memory.values.length).map(generateRow).toArray
   }
-  def generateRow(i:Int)={
-    val address = formatAddress(i) 
-    val value = formatWord(s.s.memory.values(i))
-      s"<tr> <td> $address </td> <td> $value </td> </tr>"
+  def generateRow(address:Int)={
+    val formattedAddress = s.uil.formatAddress(address)
+    val value=s.s.memory.values(address)
+    val formattedValue = s.uil.formatWord(s.s.memory.values(address))
+    val description=s.uil.describeMemoryCell(address, value)
+      
+      s"""<tr title="$description" class="rowWithTooltip"> <span class="memoryTooltip">$description</span>  <td> $formattedAddress </td> <td> $formattedValue  </td> </tr>"""
   }
   
   def addressToId(address:String)={

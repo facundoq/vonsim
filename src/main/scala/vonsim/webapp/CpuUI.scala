@@ -89,7 +89,7 @@ class RegistersUI(s: VonSimState,val registers:List[FullRegister],title:String,b
   }
 }
 
-class WordUI extends HTMLUI {
+class WordUI(s: VonSimState) extends HTMLUI {
   val wordElement=td("00000000 00000000").render
   val root=table(cls := "bitTable", tr(wordElement)).render
   
@@ -98,9 +98,12 @@ class WordUI extends HTMLUI {
     val h=Word(v.h).bitString.reverse
     wordElement.textContent=h+" "+l
   }
+  
+  
+  
 }
 
-class FlagsUI extends HTMLUI {
+class FlagsUI(s: VonSimState) extends VonSimUI(s) {
   
   val flagValue=Flag.all.map(f=> (f,span("0").render)).toMap
   val flagHeader=Flag.all.map(f=> (f,span(f.toString()).render)).toMap
@@ -125,41 +128,13 @@ class FlagsUI extends HTMLUI {
       val header=flagHeader(f)
       val v=flagAsString(flags.get(f))
       value.textContent=v
-      val description=s"Flag $f has value $v"
+      val description=s.uil.cpuFlagDescription(f,v)
       value.title=description
       header.title=description
     })
   }
-}
-
-class AluUI(s: VonSimState) extends VonSimUI(s) {
-  
-  val bitTableA = new WordUI()
-  val bitTableB = new WordUI()
-  val resultBitTable = new WordUI()
-  val flagsUI=new FlagsUI()
-  val operation = span(cls:="operation","--").render
-  val root = div(id := "alu", cls := "cpuElement"
-    ,div(cls:="cpuElementHeader",i(cls:="icon-calculator"),h3(" ALU"))
-    ,div(cls:="cpuElementContent"
-      ,div(cls:="aluComputation"
-        ,div(cls:="aluOperation",operation)
-        ,div(cls:="aluOperands"
-          ,div(cls:="aluOperandA",bitTableA.root)
-          ,div(cls:="aluOperandB",bitTableB.root)
-          ,div(cls:="aluResult",resultBitTable.root)
-        ) 
-      )
-      ,div(cls:="aluFlags",i(cls:="fa fa-flag",title:="Flags"), flagsUI.root)
-    )
-    ).render
-    
   def simulatorEvent(){
-    operation.textContent=s.s.cpu.alu.op.toString()
-    bitTableA.update(s.s.cpu.alu.o1)
-    bitTableB.update(s.s.cpu.alu.o2)
-    resultBitTable.update(s.s.cpu.alu.res)
-    flagsUI.update(s.s.cpu.alu.flags)
+    update(s.s.cpu.alu.flags)
   }  
   def simulatorEvent(i:InstructionInfo){
      simulatorEvent() 
@@ -169,12 +144,50 @@ class AluUI(s: VonSimState) extends VonSimUI(s) {
   }
 }
 
-
-
-class CpuUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/microchip.png","cpu","CPU") {
+class AluUI(s: VonSimState) extends VonSimUI(s) {
   
-  val generalPurposeRegistersTable = new RegistersUI(s,List(simulator.AX,simulator.BX,simulator.CX,simulator.DX),"General Purpose Registers","generalPurpose")
-  val specialRegistersTable = new RegistersUI(s,List(simulator.IP,simulator.SP,simulator.IR,simulator.MAR,simulator.MBR),"Special Registers","special")
+  val bitTableA = new WordUI(s)
+  val bitTableB = new WordUI(s)
+  val resultBitTable = new WordUI(s)
+  val flagsUI=new FlagsUI(s)
+  val operation = span(cls:="operation","--").render
+  val root = div(id := "alu", cls := "cpuElement"
+    ,div(cls:="cpuElementHeader",i(cls:="icon-calculator"),h3(s.uil.aluTitle))
+    ,div(cls:="cpuElementContent"
+      ,div(cls:="aluComputation"
+        ,div(cls:="aluOperation",operation)
+        ,div(cls:="aluOperands"
+          ,div(cls:="aluOperandA",bitTableA.root)
+          ,div(cls:="aluOperandB",bitTableB.root)
+          ,div(cls:="aluResult",resultBitTable.root)
+        ) 
+      )
+      ,div(cls:="aluFlags",i(cls:="fa fa-flag",title:=s.uil.flags), flagsUI.root)
+    )
+    ).render
+    
+  def simulatorEvent(){
+    operation.textContent=s.s.cpu.alu.op.toString()
+    bitTableA.update(s.s.cpu.alu.o1)
+    bitTableB.update(s.s.cpu.alu.o2)
+    resultBitTable.update(s.s.cpu.alu.res)
+    flagsUI.simulatorEvent()
+  }  
+  def simulatorEvent(i:InstructionInfo){
+    flagsUI.simulatorEvent(i)
+     simulatorEvent() 
+  }
+  def compilationEvent(){
+     
+  }
+}
+
+
+
+class CpuUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/microchip.png","cpu",s.uil.cpuTitle) {
+  
+  val generalPurposeRegistersTable = new RegistersUI(s,List(simulator.AX,simulator.BX,simulator.CX,simulator.DX),s.uil.cpuGeneralPurposeRegisters,"generalPurpose")
+  val specialRegistersTable = new RegistersUI(s,List(simulator.IP,simulator.SP,simulator.IR,simulator.MAR,simulator.MBR),s.uil.cpuSpecialRegisters,"special")
   val alu=new AluUI(s)
   
   contentDiv.appendChild(generalPurposeRegistersTable.root)

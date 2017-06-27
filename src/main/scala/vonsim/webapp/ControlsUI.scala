@@ -25,18 +25,7 @@ class SimulatorStateUI(s: VonSimState) extends VonSimUI(s) {
     case SimulatorExecutionStopped => "btn-danger"
     case SimulatorProgramExecuting => "btn-warning"      
   }
-  def stateToMessage(state:SimulatorState)= state match{
-    case SimulatorExecutionError(msg) => "Execution Error"
-    case SimulatorExecutionFinished => "Execution Finished"
-    case SimulatorExecutionStopped => "No Program Loaded"
-    case SimulatorProgramExecuting => "Program executing"      
-  }
-  def stateToTooltip(state:SimulatorState)= state match{
-    case SimulatorExecutionError(error) => error.message
-    case SimulatorExecutionFinished => "The execution has finished or has been stopped. Reload the program to execute again or perform a Quick Run."
-    case SimulatorExecutionStopped => "There is no program loaded in the simulator; you must load one before executing, or perform a Quick Run"
-    case SimulatorProgramExecuting => "The program is executing. You can execute instructions one at a time with Step or until the program finishes with Run. While the program is running you cannot modify the code in the editor"      
-  }
+  
   
   val stateIcon=i(cls:="").render
   val stateTitle=span().render
@@ -57,8 +46,8 @@ class SimulatorStateUI(s: VonSimState) extends VonSimUI(s) {
   def simulatorEvent() {
     val color=stateToButtonClass(s.s.state)
     root.className="btn "+color+" simulatorState"
-    root.title=stateToTooltip(s.s.state)
-    stateTitle.textContent=stateToMessage(s.s.state)
+    root.title=s.uil.stateToTooltip(s.s.state)
+    stateTitle.textContent=s.uil.stateToMessage(s.s.state)
     stateIcon.className="fa fa-"+stateToIcon(s.s.state)
     
   }
@@ -77,8 +66,8 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
     //http://fontawesome.io/icons/
     class LoadOrStopButton(s:VonSimState) extends VonSimUI(s){
       val hiddenClass="hidden"
-      val loadButton = buttonFactory("Debug","F2: Load program into memory without starting execution.","fa-bug")
-      val stopButton = buttonFactory("Cancel", "F3: Leave step mode.", "fa-stop")
+      val loadButton = buttonFactory(s.uil.controlsDebugButton,s.uil.controlsDebugTooltip,"fa-bug")
+      val stopButton = buttonFactory(s.uil.controlsStopButton,s.uil.controlsStopTooltip, "fa-stop")
       stateLoad()
       val root=span(
           loadButton,
@@ -130,10 +119,10 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
         ).render
     }
 
-  val quickButton = buttonFactory("Quick Run","F1: Reset simulator, load program into memory, run until cpu stops.","fa-play-circle")
+  val quickButton = buttonFactory(s.uil.controlsQuickButton,s.uil.controlsQuickTooltip,"fa-play-circle")
   val loadOrStopButton= new LoadOrStopButton(s)
-  val runOneButton   = buttonFactory("Step", "F6: Execute a single instruction.", "fa-step-forward")
-  val runButton  = buttonFactory("Finish", "F5: Run program until cpu stops..", "fa-play")
+  val stepButton   = buttonFactory(s.uil.controlsStepButton,s.uil.controlsStepTooltip, "fa-step-forward")
+  val finishButton  = buttonFactory(s.uil.controlsFinishButton,s.uil.controlsFinishTooltip, "fa-play")
   val simulatorStateUI= new SimulatorStateUI(s)
           
  
@@ -144,8 +133,8 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
       ,span(cls := "controlSection", quickButton)
       ,span(cls := "controlSectionSeparator")
       ,span(cls := "controlSection", loadOrStopButton.root)
-      ,span(cls := "controlSection",runButton)
-     ,span(cls := "controlSection",runOneButton)
+      ,span(cls := "controlSection",finishButton)
+     ,span(cls := "controlSection",stepButton)
      ,span(cls := "controlSection",simulatorStateUI.root)
       ).render
 
@@ -165,15 +154,15 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
   }
   def disable(){
     setEnabled(quickButton,false)
-    setEnabled(runButton,false)
-    setEnabled(runOneButton,false)
+    setEnabled(finishButton,false)
+    setEnabled(stepButton,false)
     loadOrStopButton.disable()
   }
   def updateUI(){  
     
     setEnabled(quickButton,s.canLoadOrQuickRun())
-    setEnabled(runButton,s.isSimulatorExecuting())
-    setEnabled(runOneButton,s.isSimulatorExecuting())
+    setEnabled(finishButton,s.isSimulatorExecuting())
+    setEnabled(stepButton,s.isSimulatorExecuting())
     
     
     if (s.canLoadOrQuickRun()){

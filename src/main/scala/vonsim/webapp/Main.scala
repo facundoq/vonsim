@@ -27,6 +27,8 @@ import scala.scalajs.concurrent
 import vonsim.simulator.Simulator
 import vonsim.assembly.Compiler
 import java.awt.Window
+import vonsim.webapp.i18n.English
+import vonsim.webapp.i18n.Spanish
 
             
 
@@ -79,7 +81,8 @@ object Main extends JSApp {
   def initializeUI(initialCode:String){
     val simulator=Simulator.Empty()
     val compilationResult=Compiler(initialCode)
-    var s=new VonSimState(simulator,compilationResult)
+    val language=new Spanish()
+    var s=new VonSimState(simulator,compilationResult,language)
     
     ui = new MainUI(s,initialCode,saveCodeKey)
     document.body.appendChild(ui.root)

@@ -157,6 +157,7 @@
 	padding:0px ;
 	
 	font-size:1.3em;
+	margin-left:2em    ;
 	
 }
 .cpuElementHeader{
@@ -250,4 +251,25 @@ align-items: center;
 
 .operation{
 	
+}
+.rowWithTooltip{
+    position:relative;
+	
+}
+.rowWithTooltip:hover span.memoryTooltip{
+  display:block;
+}
+.memoryTooltip{
+  display:none;
+  position:absolute; 
+  z-index:100;
+  border:1px;
+  background-color:white;
+  border-style:solid;
+  border-width:1px;
+  border-color:red;
+  padding:3px;
+  color:red; 
+  top:20px; 
+  left:20px;
 }

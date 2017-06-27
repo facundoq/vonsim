@@ -57,15 +57,14 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
       ,sim).render
 
   
-  bindkey(root,"ctrl+1",() => {
-    println("asdSD")
+  bindkey(root,s.uil.controlsQuickHotkey,() => {
     if (s.canLoadOrQuickRun()){
       quickRun()
     }
     false
     })
   
-  bindkey(root,"ctrl+2",() => {
+  bindkey(root,s.uil.controlsDebugOrAbortHotkey,() => {
     if (s.canLoadOrQuickRun()){
       loadProgram()
     }else if (s.isSimulatorExecuting()){
@@ -74,14 +73,14 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
     false
     })
     
-  bindkey(root,"ctrl+3",() => {
+  bindkey(root,s.uil.controlsFinishHotkey,() => {
     if (s.isSimulatorExecuting()){
       runInstructions()
     }
     false
     })
     
-  bindkey(root,"ctrl+4",() => {
+  bindkey(root,s.uil.controlsStepHotkey,() => {
     if (s.isSimulatorExecuting()){
       stepInstruction()
     }
@@ -102,8 +101,8 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
       stop()
   }
  
-  headerUI.controlsUI.runButton.onclick=(e:Any) =>{runInstructions()}
-  headerUI.controlsUI.runOneButton.onclick=(e:Any) =>{stepInstruction()}
+  headerUI.controlsUI.finishButton.onclick=(e:Any) =>{runInstructions()}
+  headerUI.controlsUI.stepButton.onclick=(e:Any) =>{stepInstruction()}
      
 
   println("UI set up. Updating for the first time..")
@@ -161,9 +160,7 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
       })
 
   }
-  def executionError(message:String){
-    dom.window.alert(s"Execution error: $message")
-  }
+  
 
   def stepInstruction(){
      println("Step instruction.. ")
@@ -183,7 +180,7 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
           
           
        }
-       case _ => dom.window.alert("Compilation failed, can't run program")
+       case _ => dom.window.alert(s.uil.alertCompilationFailed)
      }
    
     
@@ -196,7 +193,7 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
         simulatorEvent()
         println("Done")
        }
-       case _ => dom.window.alert("Compilation failed, can't load program")
+       case _ => dom.window.alert(s.uil.alertCompilationFailed)
      }
     
   }

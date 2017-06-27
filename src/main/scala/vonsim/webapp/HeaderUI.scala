@@ -32,18 +32,18 @@ abstract class ModalUI(s:VonSimState) extends VonSimUI(s){
 class HelpUI(s:VonSimState) extends ModalUI(s){
   
   def getHeader()={
-    div(cls:="modal-header-help",img(cls:= "modal-icon", alt := "Von Sim Icon", title := "Von Sim: a simplified intel 8088 simulator", src := "img/icon.png")
-              ,h4(cls:="modal-title","A simplified 8088 simulator")
+    div(cls:="modal-header-help",img(cls:= "modal-icon", alt := "Von Sim Icon", title := s.uil.iconTitle, src := "img/icon.png")
+              ,h4(cls:="modal-title",s.uil.pageTitle)
               ,button(`type`:="button",cls:="close", data("dismiss"):="modal",i(cls:="fa fa-close"))
     ).render
   }
   
   def getBody()={
     div(cls:=""
-      ,p("A simplified intel 8088 simulator in the spirit of MSX88")
-      ,p(a(cls:="btn btn-success",href:="https://github.com/facundoq/vonsim","Github page")
-      ,a(cls:="btn btn-success",href:="https://github.com/facundoq/vonsim/issues","Report issue"))
-      ,p("This simulator is intended for use in the Universidad Nacional de La Plata classes:")
+      ,p(s.uil.pageTitleExtended)
+      ,p(a(cls:="btn btn-success",href:="https://github.com/facundoq/vonsim",s.uil.helpGithubPage)
+      ,a(cls:="btn btn-success",href:="https://github.com/facundoq/vonsim/issues",s.uil.helpReportIssue))
+      ,p(s.uil.helpIntendedFor)
       ,p(a(cls:="btn btn-success",href:="http://weblidi.info.unlp.edu.ar/catedras/organiza/","Organización de Computadoras")
       ,a(cls:="btn btn-success",href:="http://weblidi.info.unlp.edu.ar/catedras/arquitecturaP2003/","Arquitectura de Computadoras"))
     ).render
@@ -51,14 +51,13 @@ class HelpUI(s:VonSimState) extends ModalUI(s){
   
   def getFooter()={
     div(cls:=""
-     ,p("Made by ", a(cls:="btn btn-primary",href:="https://github.com/facundoq/","Facundo Quiroga")
-    		 
-          ," with help from "
+     ,p(s.uil.helpMadeBy+" ", a(cls:="btn btn-primary",href:="https://github.com/facundoq/","Facundo Quiroga")
+          ," "+s.uil.helpWithHelpFrom+" "
     ,a(cls:="btn btn-primary",href:="https://github.com/AndoniZubimendi","Andoni Zubimendi")
-    ," and "
+    ," "+s.uil.and+" "
     ,a(cls:="btn btn-primary",href:="https://github.com/cesarares","Cesar Estrebou")
                     )
-,p("Feedback is welcome at f<last name> (at) gmail.com")
+    ,p(s.uil.helpFeedbackWelcome+" f<last name> (at) gmail.com")
     ).render
   }
   
@@ -87,7 +86,7 @@ class HeaderUI(s: VonSimState) extends VonSimUI(s) {
       ).render
   
   val root=header(div(id := "header"
-      , img(id := "icon", alt := "Von Sim Icon", title := "Von Sim: a simplified intel 8088 simulator", src := "img/icon.png")
+      , img(id := "icon", alt := "Von Sim Icon", title := s.uil.iconTitle, src := "img/icon.png")
       , controlsUI.root
       //,span(cls:="controlSectionSeparator")
       
