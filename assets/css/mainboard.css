@@ -256,20 +256,25 @@ align-items: center;
     position:relative;
 	
 }
-.rowWithTooltip:hover span.memoryTooltip{
-  display:block;
-}
+/* .rowWithTooltip:active span.memoryTooltip{ */
+/*   display:block; */
+/* } */
+
+/* .table-hover tbody tr:hover span.memoryTooltip{ */
+/*     display:block; */
+/* } */
+
 .memoryTooltip{
   display:none;
   position:absolute; 
   z-index:100;
   border:1px;
-  background-color:white;
+  background-color:black;
   border-style:solid;
   border-width:1px;
-  border-color:red;
+  border-color:white;
   padding:3px;
-  color:red; 
-  top:20px; 
-  left:20px;
+  color:white; 
+  top:-20px; 
+  left:-20px;
 }

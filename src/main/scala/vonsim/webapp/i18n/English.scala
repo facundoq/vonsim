@@ -1,8 +1,11 @@
 package vonsim.webapp.i18n
 
 import vonsim.simulator._
-
+object English{
+  def code ="en"
+}
 class English extends UILanguage {
+  def code =English.code
   def and="and"
   def iconTitle="VonSim: A simplified 8088 simulator"
   def pageTitle="A simplified 8088 simulator"

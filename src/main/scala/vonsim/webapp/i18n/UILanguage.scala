@@ -1,8 +1,13 @@
 package vonsim.webapp.i18n
 import vonsim.simulator._
+
+object UILanguage{
+  val codes=Map(Spanish.code -> new Spanish()
+               ,English.code -> new English())
+}
 abstract class UILanguage {
   
-  
+  def code:String
   
   
   def appName="VonSim"

@@ -3,6 +3,7 @@ import vonsim.simulator._
 import scalatags.JsDom.all._
 import vonsim.assembly.Compiler.CompilationResult
 import org.scalajs.dom.raw.HTMLElement
+import vonsim.webapp.i18n.UILanguage
 
 abstract class ModalUI(s:VonSimState) extends VonSimUI(s){
   val root = div(
@@ -84,12 +85,20 @@ class HeaderUI(s: VonSimState) extends VonSimUI(s) {
       )
       ,helpUI.root
       ).render
+  val currentLanguage=s.uil.code
+  val languages=UILanguage.codes.keys.filter(_!=currentLanguage)
+  
+  val languageButtonsContainer=div(id:="languageButtonContainer").render
+  
+  val languageButtons=languages.map(l => a(cls:="lang-sm btn language-icon languageButton", attr("lang"):=l).render)
+   
+  languageButtons.foreach(button => languageButtonsContainer.appendChild(button))
   
   val root=header(div(id := "header"
       , img(id := "icon", alt := "Von Sim Icon", title := s.uil.iconTitle, src := "img/icon.png")
       , controlsUI.root
-      //,span(cls:="controlSectionSeparator")
-      
+      ,span(id:="headerSeparator")
+      , languageButtonsContainer
       , helpUIButton
       )).render
   
@@ -106,6 +115,30 @@ class HeaderUI(s: VonSimState) extends VonSimUI(s) {
     controlsUI.compilationEvent()
     
   }
+  
+  def languageButtonBootstrap()={
+      val languages=UILanguage.codes.keys
+  val languageList=ul(cls:="dropdown-menu", attr("aria-labelledby"):="languageButton").render
+  
+  languages.foreach(l => {
+    val flag=span(cls:="lang-sm language-icon",attr("lang"):="es","Spanish").render
+    val languageItem=li(a(href:="#",l)).render
+    languageList.appendChild(languageItem)
+  })
+  val languageButton=div(cls:="dropdown", id := "languageButtonContainer"
+      ,button(cls:="btn btn-secondary dropdown-toggle", id:="languageButton"
+          , `type`:="button"
+          , data("toogle"):="dropdown"
+          ,attr("aria-haspopup"):="true"
+          ,attr("aria-expanded"):="true"
+//          span(cls:="lang-sm language-icon", attr("lang"):="en", "English")
+          ,"es"
+          ,span(cls:="caret")
+          )
+      ,languageList
+      ).render    
+  }
+  
   
       
 }

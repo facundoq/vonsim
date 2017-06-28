@@ -100,7 +100,14 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
   headerUI.controlsUI.loadOrStopButton.stopButton.onclick=(e:Any) =>{
       stop()
   }
- 
+  
+  headerUI.languageButtons.foreach(b =>{ 
+    b.onclick=(e:Any) =>{
+      val language=b.getAttribute("lang")
+      dom.window.localStorage.setItem(Main.cookieLanguageKey,language)
+      dom.window.location.reload(false)
+    }
+  })
   headerUI.controlsUI.finishButton.onclick=(e:Any) =>{runInstructions()}
   headerUI.controlsUI.stepButton.onclick=(e:Any) =>{stepInstruction()}
      

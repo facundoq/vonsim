@@ -29,6 +29,7 @@ import vonsim.assembly.Compiler
 import java.awt.Window
 import vonsim.webapp.i18n.English
 import vonsim.webapp.i18n.Spanish
+import vonsim.webapp.i18n.UILanguage
 
             
 
@@ -43,8 +44,13 @@ object Main extends JSApp {
                    .map { q => (q(0),q(1)) }
     parametersTuple.toMap
   }
+  val codeURLKey="url"
+  val cookieLanguageKey="lang"
+  def saveCodeKey="code"
+  var fallbackLanguage=Spanish.code
+  
   def main(): Unit = {
-    val codeURLKey="url"
+    
     val parameters = getParameters()
 
     if (parameters.keySet.contains(codeURLKey)){
@@ -77,11 +83,14 @@ object Main extends JSApp {
   }
   var ui:MainUI=null
   var s:VonSimState=null
-  def saveCodeKey="code"
+  
   def initializeUI(initialCode:String){
+    val languageCode=getLanguageCode()
     val simulator=Simulator.Empty()
     val compilationResult=Compiler(initialCode)
-    val language=new Spanish()
+
+    val language=languageCodeToObject(languageCode)
+  
     var s=new VonSimState(simulator,compilationResult,language)
     
     ui = new MainUI(s,initialCode,saveCodeKey)
@@ -89,7 +98,29 @@ object Main extends JSApp {
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)
       })
-  } 
+  }
+  def getLanguageCode():String={
+      println(dom.window.navigator.language)
+      var language=dom.window.localStorage.getItem(cookieLanguageKey)
+      if (language==null){
+         if (dom.window.navigator.language != null && dom.window.navigator.language.trim() != ""){
+             language=dom.window.navigator.language.split("-")(0)
+             language=language.toLowerCase
+          }else{
+            language=fallbackLanguage
+          }
+      }
+      dom.window.localStorage.setItem(cookieLanguageKey,language)
+      language
+  }
+  def languageCodeToObject(language:String)={
+    if (UILanguage.codes.keySet.contains(language)){
+      UILanguage.codes(language)
+    }else{
+      UILanguage.codes(fallbackLanguage)
+    }
+      
+  }
 
   def defaultCode = """org 1000h
 ; variables here

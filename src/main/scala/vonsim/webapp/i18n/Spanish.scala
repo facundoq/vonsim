@@ -1,8 +1,11 @@
 package vonsim.webapp.i18n
 
 import vonsim.simulator._
-
+object Spanish{
+  def code="es"
+}
 class Spanish extends UILanguage {
+  def code =Spanish.code
   def and="y"
   def iconTitle=appName+": "+pageTitle
   def pageTitle="Un simulador de la arquitectura 8088"

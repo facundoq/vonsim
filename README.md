@@ -16,11 +16,8 @@ The language reference can be accessed reading the [old msx88 manual](http://web
 
 ## Instruction set support
 
-As of `2017/05/25`, all the instruction set is supported except for:
-* BYTE/WORD PTR indirect keyword
-* OFFSET LABEL memory references
-* Expressions in immediate operands.
-* EQU definitions
+As of `2017/06/28`, all of the MSX88 instruction set is supported except for:
+* DUP definitions
 * INT N instructions
 * IN and OUT instructions
 

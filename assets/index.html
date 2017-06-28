@@ -11,12 +11,16 @@
     <link rel="stylesheet" href="./css/normalize.css">
     
     <!-- Latest compiled and minified bootstrap CSS -->
-<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<!--     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
 <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous"> -->
 
 <!-- bootstrap -->
     <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="lib/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+    
+    <link href="lib/languages/languages.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="./lib/font-awesome/css/font-awesome.min.css" >
     <link rel="stylesheet" href="./lib/icomoon/style.css" >
 <!--     site styles -->
@@ -40,6 +44,8 @@
 
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
+      
+    
     <script type="text/javascript" src="js/mousetrap.min.js"></script>
     <script type="text/javascript" src="js/mousetrap-global-bind.min.js"></script>
     <script type="text/javascript" src="js/ace/ace.js"></script>
@@ -50,6 +56,10 @@
     <script type="text/javascript">
       var AceRange = ace.require('ace/range').Range
       vonsim.webapp.Main().main();
+      setTimeout(function(){
+    	  $('#languageButton').dropdown();  
+      }, 5000)
+      
     </script>
     
     
