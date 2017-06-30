@@ -25,12 +25,12 @@ class ProgramsSuite extends FunSuite {
      val program = 
 """
   org 1000h
-  vardb: db 1
+  vardb db 1
   
   org 1500h
-  vardb2: db 2
-    		 vardw: dw 20
-  vardw2: dw 24
+  vardb2 db 2
+  vardw dw 20
+  vardw2 dw 24
   
   org 2000h
   hlt  
@@ -94,17 +94,18 @@ end"""
 """
   
 org 1000h
-asd: db "hola"
-zzz: db "chau"
-intlist: db 1,2,3,4
-intlist2: dw 1,2,3,4
-complex: db 10000000B,2,34h,4
-uninitialized: db ?
-uninitialized2: dW ?
+
+inta db 1,2,3,4
+;intlist2 dw 1,2,3,4
+complex db 10000000B,2,34h,4
+uninitialized db ?
+uninitialized2 dW ?
+asd db "hola"
+zzz db "chau"
 
 org 1500h
-vardb: db 1
-vardw: dw 2
+vardb db 1
+vardw dw 2
 
 
     org 2000h
@@ -150,8 +151,8 @@ CALL HOLA
 RET
 NOP
 HLT
-CLI
-StI
+CLI 
+StI 
 ret
 pushf
 popf
@@ -165,7 +166,8 @@ END
 """
     //val r=Source.fromURL(getClass.getResource("/assembly/all_syntax.asm")).bufferedReader()
     
-    
+    val compilation= Compiler(program)
+    println(compilation)
     val s=simulator(program)
     
   }
@@ -174,7 +176,7 @@ END
     val program= 
 """
 org 1000h
-var: dw 2  
+var dw 2  
   org 2000h
 mov ax,3
 add ax,var
@@ -331,7 +333,7 @@ end
      val program = 
 """
   org 1000h
-  var: db 1
+  var db 1
   
   org 2000h
   mov var,3

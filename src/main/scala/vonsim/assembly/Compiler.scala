@@ -58,7 +58,7 @@ object Compiler {
     val fixedTokensNoEmpty = fixedTokens.filter(p => {
       !(p.isRight && p.right.get.length == 1 && p.right.get(0).equals(EMPTY()))
     })
-
+    
     def parseValidTokens(t: Either[LexerError, List[Token]]): Either[CompilationError, parser.Instruction] = {
       if (t.isLeft) Left(t.left.get) else parser.Parser(t.right.get.toSeq)
     }

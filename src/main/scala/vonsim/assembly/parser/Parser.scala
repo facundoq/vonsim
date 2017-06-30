@@ -103,10 +103,10 @@ object Parser extends Parsers {
     (CALL() ~ identifier ) ^^ {case CALL() ~ IDENTIFIER(i) => Call(i)}
   }
   def vardef = positioned {
-    val ints= (label ~ (DB() | DW() ) ~ varDefInts  )  ^^ {
-      case LABEL(id)~ (t:VarType) ~ (v:List[LITERALINTEGER]) => VarDef(id,t,v.map(_.v))}
-    val str = (label ~ DB() ~ literalString ) ^^ {case LABEL(id)~ DB() ~ LITERALSTRING(s) => VarDef(id,DB(),stringToIntList(s))}
-    val empty = (label ~ (DB() | DW() ) ~ UNINITIALIZED()) ^^ {case LABEL(id)~ (t:VarType) ~ UNINITIALIZED() => VarDef(id,t,List())}
+    val ints= (identifier ~ (DB() | DW() ) ~ varDefInts  )  ^^ {
+      case IDENTIFIER(id)~ (t:VarType) ~ (v:List[LITERALINTEGER]) => VarDef(id,t,v.map(_.v))}
+    val str = (identifier ~ DB() ~ literalString ) ^^ {case IDENTIFIER(id)~ DB() ~ LITERALSTRING(s) => VarDef(id,DB(),stringToIntList(s))}
+    val empty = (identifier ~ (DB() | DW() ) ~ UNINITIALIZED()) ^^ {case IDENTIFIER(id)~ (t:VarType) ~ UNINITIALIZED() => VarDef(id,t,List())}
     str | ints | empty
   }
   

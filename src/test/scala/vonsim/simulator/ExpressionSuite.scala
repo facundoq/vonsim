@@ -15,6 +15,7 @@ class ExpressionSuite extends FunSuite {
   
   def simulator(program:String)={
     val compilation= Compiler(program)
+    println(compilation)
     assert(compilation.isRight)
     val c=compilation.right.get
     Simulator(c)
@@ -25,7 +26,12 @@ class ExpressionSuite extends FunSuite {
      val program = 
 """
   org 1000h
- hola: dw 20
+  inta dw 20
+  clita dw 20
+  stiaisad dw 20
+  movesta dw 11
+  pushfito db 1
+ hola dw 20
   org 2000h
   mov ax,2
   mov ax, 2 + 4
@@ -36,12 +42,15 @@ class ExpressionSuite extends FunSuite {
   mov ax, hola + 2
   mov ax, hola
   mov hola,ax
-  
+  int 7
+  pushf
+  sti 
+  cli
   hlt
   end
 """
     val compilation= Compiler(program)
-//    println("Compilation output:"+compilation)
+    println("Compilation output:"+compilation)
     assert(compilation.isRight)    
 }           
                 test("equ definitions") {
@@ -55,7 +64,7 @@ class ExpressionSuite extends FunSuite {
   f equ offset hola + c + 2
   
   org 1000h
- hola: dw 20
+ hola dw 20
   org 2000h  
   hlt
   end
@@ -76,7 +85,7 @@ class ExpressionSuite extends FunSuite {
   ii equ rr
   
   org 1000h
- hola: dw 20
+ hola dw 20
   org 2000h  
   hlt
   end

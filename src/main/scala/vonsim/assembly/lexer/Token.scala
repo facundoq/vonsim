@@ -51,6 +51,8 @@ case class INDIRECTBX() extends Mutable
 case class WORDINDIRECTBX() extends Mutable
 case class DWORDINDIRECTBX() extends Mutable
 
+case class WHITESPACE() extends Special
+
 case class WORD() extends Special
 case class BYTE() extends Special
 case class PTR() extends Special

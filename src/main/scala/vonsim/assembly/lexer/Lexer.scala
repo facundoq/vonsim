@@ -11,13 +11,14 @@ import scala.Left
 import scala.Right
 import vonsim.assembly.LexerError
 import vonsim.assembly.Location
+import scala.collection.mutable.ListBuffer
 
 class VonemuPosition(var line:Int, var column:Int,val lineContents:String) extends Position  {
   
 }
 
 object Lexer extends RegexParsers {
-  override def skipWhitespace = true
+  override def skipWhitespace = false
   override val whiteSpace = "[ \t]+".r
   
   def apply(codeParameter: String): Either[LexerError, List[Token]] = {
@@ -29,15 +30,50 @@ object Lexer extends RegexParsers {
     if (code.trim().isEmpty()){
        Right(List(EMPTY()))
     }else{
+      
       parse(tokens, code+"\n") match {
         case NoSuccess(msg, next) => Left(LexerError(Location(next.pos.line, next.pos.column), msg))
-        case Success(result, next) => Right(result)
+        case Success(result, next) => {
+//          println("Tokens:\n"+result)
+          val filteredResult=result.filter(r => !r.isInstanceOf[WHITESPACE])
+          println("Tokens:\n"+filteredResult)
+          Right(filteredResult)
+        }
       }
     }
   }
+  def indicesWhere(s:String,t:Char)={
+    s.zipWithIndex.collect { case (elem, idx) if elem==t => idx } 
+  }
+  def addSeparator(s:Seq[String],t:Char)={
+    val l=s.length
+    if (l==0){
+      List[String]()
+    }else{
+      val r=ListBuffer(s(0))
+      for ( i <- 1 to l  ){
+        r+=t.toString()
+        r+=s(i)
+      }
+      r.toList
+    }
+    
+  }
+  def splitRetainingDelimiter(s:String,t:Char)={
+    val parts = s.split(t)
+    addSeparator(parts, t) 
+  }
+    
+  def separate(code:String)={
+    val parts=code.split("\\t\\s")
+    val tokens=parts.flatMap(s => {
+      splitRetainingDelimiter(s, ',')
+    })
+    tokens
+  }
   
   def tokens: Parser[List[Token]] = {
-    phrase( rep1(comma | uninitialized | offsetLabel | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
+    phrase( rep1(whitespace |comma | uninitialized | offsetLabel | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
         | ops | io | interrupt |  register | jumps | expression |  identifier | newline )) ^^ { rawTokens =>
       rawTokens
     }
@@ -49,21 +85,21 @@ object Lexer extends RegexParsers {
 //}
 
 
-
+def whitespace=positioned {"[\\t ]+".r ^^ { str => WHITESPACE()}}
 def register=orall (Token.registers map tokenParser2) 
 def keyword=orall (Token.keyword map tokenParser2)
 def ops=orall (Token.ops map tokenParserSpace)
 def jumps=orall (Token.jump map tokenParserSpace)
 def io=orall (Token.inputOutput map tokenParserSpace)
-def interrupt=orall (Token.interrupt map tokenParser2)
+def interrupt=orall (Token.interrupt map tokenParserSpace)
 def stack = orall (Token.stack map tokenParserSpace)
-def flagsStack = orall (Token.flagsStack map tokenParser2)
+def flagsStack = orall (Token.flagsStack map tokenParserSpace)
 def varType = orall (Token.varType map tokenParserSpace)
 
   
 def tokenParser(t:Token,literal:String) = positioned {s"(?i)${literal.toLowerCase}".r ^^^ t}
 def tokenParser2(t:Token) = tokenParser(t,t.toString)
-def tokenParserSpace(t:Token) = tokenParser(t,t.toString+" ")
+def tokenParserSpace(t:Token) = positioned {s"(?i)${t.toString.toLowerCase}\\s".r ^^^ t} 
 def orall(x: List[Lexer.Parser[Token]]) = x.reduceLeft( _ | _)
 
   
