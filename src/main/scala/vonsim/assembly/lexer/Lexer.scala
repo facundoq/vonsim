@@ -12,6 +12,8 @@ import scala.Right
 import vonsim.assembly.LexerError
 import vonsim.assembly.Location
 import scala.collection.mutable.ListBuffer
+import vonsim.assembly.i18n.English
+import vonsim.assembly.i18n.CompilerLanguage
 
 class VonemuPosition(var line:Int, var column:Int,val lineContents:String) extends Position  {
   
@@ -21,6 +23,7 @@ object Lexer extends RegexParsers {
   override def skipWhitespace = false
 //  override val whiteSpace = "[ \t]+".r
   override val whiteSpace = "".r
+  var compilerLanguage:CompilerLanguage=new English()
   
   def apply(codeParameter: String): Either[LexerError, List[Token]] = {
     var code=codeParameter

@@ -1,15 +1,15 @@
 
 org 1000h
-asd: db "hola"
-zzz: db "chau"
-intlist: db 1,2,3,4
-intlist2: dw 1,2,3,4
-complex: db 10000000B,2,34h,4
-uninitialized: db ?
-uninitialized2: dW ?
+asd db "hola"
+zzz db "chau"
+intlist db 1,2,3,4
+intlist2 dw 1,2,3,4
+complex db 10000000B,2,34h,4
+uninitialized db ?
+uninitialized2 dW ?
 
-vardb: db 1
-vardw: dw 2
+vardb db 1
+vardw dw 2
 
 
     org 2000h

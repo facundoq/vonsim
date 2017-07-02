@@ -1,6 +1,6 @@
 org 5
-n: dw 7 
-sum: dw ?
+n dw 7 
+sum dw ?
 
 org 2000h
 mov ax,n

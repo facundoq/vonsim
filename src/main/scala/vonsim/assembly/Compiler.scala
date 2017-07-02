@@ -25,6 +25,8 @@ import vonsim.assembly.lexer.DivOp
 import vonsim.assembly.lexer.MinusOp
 import vonsim.assembly.parser.LabelExpression
 import vonsim.assembly.parser.OffsetLabelExpression
+import vonsim.assembly.i18n.CompilerLanguage
+import vonsim.assembly.i18n.English
 
 object Compiler {
 
@@ -48,8 +50,12 @@ object Compiler {
   type Warning = (Line, String)
   type Line = Int
   type ParsingResult = List[Either[CompilationError, parser.Instruction]]
-
-  def apply(code: String): CompilationResult = {
+  var defaultLanguage:CompilerLanguage=new English()
+  
+  def apply(code: String,compilerLanguage:CompilerLanguage=defaultLanguage): CompilationResult = {
+    Lexer.compilerLanguage=compilerLanguage
+    parser.Parser.compilerLanguage=compilerLanguage
+    
     val instructions = code.split("\n")
     var optionTokens = instructions map { Lexer(_) }
     //optionTokens.foreach(f => println(f))

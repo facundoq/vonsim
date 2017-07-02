@@ -9,9 +9,13 @@ import scala.Right
 import vonsim.assembly.ParserError
 import vonsim.assembly.Location
 import scala.util.parsing.input.Positional
+import vonsim.assembly.i18n.English
+import vonsim.assembly.i18n.CompilerLanguage
 
 
 object Parser extends Parsers {
+  var compilerLanguage:CompilerLanguage=new English()
+  
   override type Elem = Token
   
   def apply(tokens: Seq[Token]): Either[ParserError, Instruction] = {
@@ -120,19 +124,19 @@ object Parser extends Parsers {
   }
   
   private def newline= positioned {
-    accept("newline", { case bl @ NEWLINE() => bl })
+    accept(compilerLanguage.newline, { case bl @ NEWLINE() => bl })
   }
   private def literalString = positioned {
-    accept("string literal", { case lit @ LITERALSTRING(v) => lit })
+    accept(compilerLanguage.stringLiteral, { case lit @ LITERALSTRING(v) => lit })
   }
   private def identifier = positioned {
-    accept("identifier", { case lit @ IDENTIFIER(v) => lit })
+    accept(compilerLanguage.identifier, { case lit @ IDENTIFIER(v) => lit })
   }
    private def label = positioned {
-    accept("label", { case lit @ LABEL(v) => lit })
+    accept(compilerLanguage.label, { case lit @ LABEL(v) => lit })
   }
   private def literalInteger = positioned {
-    accept("integer literal", { case lit @ LITERALINTEGER(v) => lit })
+    accept(compilerLanguage.integerLiteral, { case lit @ LITERALINTEGER(v) => lit })
   } 
   
   def conditionalJumpTokens = positioned{
@@ -158,11 +162,11 @@ object Parser extends Parsers {
     to.pos=from.pos
     to
   }
-  def offsetLabel = accept("offset label", { case lit @ OFFSETLABEL(v) => copyPosition(OffsetLabelExpression(v),lit)})
+  def offsetLabel = accept(compilerLanguage.offsetLabel, { case lit @ OFFSETLABEL(v) => copyPosition(OffsetLabelExpression(v),lit)})
   def negativeInteger = MinusOp() ~ integer ^^ {case m ~ i => copyPosition(ConstantExpression(-i.v),i)} 
 
-  def integer = accept("integer literal", { case lit @ LITERALINTEGER(v) => copyPosition(ConstantExpression(v),lit) })
-  def expressionLabel = accept("equ label", { case lit @ IDENTIFIER(v) => copyPosition(LabelExpression(v),lit)})
+  def integer = accept(compilerLanguage.integerLiteral, { case lit @ LITERALINTEGER(v) => copyPosition(ConstantExpression(v),lit) })
+  def expressionLabel = accept(compilerLanguage.equLabel, { case lit @ IDENTIFIER(v) => copyPosition(LabelExpression(v),lit)})
   
   
     def parens:Parser[Expression] = OpenParen() ~> expression <~ CloseParen()
