@@ -159,12 +159,14 @@ object Parser extends Parsers {
     to
   }
   def offsetLabel = accept("offset label", { case lit @ OFFSETLABEL(v) => copyPosition(OffsetLabelExpression(v),lit)})
+  def negativeInteger = MinusOp() ~ integer ^^ {case m ~ i => copyPosition(ConstantExpression(-i.v),i)} 
+
   def integer = accept("integer literal", { case lit @ LITERALINTEGER(v) => copyPosition(ConstantExpression(v),lit) })
   def expressionLabel = accept("equ label", { case lit @ IDENTIFIER(v) => copyPosition(LabelExpression(v),lit)})
   
   
     def parens:Parser[Expression] = OpenParen() ~> expression <~ CloseParen()
-    def term = ( integer | offsetLabel | expressionLabel |  parens )
+    def term = ( negativeInteger | integer | offsetLabel | expressionLabel |  parens )
 
     def binaryOp(level:Int):Parser[((Expression,Expression)=>Expression)] = {
         level match {

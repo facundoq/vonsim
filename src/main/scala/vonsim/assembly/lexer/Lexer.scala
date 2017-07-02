@@ -19,7 +19,8 @@ class VonemuPosition(var line:Int, var column:Int,val lineContents:String) exten
 
 object Lexer extends RegexParsers {
   override def skipWhitespace = false
-  override val whiteSpace = "[ \t]+".r
+//  override val whiteSpace = "[ \t]+".r
+  override val whiteSpace = "".r
   
   def apply(codeParameter: String): Either[LexerError, List[Token]] = {
     var code=codeParameter
@@ -30,17 +31,23 @@ object Lexer extends RegexParsers {
     if (code.trim().isEmpty()){
        Right(List(EMPTY()))
     }else{
-      
-      parse(tokens, code+"\n") match {
+      parse(tokensParser, code+" ") match {
         case NoSuccess(msg, next) => Left(LexerError(Location(next.pos.line, next.pos.column), msg))
         case Success(result, next) => {
-//          println("Tokens:\n"+result)
+//          println("Tokens: "+result.mkString(","))
           val filteredResult=result.filter(r => !r.isInstanceOf[WHITESPACE])
-          println("Tokens:\n"+filteredResult)
+//          println("Tokens:\n"+filteredResult)
           Right(filteredResult)
         }
       }
     }
+  }
+  def rep1seps[T](p:Parser[T],sep:Parser[T]):Parser[List[T]]={
+    val ps=p ^^ {case l => List(l)}
+    val seps=sep ^^ {case l => List(l)}
+    val pSepPair=rep1(seps) ~ ps ^^ {case t ~ s => t.flatten ++s}
+    val pSeps=rep(pSepPair) ^^{case l => l.flatten}
+    ps ~ pSeps ^^ {case t ~ s => t++s}
   }
   def indicesWhere(s:String,t:Char)={
     s.zipWithIndex.collect { case (elem, idx) if elem==t => idx } 
@@ -72,34 +79,55 @@ object Lexer extends RegexParsers {
     tokens
   }
   
-  def tokens: Parser[List[Token]] = {
-    phrase( rep1(whitespace |comma | uninitialized | offsetLabel | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
-        | ops | io | interrupt |  register | jumps | expression |  identifier | newline )) ^^ { rawTokens =>
-      rawTokens
-    }
+  
+  def tokensParser: Parser[List[Token]]={
+    phrase(extraWhitespace ~> ( (tokenList <~ extraWhitespace )))  ^^{ case (x:List[Token])=> x++List(NEWLINE()) } 
   }
+  def tokenList= rep1seps(token,separators)
+  def separators=whitespace | comma | expression 
+
+  def whitespace=positioned {"[ :]+".r ^^ { str => WHITESPACE()}}
+  def extraWhitespace=positioned {"[\\t ]*".r ^^ { str => WHITESPACE()}}
+  
+  def token= {
+    (uninitialized | offsetLabel | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
+        | ops | io | interrupt |  register | jumps | identifier ) 
+  }
+  
+  
+//  def tokens: Parser[List[Token]] = {
+//    phrase( rep1(whitespace |comma | uninitialized | offsetLabel | indirectbx | varType | indirect |  label | flagsStack | stack | keyword | literal 
+//        | ops | io | interrupt |  register | jumps | expression |  identifier | newline )) ^^ { rawTokens =>
+//      rawTokens
+//    }
+//  }
   
 //def empty: Parser[EMPTY] = positioned {
 //    //"""^\s*$""".r ^^ { _ => EMPTY() }
 //    "".r ^^ { _ => EMPTY() }
 //}
 
+  
+def reservedInstructions(l:List[Token]) = orall (l map tokenParserInstruction)  
+def reservedOperand(l:List[Token])  =orall (l map tokenParserOperand)
 
-def whitespace=positioned {"[\\t ]+".r ^^ { str => WHITESPACE()}}
-def register=orall (Token.registers map tokenParser2) 
-def keyword=orall (Token.keyword map tokenParser2)
-def ops=orall (Token.ops map tokenParserSpace)
-def jumps=orall (Token.jump map tokenParserSpace)
-def io=orall (Token.inputOutput map tokenParserSpace)
-def interrupt=orall (Token.interrupt map tokenParserSpace)
-def stack = orall (Token.stack map tokenParserSpace)
-def flagsStack = orall (Token.flagsStack map tokenParserSpace)
-def varType = orall (Token.varType map tokenParserSpace)
+def register=reservedOperand(Token.registers)
+
+def keyword=reservedInstructions(Token.keyword)
+def jumps=reservedInstructions(Token.jump)
+def ops=reservedInstructions(Token.ops)
+def io=reservedInstructions(Token.inputOutput)
+def interrupt=reservedInstructions(Token.interrupt)
+def stack = reservedInstructions(Token.stack)
+def flagsStack = reservedInstructions(Token.flagsStack) 
+def varType = reservedInstructions(Token.varType)
 
   
+def tokenParserInstruction(t:Token)=  positioned {s"(?i)${t.toString.toLowerCase}(?=\\s)".r ^^^ t}
+def tokenParserOperand(t:Token)=  positioned {s"(?i)${t.toString.toLowerCase}(?=[,\\s])".r ^^^ t}
 def tokenParser(t:Token,literal:String) = positioned {s"(?i)${literal.toLowerCase}".r ^^^ t}
 def tokenParser2(t:Token) = tokenParser(t,t.toString)
-def tokenParserSpace(t:Token) = positioned {s"(?i)${t.toString.toLowerCase}\\s".r ^^^ t} 
+ 
 def orall(x: List[Lexer.Parser[Token]]) = x.reduceLeft( _ | _)
 
   
@@ -108,7 +136,7 @@ def identifier = positioned {
   }
 
 def label= positioned {
-    "[a-zA-Z][a-zA-Z0-9_]*:".r ^^ { str => LABEL(str.substring(0, str.length()-1)) }
+    "[a-zA-Z][a-zA-Z0-9_]*(?=:)".r ^^ { str => LABEL(str.substring(0, str.length())) }
   }
 def literal = literalnumber | literalstring 
 def literalnumber= positioned {
@@ -146,7 +174,7 @@ def literalstring = positioned {
 //def unknown = positioned{
 //  """(.){0,30}""".r ^^^ UNKNOWN()
 //}
-def newline = positioned { """(\r?\n)+""".r ^^^ NEWLINE() }
+def newline = positioned { """(\r?\n)""".r ^^^ NEWLINE() }
 
 def comma = positioned { "," ^^^ COMMA() }
 def uninitialized = positioned { "?" ^^^ UNINITIALIZED() }
@@ -157,7 +185,6 @@ def indirectWord =tokenParser2(BYTE())
 def indirectDWord = tokenParser2(WORD())
 def indirectPTR = tokenParser2(PTR())
 def indirect = (indirectWord | indirectDWord | indirectPTR | indirectbx)
-
 
 def symbolParser(token:Token,symbol:String) = positioned {s"[$symbol]".r ^^^ token}
 def expression = ( symbolParser(PlusOp(),"+") 

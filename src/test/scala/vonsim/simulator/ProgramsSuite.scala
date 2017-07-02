@@ -7,6 +7,7 @@ import com.sun.org.apache.bcel.internal.generic.ArithmeticInstruction
 import vonsim.assembly.Compiler
 import vonsim.assembly.Compiler.SuccessfulCompilation
 import scala.io.Source
+import vonsim.assembly.lexer.Lexer
 
 
 class ProgramsSuite extends FunSuite {
@@ -15,6 +16,7 @@ class ProgramsSuite extends FunSuite {
   
   def simulator(program:String)={
     val compilation= Compiler(program)
+    if (compilation.isLeft) println(compilation)
     assert(compilation.isRight)
     val c=compilation.right.get
     Simulator(c)
@@ -167,7 +169,7 @@ END
     //val r=Source.fromURL(getClass.getResource("/assembly/all_syntax.asm")).bufferedReader()
     
     val compilation= Compiler(program)
-    println(compilation)
+//    println(compilation)
     val s=simulator(program)
     
   }
@@ -228,7 +230,7 @@ loop_mult: cmp cx,0
       add dx,ax
       dec cx
       jmp loop_mult
-fin_mult:pop cx
+fin_mult: pop cx
          ret 
  
 org 2000h
@@ -239,9 +241,12 @@ hlt
 end
 
 """    
-       
+    
+//   println(Lexer(program))
+    
     val s=simulator(program)
     val instructions=s.runInstructions().toList
+    
 //    val compiledInstructionsAddresses=s.instructions.keys.toList.sorted
 //    println(compiledInstructionsAddresses.map(a => Simulator.encode(s.instructions(a).instruction)).mkString("\n"))
    

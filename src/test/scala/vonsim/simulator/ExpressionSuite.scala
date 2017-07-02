@@ -15,7 +15,7 @@ class ExpressionSuite extends FunSuite {
   
   def simulator(program:String)={
     val compilation= Compiler(program)
-    println(compilation)
+//    println(compilation)
     assert(compilation.isRight)
     val c=compilation.right.get
     Simulator(c)
@@ -31,7 +31,7 @@ class ExpressionSuite extends FunSuite {
   stiaisad dw 20
   movesta dw 11
   pushfito db 1
- hola dw 20
+  hola dw 20
   org 2000h
   mov ax,2
   mov ax, 2 + 4
