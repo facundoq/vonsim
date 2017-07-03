@@ -11,7 +11,6 @@ import org.scalajs.dom.Element
 import dom.document
 import scala.scalajs.js.annotation.JSExport
 import scalatags.JsDom.all._
-import org.scalajs.dom.html._
 import org.scalajs.dom.raw.HTMLElement
 import js.JSConverters._
 
@@ -27,9 +26,12 @@ import scala.scalajs.concurrent
 import vonsim.simulator.Simulator
 import vonsim.assembly.Compiler
 import java.awt.Window
-import vonsim.webapp.i18n.English
+
+import vonsim.assembly
 import vonsim.webapp.i18n.Spanish
 import vonsim.webapp.i18n.UILanguage
+import vonsim.assembly.i18n.CompilerLanguage
+import vonsim.simulator.i18n.SimulatorLanguage
 
             
 
@@ -48,6 +50,7 @@ object Main extends JSApp {
   val cookieLanguageKey="lang"
   def saveCodeKey="code"
   var fallbackLanguage=Spanish.code
+
   
   def main(): Unit = {
     
@@ -86,18 +89,20 @@ object Main extends JSApp {
   
   def initializeUI(initialCode:String){
     val languageCode=getLanguageCode()
-    val simulator=Simulator.Empty()
+    
     val compilationResult=Compiler(initialCode)
 
-    val language=languageCodeToObject(languageCode)
-  
-    var s=new VonSimState(simulator,compilationResult,language)
+    val (uiLanguage,compilerLanguage,simulatorLanguage)=getLanguages(languageCode)
+    Compiler.defaultLanguage=compilerLanguage
+    val simulator=Simulator.Empty()
+    simulator.language=simulatorLanguage
+    
+    var s=new VonSimState(simulator,compilationResult,uiLanguage)
     
     ui = new MainUI(s,initialCode,saveCodeKey)
     document.body.appendChild(ui.root)
     ui.editorUI.editor.resize(true)
-    setTimeout(2000)({ui.editorUI.editor.resize(true)
-      })
+    setTimeout(2000)({ui.editorUI.editor.resize(true)})
   }
   def getLanguageCode():String={
       println(dom.window.navigator.language)
@@ -113,14 +118,21 @@ object Main extends JSApp {
       dom.window.localStorage.setItem(cookieLanguageKey,language)
       language
   }
-  def languageCodeToObject(language:String)={
-    if (UILanguage.codes.keySet.contains(language)){
-      UILanguage.codes(language)
+  def languageCodeToObject[T](languageToObject:Map[String,T],language:String)={
+    if (languageToObject.keySet.contains(language)){
+      languageToObject(language)
     }else{
-      UILanguage.codes(fallbackLanguage)
+      languageToObject(fallbackLanguage)
     }
-      
+   
   }
+  def getLanguages(language:String)={
+    val uiLanguage=languageCodeToObject(UILanguage.codes, language)
+    val compilerLanguage=languageCodeToObject(CompilerLanguage.codes, language)
+    val simulatorLanguage=languageCodeToObject(SimulatorLanguage.codes, language)
+    (uiLanguage,compilerLanguage,simulatorLanguage)
+  }
+  
 
   def defaultCode = """org 1000h
 ; variables here

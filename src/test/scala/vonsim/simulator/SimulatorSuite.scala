@@ -12,7 +12,7 @@ class SimulatorSuite extends FunSuite {
     var address=baseIP
     
     is.zipWithIndex.map(a => {
-      val m=(new InstructionInfo(a._2,a._1),address).swap
+      val m=(new InstructionInfo(a._2,a._1,""),address).swap
       address+=Simulator.instructionSize(a._1)
       m
       }).toMap  

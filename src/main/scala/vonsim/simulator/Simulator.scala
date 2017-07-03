@@ -8,6 +8,8 @@ import Simulator._
 import ComputerWord._
 import vonsim.assembly.Compiler.SuccessfulCompilation
 import vonsim.assembly.Compiler.SuccessfulCompilation
+import vonsim.simulator.i18n.Spanish
+import vonsim.simulator.i18n.SimulatorLanguage
 
 object Simulator {
 
@@ -180,7 +182,7 @@ object Simulator {
 }
 
 
-class InstructionInfo(val line: Int, val instruction: Instruction) {
+class InstructionInfo(val line: Int, val instruction: Instruction,val rawInstruction:String) {
   
   override def toString()={
     s"Line $line: $instruction"
@@ -213,7 +215,7 @@ case class InstructionExecutionError(val message:String,val i:InstructionInfo) e
 
 class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, InstructionInfo]) {
   var state:SimulatorState=SimulatorExecutionStopped
-  
+  var language:SimulatorLanguage=new Spanish()
   def reset(){
     cpu.reset()
     //memory.reset()
@@ -242,7 +244,7 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       val instruction = instructions(cpu.ip)
       Right(instruction)
     } else {
-      val message="Attempting to interpretate a random memory cell as an instruction. Check that your program contains all the HLT instructions necessary."
+      val message=language.memoryCellAsInstruction
       Left(GeneralExecutionError(message))
     }
   }
@@ -288,9 +290,14 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     cpu.halted=true
     state=SimulatorExecutionError(executionError)
   }
-  def stopExecutionForError(e:MemoryAccessViolation,i:InstructionInfo){
-    val message=s"Memory address ${e.address} is marked as read-only. It is likely you are attempting to modify a memory cell where part of an instruction is stored."    
+  
+  def stopExecutionForError(reason:String,i:InstructionInfo){
+    val message=language.instructionErrorMessage(i)+"\n"+language.reason+"\n"+reason
     stopExecutionForError(new InstructionExecutionError(message,i))
+  }
+  def stopExecutionForError(e:MemoryAccessViolation,i:InstructionInfo){
+    val message=language.modifyingReadOnlyMemory(e.address)
+    stopExecutionForError(message,i)
   }
   def setSpecialRegisters(i:Instruction){
     var encoding=Simulator.encode(i)
@@ -411,22 +418,22 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
         checkUpdateResult(update(o, a),i)
       }
       case Sti=>{
-         stopExecutionForError("Sti not implemented.")
+         stopExecutionForError(language.instructionNotImplemented("sti"))
       }
       case Cli=>{
-         stopExecutionForError("Cli not implemented.")
+         stopExecutionForError(language.instructionNotImplemented("cli"))
       }
       case In(reg,v) =>{
-         stopExecutionForError("In not implemented.")
+         stopExecutionForError(language.instructionNotImplemented("in"))
       }
       case Out(reg,v) =>{
-         stopExecutionForError("Out not implemented.")
+         stopExecutionForError(language.instructionNotImplemented("out"))
       }
       case IntN(n) =>{
-         stopExecutionForError("Int N not implemented.")
+         stopExecutionForError(language.instructionNotImplemented("int n"))
       }
-      case _ => {
-        stopExecutionForError("Unknown instruction")
+      case other => {
+        stopExecutionForError(language.instructionNotImplemented(other.toString()))
       }
     }
 
@@ -483,5 +490,5 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       case WordIndirectMemoryAddress  => memory.setByte(cpu.get(BX).toInt, v)
     }
   }
-
+    
 }

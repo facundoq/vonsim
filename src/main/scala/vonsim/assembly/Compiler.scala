@@ -54,13 +54,16 @@ object Compiler {
   type ParsingResult = List[Either[CompilationError, parser.Instruction]]
   var defaultLanguage:CompilerLanguage=new English()
   
+  def setLanguage(c:CompilerLanguage){
+    defaultLanguage=c
+    Lexer.compilerLanguage=c
+    parser.Parser.compilerLanguage=c
+  }
+  
   def apply(code: String,compilerLanguage:CompilerLanguage=defaultLanguage): CompilationResult = {
-    
-    Lexer.compilerLanguage=compilerLanguage
-    parser.Parser.compilerLanguage=compilerLanguage
-    
-    val instructions = code.split("(\r\n)|\r|\n")
-    var optionTokens = instructions map { Lexer(_) }
+    setLanguage(compilerLanguage)
+    val rawInstructions = code.split("(\r\n)|\r|\n")
+    var optionTokens = rawInstructions map { Lexer(_) }
     //optionTokens.foreach(f => println(f))
 
     val fixedTokens = Lexer.fixLineNumbers(optionTokens)
@@ -77,11 +80,11 @@ object Compiler {
 //    println("Compiler: parsed instructions")
 //    parsedInstructions.foreach(f => println(f))
     
-    val compilation = transformToSimulatorInstructions(parsedInstructions)
+    val compilation = transformToSimulatorInstructions(parsedInstructions,rawInstructions)
     compilation
   }
 
-  def transformToSimulatorInstructions(instructions: ParsingResult): CompilationResult = {
+  def transformToSimulatorInstructions(instructions: ParsingResult,rawInstructions:Array[String]): CompilationResult = {
     if (instructions.isEmpty) {
       return Left(new FailedCompilation(List(), List(GlobalError(Option.empty, "Empty program. Missing END statement"))))
     }
@@ -108,7 +111,7 @@ object Compiler {
 
     //Transform from parser.Instruction to simulator.Instruction 
     // Note that at this point the jump and memory addresses are actually dummy values    
-    val firstPassResult = unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x, firstPassResolver))
+    val firstPassResult = compileInstructions(unlabeledInstructions,firstPassResolver,rawInstructions)  
     
     if (firstPassResult.allRight && globalErrors.isEmpty) {
       //      println(s"Instructions $r")
@@ -124,7 +127,8 @@ object Compiler {
       //println("Memory"+memory)
       //println("Vardef address" + vardefLineToAddress)
       //println("executable" + executableLineToAddress)
-      val secondPassResult= unlabeledInstructions.mapRightEither(x => parserToSimulatorInstruction(x,secondPassResolver))
+      val secondPassResult = compileInstructions(unlabeledInstructions,secondPassResolver,rawInstructions)
+
       val secondPassInstructions=secondPassResult.rights()
 
       val (variablesMemory,instructionsMemory ) = getMemory(secondPassInstructions,secondPassResolver.executableLineToAddress)
@@ -134,6 +138,16 @@ object Compiler {
     } else {
       Left(new FailedCompilation(firstPassResult, globalErrors.toList))
     }
+  }
+  def compileInstructions(instructions:ParsingResult,resolver:Resolver,rawInstructions:Array[String])={
+    instructions.mapRightEither(x => {
+      val compiled=parserToSimulatorInstruction(x,resolver)
+      val line=x.location.line
+      compiled.right.map(i =>new InstructionInfo(line,i,rawInstructions(line)))
+      
+
+    })
+    
   }
 
   def checkRepeatedEnds(ins: ParsingResult) = {
@@ -274,7 +288,7 @@ object Compiler {
     })
   }
 
-  def parserToSimulatorInstruction(i: parser.Instruction,resolver:Resolver): Either[CompilationError, simulator.InstructionInfo] = {
+  def parserToSimulatorInstruction(i: parser.Instruction,resolver:Resolver): Either[CompilationError, simulator.Instruction] = {
 //    println(s"Transforming $i")
     val zeroary = Map(parser.Popf() -> Popf, parser.Pushf() -> Pushf, parser.Hlt() -> Hlt, parser.Nop() -> Nop, parser.IRet() -> Iret, parser.Ret() -> Ret, parser.Cli() -> Cli, parser.Sti() -> Sti, parser.End() -> End)
     i match {
@@ -356,7 +370,7 @@ object Compiler {
   }
 
   def successfulTransformation[T](x: parser.Instruction, y: Instruction) = {
-    Right[T, InstructionInfo](new InstructionInfo(x.pos.line, y))
+    Right[T, Instruction](y)
   }
   
   def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Operand, y: lexer.Operand, resolver:Resolver): Either[SemanticError, BinaryOperands] = {
