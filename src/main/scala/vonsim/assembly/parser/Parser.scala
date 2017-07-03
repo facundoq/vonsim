@@ -108,15 +108,17 @@ object Parser extends Parsers {
   }
   def vardef = positioned {
     val ints= (identifier ~ (DB() | DW() ) ~ varDefInts  )  ^^ {
-      case IDENTIFIER(id)~ (t:VarType) ~ (e:List[Expression]) => VarDef(id,t,e.map(Right(_)))}
+      case IDENTIFIER(id)~ (t:VarType) ~ (e:List[Either[Undefined.type,Expression]]) => VarDef(id,t,e)}
     val str = (identifier ~ DB() ~ literalString ) ^^ {case IDENTIFIER(id)~ DB() ~ LITERALSTRING(s) => VarDef(id,DB(),stringToIntList(s))}
-    val empty = (identifier ~ (DB() | DW() ) ~ UNINITIALIZED()) ^^ {case IDENTIFIER(id)~ (t:VarType) ~ UNINITIALIZED() => VarDef(id,t,List(Left(Undefined)))}
-    str | ints | empty
+    str | ints 
   }
   
   def stringToIntList(s:String)=s.map( (c:Char) => Right(ConstantExpression(c.charValue().toInt))).toList
   
-  def varDefInts = rep1sep(expression, COMMA())
+  //
+  def varDefValue = (expression ^^ {case e => Right(e)} | UNINITIALIZED() ^^ {case u => Left(Undefined)})
+
+  def varDefInts = rep1sep(varDefValue, COMMA()) 
   
   
   def conditionalJump = positioned {
