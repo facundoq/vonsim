@@ -10,9 +10,18 @@ class UnaryOperandUpdatable extends UnaryOperand
 
 class MemoryOperand extends UnaryOperandUpdatable 
 
-trait DirectMemoryAddressOperand extends MemoryOperand
-case class DWordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  with DWordOperand 
-case class WordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  with WordOperand
+trait DirectMemoryAddressOperand extends MemoryOperand{
+  def asDWord:DWordMemoryAddress
+  def asWord:WordMemoryAddress
+}
+case class DWordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  with DWordOperand{
+  def asWord=WordMemoryAddress(address)
+  def asDWord=this
+}
+case class WordMemoryAddress(address:Int) extends DirectMemoryAddressOperand  with WordOperand{
+  def asWord=this
+  def asDWord=DWordMemoryAddress(address)
+}
 
 trait IndirectMemoryAddressOperand extends MemoryOperand
 // TODO this is a hack. never use UndefinedIndirectMemoryAddress directly: it is only used by the compiler

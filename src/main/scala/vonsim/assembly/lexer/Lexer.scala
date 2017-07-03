@@ -89,7 +89,7 @@ object Lexer extends RegexParsers {
   def tokenList= rep1seps(token,separators)
   def separators=whitespace | comma | expression 
 
-  def whitespace=positioned {"[ :]+".r ^^ { str => WHITESPACE()}}
+  def whitespace=positioned {"[ \\t:]+".r ^^ { str => WHITESPACE()}}
   def extraWhitespace=positioned {"[\\t ]*".r ^^ { str => WHITESPACE()}}
   
   def token= {
@@ -206,17 +206,15 @@ def offsetLabel= positioned {
 
 def fixLineNumbers(a: Array[Either[LexerError, List[Token]]])={
     a.indices.map(i => {
-      var eitherList = a(i)
-      if (eitherList.isRight) {
-        var list = eitherList.right.get
+      a(i) match{
+        case Right(list) =>
         var fixedList = list.map(token => {
           var p = new VonemuPosition(i+1, token.pos.column, "")
           token.pos=p
           token
         })
         Right(fixedList)
-      }else{
-        eitherList
+      case Left(LexerError(p,m)) => Left(LexerError(Location(i+1,p.column),m))
       }
     }).toArray
   }

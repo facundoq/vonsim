@@ -39,6 +39,7 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   editor.setValue(defaultCode)
   session.setUseSoftTabs(true)
   session.setUseWorker(false)
+  
   editor.clearSelection()
   editor.container.classList.add("ace_editor_container")
   editor.renderer.setShowGutter(true)
@@ -59,6 +60,11 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   //    println("keydown")
   //    keyTyped()
   //  }
+  
+  def setCode(c:String){
+    val cp=editor.getCursorPosition()
+    editor.setValue(c, cp.row)
+  }
   def removeAllMarkers(){
     val s=editor.getSession()
     markers.foreach(m => s.removeMarker(m))

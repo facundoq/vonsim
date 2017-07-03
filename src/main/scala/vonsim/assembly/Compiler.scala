@@ -27,6 +27,8 @@ import vonsim.assembly.parser.LabelExpression
 import vonsim.assembly.parser.OffsetLabelExpression
 import vonsim.assembly.i18n.CompilerLanguage
 import vonsim.assembly.i18n.English
+import scala.util.Random
+import vonsim.assembly.lexer.DB
 
 object Compiler {
 
@@ -53,10 +55,11 @@ object Compiler {
   var defaultLanguage:CompilerLanguage=new English()
   
   def apply(code: String,compilerLanguage:CompilerLanguage=defaultLanguage): CompilationResult = {
+    
     Lexer.compilerLanguage=compilerLanguage
     parser.Parser.compilerLanguage=compilerLanguage
     
-    val instructions = code.split("\n")
+    val instructions = code.split("(\r\n)|\r|\n")
     var optionTokens = instructions map { Lexer(_) }
     //optionTokens.foreach(f => println(f))
 
@@ -309,7 +312,14 @@ object Compiler {
           })
 
       case x: parser.VarDef => {
-        val optionValues = x.values.map(ComputerWord.minimalWordFor)
+        val values = x.values.map(_ match{
+          case Right(e) => resolver.expression(e)
+          case Left(u) => new Random().nextInt(x.t match {
+            case t:lexer.DB => 256
+            case t:lexer.DW => 65536
+          })
+        })
+        val optionValues = values.map(ComputerWord.minimalWordFor)
         if (optionValues.map(_.isEmpty).fold(false)(_ || _)) {
           semanticError(x, "Some values are too small or too large.")
         } else {
@@ -361,18 +371,24 @@ object Compiler {
     (op1, op2) match {
       case (r: FullRegister, x: FullRegister)            => Right(DWordRegisterRegister(r, x))
       case (r: HalfRegister, x: HalfRegister)            => Right(WordRegisterRegister(r, x))
+      
       case (r: HalfRegister, x: WordValue)               => Right(WordRegisterValue(r, x))
       case (r: FullRegister, x: WordValue)               => Right(DWordRegisterValue(r, DWordValue(x.v)))
       case (r: FullRegister, x: DWordValue)              => Right(DWordRegisterValue(r, x))
-      case (r: HalfRegister, x: WordMemoryAddress)       => Right(WordRegisterMemory(r, x))
-      case (r: FullRegister, x: DWordMemoryAddress)      => Right(DWordRegisterMemory(r, x))
+      
+      case (r: HalfRegister, x: DirectMemoryAddressOperand)       => Right(WordRegisterMemory(r, x.asWord))
+      case (r: FullRegister, x: DirectMemoryAddressOperand)      => Right(DWordRegisterMemory(r, x.asDWord))
+      
       case (r: HalfRegister, WordIndirectMemoryAddress)  => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
       case (r: FullRegister, DWordIndirectMemoryAddress) => Right(DWordRegisterIndirectMemory(r, DWordIndirectMemoryAddress))
       case (r: HalfRegister, UndefinedIndirectMemoryAddress)  => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
       case (r: FullRegister, UndefinedIndirectMemoryAddress) => Right(DWordRegisterIndirectMemory(r, DWordIndirectMemoryAddress))
       
-      case (r: DWordMemoryAddress, x: FullRegister)      => Right(DWordMemoryRegister(r, x))
-      case (r: WordMemoryAddress, x: HalfRegister)       => Right(WordMemoryRegister(r, x))
+      case (r:DirectMemoryAddressOperand, x:FullRegister)=> Right(DWordMemoryRegister(r.asDWord, x))
+      case (r:DirectMemoryAddressOperand, x:HalfRegister)=> Right(WordMemoryRegister(r.asWord, x))
+      
+//      case (r: DWordMemoryAddress, x: FullRegister)      => Right(DWordMemoryRegister(r, x))
+//      case (r: WordMemoryAddress, x: HalfRegister)       => Right(WordMemoryRegister(r, x))
       case (r: WordMemoryAddress, x: WordValue)          => Right(WordMemoryValue(r, x))
       case (r: DWordMemoryAddress, x: WordValue)         => Right(DWordMemoryValue(r, DWordValue(x.v)))
       case (r: DWordMemoryAddress, x: DWordValue)        => Right(DWordMemoryValue(r, x))

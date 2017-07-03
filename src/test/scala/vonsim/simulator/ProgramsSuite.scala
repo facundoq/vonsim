@@ -94,7 +94,9 @@ end"""
    test("all syntax supported") {
      val program = 
 """
-  
+const EQU 12
+const2 EQU  const+1
+
 org 1000h
 
 inta db 1,2,3,4
@@ -104,6 +106,9 @@ uninitialized db ?
 uninitialized2 dW ?
 asd db "hola"
 zzz db "chau"
+num1 dw 5h
+num2 db 3h
+res dw ?
 
 org 1500h
 vardb db 1
@@ -142,6 +147,19 @@ HOLA:    mov ax, 25AH
 ;    in al,PIC ; not implemented yet!
 ;    in al,123 ; not implemented yet!
 ;    out ax,dx ; not implemented yet!
+
+    mov ax,num1
+	mov ax,num2
+	mov ax,(2+3)-5+offset res
+	mov ax,num2+3
+	mov ax,offset num2+3
+	mov ax,const+2
+	mov ax,const2+num2+offset num2
+	mov bx, offset num1
+	mov [bx],ax
+	mov [bx],al
+	mov WORD PTR [bx],2
+	mov BYTE PTR [bx],255
     jc hola
     
 org 1000

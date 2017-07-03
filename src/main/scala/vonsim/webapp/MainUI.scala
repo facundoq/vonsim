@@ -139,6 +139,7 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends Von
   
   def compile(){
     val codeString = editorUI.getCode()
+    println("MainUI:Code String:"+codeString)
     s.c= Compiler(codeString)
     compilationEvent()
   }
