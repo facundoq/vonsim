@@ -41,17 +41,17 @@ abstract class InstructionSemanticError(i:parser.Instruction) extends SemanticEr
   def location=i.location
 }
 case class MemoryMemoryReferenceError(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="Both operands access memory. Cannot access two memory locations in the same instruction."
+  def msg=Compiler.language.memoryMemory
 }
 
 case class IndirectPointerTypeUndefined(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="Indirect addressing with an immediate operand requires specifying the type of pointer with WORD PTR or BYTE PTR before [BX]."
+  def msg=Compiler.language.indirectPointerTypeUndefined
 }
 case class WordDWordOperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="The second operand needs 16 bits to be encoded, but the first one only has 8 bits."
+  def msg=Compiler.language.WordDWordOperands 
 }
 case class DWordWordOperandSizeMismatchError(i:parser.Instruction) extends InstructionSemanticError(i){
-  def msg="The second operand needs only 8 bits to be encoded, but the first operand has 16 bits, so it is not clear if you want to set the first or last 8 bits."
+  def msg=Compiler.language.DWordWordOperands 
 }
 
 case class GenericSemanticError(p:Positional,msg:String) extends SemanticError{

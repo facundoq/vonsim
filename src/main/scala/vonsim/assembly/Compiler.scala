@@ -118,7 +118,7 @@ object Compiler {
       val firstPassInstructions = firstPassResult.rights
       val warnings = ListBuffer[Warning]()
       if (firstPassInstructions.filter(_.instruction == Hlt).isEmpty) {
-        val hltWarning = (0, "No Hlt instructions found.")
+        val hltWarning = (0, language.noHltInstructionsWarning)
         warnings += hltWarning
       }
       
@@ -155,7 +155,7 @@ object Compiler {
     ins.mapRightEither(_ match {
       case end: parser.End => {
         if (end.pos.line < lastLine) { // 
-          semanticError(end, "There should be only one END, and it should be the last instruction.")
+          semanticError(end, language.onlyOneEnd)
         } else { // leave End if it is the last instruction
           Right(end)
         }
@@ -174,7 +174,7 @@ object Compiler {
     val graph =makeGraph(ins)
     val loopyLabels=loopyEquStatements(graph)
     ins.mapRightEither(_ match{
-      case x@parser.EQUDef(l,e) => if (loopyLabels.contains(l)) semanticError(x,s"Loops detected in EQU statement references.") else Right(x) 
+      case x@parser.EQUDef(l,e) => if (loopyLabels.contains(l)) semanticError(x,language.loopsInEqu) else Right(x) 
       case other => Right(other)
     })
     
@@ -221,7 +221,7 @@ object Compiler {
     ins.mapRightEither(_ match {
       case x: parser.LabelDefinition => {
         if (labelCounts(x.label) > 1) {
-          semanticError(x, s"Label ${x.label} has multiple definitions")
+          semanticError(x, language.labelWithMultipleDefinitions(x.label))
         } else {
           Right(x)
         }
@@ -239,7 +239,7 @@ object Compiler {
           case Left(x) => Left(x)
           case Right(x) => {
             if ((i < firstOrg || firstOrg == -1) && (!x.isInstanceOf[parser.NonAddressableInstruction])) {
-              semanticError(x, "No ORG before this instruction; cannot determine memory address.")
+              semanticError(x, language.noOrg)
             } else {
               Right(x)
             }
@@ -303,7 +303,7 @@ object Compiler {
             case x: parser.UnconditionalJump => Jump(resolver.jumpLabelAddress(x.label))
           })
         } else {
-          semanticError(x, s"Label ${x.label} undefined")
+          semanticError(x, language.labelUndefined(x.label))
         }
       }
       case x: parser.Stack => successfulTransformation(x, x.i match {
@@ -322,7 +322,8 @@ object Compiler {
         parserToSimulatorOperand(x.m, resolver).right.flatMap(
           _ match {
             case operand: UnaryOperandUpdatable => successfulTransformation(x, ALUUnary(unaryOperations(x.op), operand))
-            case other                          => semanticError(x, s"Operand $other is not updatable")
+            case o:ImmediateOperand             => semanticError(x, language.immediateOperandsNotUpdatable(o.toString()) )
+            case other                          => semanticError(x, language.operandNotUpdatable(other.toString()) )
           })
 
       case x: parser.VarDef => {
@@ -335,13 +336,13 @@ object Compiler {
         })
         val optionValues = values.map(ComputerWord.minimalWordFor)
         if (optionValues.map(_.isEmpty).fold(false)(_ || _)) {
-          semanticError(x, "Some values are too small or too large.")
+          semanticError(x, language.dontFitIn16Bits)
         } else {
           val values = optionValues.filter(_.isDefined).map(_.get)
           x.t match {
             case t: lexer.DB => {
               if (!values.map(_.isInstanceOf[Word]).fold(true)(_ && _)) {
-                semanticError(x, "Some values do not fit into an 8 bit representation.")
+                semanticError(x, language.dontFitIn8Bits)
               } else {
                 successfulTransformation(x, WordDef(x.label, resolver.vardefLabelAddress(x.label), values.asInstanceOf[List[Word]]))
               }
@@ -359,11 +360,11 @@ object Compiler {
         if (undefinedLabels.isEmpty){
           successfulTransformation(x, EQUDef(x.label,resolver.expression(x.expression)))
         }else{
-          semanticError(x,s"Labels ${undefinedLabels.mkString(", ")} are undefined")
+          semanticError(x,language.labelsUndefined(undefinedLabels))
         }
         
       }
-      case other => semanticError(other, "Not Supported:" + other)
+      case other => semanticError(other, language.instructionNotSupported(other.toString()))
 
     }
 
@@ -421,7 +422,7 @@ object Compiler {
       case (r: MemoryOperand, x: MemoryOperand)          => Left(MemoryMemoryReferenceError(i))
       case (r: WordOperand, x: DWordOperand)             => Left(WordDWordOperandSizeMismatchError(i))
       case (r: DWordOperand, x: WordOperand)             => Left(DWordWordOperandSizeMismatchError(i))
-      case other                                         => semanticError(i, "Invalid operands.")
+      case other                                         => semanticError(i, language.invalidOperands)
     }
 
   }
@@ -442,13 +443,13 @@ object Compiler {
           ComputerWord.bytesFor(v) match {
             case 1 => Right(WordValue(v))
             case 2 => Right(DWordValue(v))
-            case _ => semanticError(e, s"The number ${v} cannot be represented with 8 or 16 bits")
+            case _ => semanticError(e, language.dontFitIn16Bits(v))
           }
         }
         def valueToMemoryAddress(v:Integer)={
           
           resolver.memoryExpressionType(e) match{
-            case None => semanticError(e,s"Cannot determine type of memory reference")
+            case None => semanticError(e,language.cannotDetermineMemoryReferenceType)
             case Some(varType) => Right(varType match {
               case lexer.DB() => WordMemoryAddress(v)
               case lexer.DW() => DWordMemoryAddress(v)
@@ -466,11 +467,11 @@ object Compiler {
             valueToWord(expressionValue)
           }
         }else{
-          semanticError(e,s"Labels $undefinedLabels are undefined")
+          semanticError(e,language.labelsUndefined(undefinedLabels))
         }
       }
       
-      case x: lexer.LITERALSTRING => semanticError(x, s"Cannot use literal strings as inmediate operands (${x.str})")
+      case x: lexer.LITERALSTRING => semanticError(x, language.literalStringsAsImmediate(x.str) )
       // TODO remove UndefinedIndirectMemoryAddress and use hints to remove its need
       case x: lexer.INDIRECTBX    => Right(UndefinedIndirectMemoryAddress)
       case x: lexer.WORDINDIRECTBX    => Right(WordIndirectMemoryAddress)
