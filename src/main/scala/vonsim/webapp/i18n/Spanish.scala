@@ -11,6 +11,8 @@ class Spanish extends UILanguage {
   def pageTitle="Un simulador de la arquitectura 8088"
   def pageTitleExtended="Un simulador simplificado de la arquitectura 8088, similar al MSX88"
   
+  def alertURLNotFound(url:String)="No se pudo cargar la URL "+url
+  
   def helpGithubPage="Github"
   def helpReportIssue="Reportar error"
   def helpIntendedFor="Este simulador fue diseñado para su uso en las siguientes asignaturas de la Universidad Nacional de La Plata:"

@@ -33,7 +33,10 @@ import vonsim.webapp.i18n.UILanguage
 import vonsim.assembly.i18n.CompilerLanguage
 import vonsim.simulator.i18n.SimulatorLanguage
 
-            
+
+class Languages(val uiLanguage:UILanguage,val compilerLanguage:CompilerLanguage,val simulatorLanguage:SimulatorLanguage){
+  
+}
 
 object Main extends JSApp {
 
@@ -53,7 +56,8 @@ object Main extends JSApp {
 
   
   def main(): Unit = {
-    
+    val languageCode=getLanguageCode()
+    val languages=getLanguages(languageCode)    
     val parameters = getParameters()
 
     if (parameters.keySet.contains(codeURLKey)){
@@ -65,20 +69,20 @@ object Main extends JSApp {
       val promise=Ajax.get(url,timeout=5000,headers=headers,responseType="text")
       promise.onSuccess{ 
         case xhr =>
-          initializeUI(xhr.responseText)
+          initializeUI(xhr.responseText,languages)
       }
       promise.onFailure{
         case xhr =>
-          initializeUI(defaultCode)
-          dom.window.alert("Could not load URL "+url+"\n")
+          initializeUI(defaultCode,languages)
+          dom.window.alert(languages.uiLanguage.alertURLNotFound(url))
       }
       
     }else{
       val lastCode=dom.window.localStorage.getItem(saveCodeKey)
       if (lastCode!=null){
-        initializeUI(lastCode)
+        initializeUI(lastCode,languages)
       }else{
-        initializeUI(defaultCode)
+        initializeUI(defaultCode,languages)
       }
     }
     
@@ -87,17 +91,15 @@ object Main extends JSApp {
   var ui:MainUI=null
   var s:VonSimState=null
   
-  def initializeUI(initialCode:String){
-    val languageCode=getLanguageCode()
+  def initializeUI(initialCode:String,l:Languages){
     
     val compilationResult=Compiler(initialCode)
 
-    val (uiLanguage,compilerLanguage,simulatorLanguage)=getLanguages(languageCode)
-    Compiler.defaultLanguage=compilerLanguage
+    Compiler.language=l.compilerLanguage
     val simulator=Simulator.Empty()
-    simulator.language=simulatorLanguage
+    simulator.language=l.simulatorLanguage
     
-    var s=new VonSimState(simulator,compilationResult,uiLanguage)
+    var s=new VonSimState(simulator,compilationResult,l.uiLanguage)
     
     ui = new MainUI(s,initialCode,saveCodeKey)
     document.body.appendChild(ui.root)
@@ -105,7 +107,7 @@ object Main extends JSApp {
     setTimeout(2000)({ui.editorUI.editor.resize(true)})
   }
   def getLanguageCode():String={
-      println(dom.window.navigator.language)
+      println("Detected language: "+dom.window.navigator.language)
       var language=dom.window.localStorage.getItem(cookieLanguageKey)
       if (language==null){
          if (dom.window.navigator.language != null && dom.window.navigator.language.trim() != ""){
@@ -130,7 +132,7 @@ object Main extends JSApp {
     val uiLanguage=languageCodeToObject(UILanguage.codes, language)
     val compilerLanguage=languageCodeToObject(CompilerLanguage.codes, language)
     val simulatorLanguage=languageCodeToObject(SimulatorLanguage.codes, language)
-    (uiLanguage,compilerLanguage,simulatorLanguage)
+    new Languages(uiLanguage,compilerLanguage,simulatorLanguage)
   }
   
 

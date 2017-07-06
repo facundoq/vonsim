@@ -59,6 +59,7 @@ abstract class UILanguage {
   
   def describeInstruction(i:Instruction):String
   def describeMemoryCell(address:Int,value:Word):String
+  def alertURLNotFound(url:String):String
   
   
   def formatIOAddress(a:Int)={

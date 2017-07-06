@@ -14,4 +14,6 @@ abstract class CompilerLanguage {
   def label:String
   def offsetLabel:String
   def equLabel:String
+  def emptyProgram:String
+  def missingEnd:String
 }

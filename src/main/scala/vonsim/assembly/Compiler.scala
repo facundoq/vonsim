@@ -52,15 +52,15 @@ object Compiler {
   type Warning = (Line, String)
   type Line = Int
   type ParsingResult = List[Either[CompilationError, parser.Instruction]]
-  var defaultLanguage:CompilerLanguage=new English()
+  var language:CompilerLanguage=new English()
   
   def setLanguage(c:CompilerLanguage){
-    defaultLanguage=c
+    language=c
     Lexer.compilerLanguage=c
     parser.Parser.compilerLanguage=c
   }
   
-  def apply(code: String,compilerLanguage:CompilerLanguage=defaultLanguage): CompilationResult = {
+  def apply(code: String,compilerLanguage:CompilerLanguage=language): CompilationResult = {
     setLanguage(compilerLanguage)
     val rawInstructions = code.split("(\r\n)|\r|\n")
     var optionTokens = rawInstructions map { Lexer(_) }
@@ -86,14 +86,14 @@ object Compiler {
 
   def transformToSimulatorInstructions(instructions: ParsingResult,rawInstructions:Array[String]): CompilationResult = {
     if (instructions.isEmpty) {
-      return Left(new FailedCompilation(List(), List(GlobalError(Option.empty, "Empty program. Missing END statement"))))
+      return Left(new FailedCompilation(List(), List(GlobalError(Option.empty, language.emptyProgram))))
     }
     var ins = instructions
     val globalErrors = mutable.ListBuffer[GlobalError]()
 
     // check final end
     if (!(instructions.last.isRight && instructions.last.right.get.isInstanceOf[parser.End])) {
-      globalErrors += GlobalError(Option.empty, "Missing END statment")
+      globalErrors += GlobalError(Option.empty, language.missingEnd)
     }
     ins = checkRepeatedEnds(ins)
     ins = checkRepeatedLabels(ins)

@@ -13,5 +13,6 @@ class English extends CompilerLanguage{
   def integerLiteral="number literal"
   def offsetLabel="offset <label>"
   def equLabel="equ's label"
-  
+  def emptyProgram="Empty program. The program must have, at least, an END statement"
+  def missingEnd="Missing END statment"
 }

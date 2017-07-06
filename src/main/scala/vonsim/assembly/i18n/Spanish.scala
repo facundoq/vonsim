@@ -12,5 +12,6 @@ class Spanish extends CompilerLanguage{
   def integerLiteral="número literal"
   def offsetLabel="offset <etiqueta>"
   def equLabel="etiqueta del equ"
-  
+  def emptyProgram="El programa no contiene instrucciones. Debe tener, como mínimo, una sentencia END."
+  def missingEnd="Falta una sentencia END para terminar el programa."
 }
