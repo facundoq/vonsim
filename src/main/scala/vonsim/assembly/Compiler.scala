@@ -459,7 +459,7 @@ object Compiler {
         
         val expressionValue=resolver.expression(e)
         val undefinedLabels=resolver.undefinedLabels(e)
-//        println(s"Compiler:Undefined labels = $undefinedLabels for expression $e")
+//        println(s"WORD PTRCompiler:Undefined labels = $undefinedLabels for expression $e")
         if (undefinedLabels.isEmpty){
           if (resolver.isMemoryExpression(e)){
             valueToMemoryAddress(expressionValue)

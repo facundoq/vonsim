@@ -391,6 +391,7 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       }
       
       case Mov(os: WordBinaryOperands) => {
+//        println(s"Updating operand ${os.o1} with ${os.o2}")
         checkUpdateResult(update(os.o1, get(os.o2)),i) 
       }
       case Mov(os: DWordBinaryOperands) => {
@@ -479,11 +480,12 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
     o match {
       case WordMemoryAddress(address) => memory.getByte(address)
       case r: HalfRegister            => cpu.get(r)
-      case v: WordValue              => Word(v.v)
+      case v: WordValue               => Word(v.v)
       case WordIndirectMemoryAddress  => memory.getByte(cpu.get(BX).toInt)
     }
   }
   def update(o: WordOperand, v: Word) ={
+//    println(s"Updating operand $o with $v")
     o match {
       case WordMemoryAddress(address) => memory.setByte(address, v)
       case r: HalfRegister            => {cpu.set(r, v); None}

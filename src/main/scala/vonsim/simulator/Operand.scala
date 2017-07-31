@@ -123,7 +123,7 @@ abstract class DWordBinaryOperands extends BinaryOperands{
 case class DWordRegisterRegister(o1:FullRegister,o2:FullRegister) extends DWordBinaryOperands
 case class WordRegisterRegister(o1:HalfRegister,o2:HalfRegister) extends WordBinaryOperands
 case class DWordRegisterIndirectMemory(o1:FullRegister,o2:DWordIndirectMemoryAddress.type) extends DWordBinaryOperands
-case class WordRegisterIndirectMemory(o2:HalfRegister,o1:WordIndirectMemoryAddress.type) extends WordBinaryOperands
+case class WordRegisterIndirectMemory(o1:HalfRegister,o2:WordIndirectMemoryAddress.type) extends WordBinaryOperands
 case class DWordRegisterMemory(o1:FullRegister,o2:DWordMemoryAddress) extends DWordBinaryOperands
 case class WordRegisterMemory(o1:HalfRegister,o2:WordMemoryAddress) extends WordBinaryOperands
 case class DWordRegisterValue(o1:FullRegister,o2:DWordValue) extends DWordBinaryOperands

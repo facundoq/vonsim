@@ -27,6 +27,34 @@ class SimulatorSuite extends FunSuite {
    new Simulator(cpu,memory,instructionsToProgram(instructions,cpu.ip))
   }
   
+  test("indirect addressing") {
+    
+    val address=1000
+    val value=5
+    val newValue=3
+    val instructions=List(
+       new Mov(new DWordMemoryValue(DWordMemoryAddress(address),new DWordValue(value))) 
+       ,new Mov(new DWordRegisterValue(BX,new DWordValue(address)))
+       ,new Mov(new WordIndirectMemoryValue(WordIndirectMemoryAddress,new WordValue(newValue)))
+       ,new Mov(new WordRegisterIndirectMemory(AL,WordIndirectMemoryAddress))
+       ,Hlt
+       )
+    val s=simulator(instructions)
+    s.stepInstruction()
+    assertResult(value)(s.memory.getByte(address).toInt)
+    s.stepInstruction()
+    assertResult(address)(s.cpu.get(BX).toInt)
+    s.stepInstruction()
+    assertResult(newValue)(s.memory.getByte(address).toInt)
+//    println("*** indirect adressing ***")
+    s.stepInstruction()
+//    println("*** indirect adressing ***")
+    assertResult(newValue)(s.cpu.get(AL).toInt)
+    s.stepInstruction()
+    assert(s.cpu.halted)
+    
+  }
+  
   test("3+2=5 register") {
     val instructions=List(
        new Mov(new DWordRegisterValue(AX,new DWordValue(3)))

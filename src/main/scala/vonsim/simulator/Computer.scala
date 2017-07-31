@@ -293,12 +293,16 @@ class CPU {
   }
 
   def set(r: HalfRegister, v: Word) {
+//    println(s"Setting $r to $v")
     r match {
       case r: LowRegister  => set(r.full, DWord(v, get(r.high)))
       case r: HighRegister => set(r.full, DWord(get(r.low), v))
     }
   }
-  def set(r:HalfRegister,v:Int){ set(r,Word(v))}
+  def set(r:HalfRegister,v:Int){
+//    println(s"Setting $r to $v")
+    set(r,Word(v))
+    }
 
 }
 
