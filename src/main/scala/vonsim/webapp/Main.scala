@@ -32,6 +32,7 @@ import vonsim.webapp.i18n.Spanish
 import vonsim.webapp.i18n.UILanguage
 import vonsim.assembly.i18n.CompilerLanguage
 import vonsim.simulator.i18n.SimulatorLanguage
+import vonsim.webapp.tutorials.BasicTutorial
 
 
 class Languages(val uiLanguage:UILanguage,val compilerLanguage:CompilerLanguage,val simulatorLanguage:SimulatorLanguage){
@@ -100,8 +101,9 @@ object Main extends JSApp {
     simulator.language=l.simulatorLanguage
     
     var s=new VonSimState(simulator,compilationResult,l.uiLanguage)
+    val tutorial=new BasicTutorial()
     
-    ui = new MainUI(s,initialCode,saveCodeKey)
+    ui = new MainUI(s,initialCode,saveCodeKey,Some(tutorial))
     document.body.appendChild(ui.root)
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)})

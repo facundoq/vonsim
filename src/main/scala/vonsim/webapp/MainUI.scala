@@ -2,7 +2,7 @@
 package vonsim.webapp
 import vonsim.utils.CollectionUtils._
 import scalatags.JsDom.all._
-import org.scalajs.dom.html._
+//import org.scalajs.dom.html._
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom
 import scala.scalajs.js
@@ -33,23 +33,35 @@ import com.scalawarrior.scalajs.ace.IEditSession
 import vonsim.assembly.CompilationError
 import vonsim.simulator.InstructionInfo
 import vonsim.assembly.Compiler.CompilationResult
+import vonsim.webapp.tutorials.Tutorial
 
 
 
-class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String) extends VonSimUI(s) {
+class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Option[Tutorial]) extends VonSimUI(s) {
   
   println("Setting up UI..")
   val editorUI = new EditorUI(s, defaultCode, () => {
    saveCode()
-   compile()   
+   compile()
   })
  
   
   
   val mainboardUI = new MainboardUI(s)
   val headerUI=new HeaderUI(s)
+  val tutorialContainer=span().render
+  tutorial match {
+    case None =>
+    case Some(t) => {
+      val tutorialUI=new TutorialUI(s,t)
+      tutorialContainer.appendChild(tutorialUI.root)
+    }
+  }
+  
   val sim = div(id := "main",
-      editorUI.root,
+    div(id:="leftWrap"
+        ,tutorialContainer
+        ,editorUI.root),
     mainboardUI.root).render
 
   val root = div(id := "pagewrap"
