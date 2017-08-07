@@ -22,6 +22,7 @@ object Tutorial{
 }
 abstract class Tutorial{
   def steps:List[TutorialStep]
+  def initialCode:String
   def title:String
   def id:String
   var step=0

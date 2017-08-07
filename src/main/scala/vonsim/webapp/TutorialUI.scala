@@ -98,6 +98,7 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   
   
   def startTutorial(){
+    mainUI.editorUI.setCode(tutorial.initialCode)
     displayTutorialStep()  
   }
   def displayTutorialStep(){
