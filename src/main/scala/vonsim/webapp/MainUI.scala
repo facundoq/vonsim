@@ -36,6 +36,19 @@ import vonsim.assembly.Compiler.CompilationResult
 import vonsim.webapp.tutorials.Tutorial
 
 
+object UIConfig{
+  def apply(disableEditor:Boolean=false,disableMainboard:Boolean=false,disableControls:Boolean=false)={
+    new UIConfig(disableEditor,disableMainboard,disableControls)
+  }
+  def enableAll=new UIConfig(false,false,false)
+  def disableAll=new UIConfig(true,true,true)
+  def disableAllButMainboard=new UIConfig(true,false,true)
+  def disableAllButEditor=new UIConfig(false,true,true)
+  def disableAllButControls=new UIConfig(true,true,false)
+}
+class UIConfig(val disableEditor:Boolean,val disableMainboard:Boolean, val disableControls:Boolean){
+  
+}
 
 class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Option[Tutorial]) extends VonSimUI(s) {
   
@@ -49,19 +62,21 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Opt
   
   val mainboardUI = new MainboardUI(s)
   val headerUI=new HeaderUI(s)
-  val tutorialContainer=span().render
-  tutorial match {
-    case None =>
+  val tutorialUI = tutorial.map(t => new TutorialUI(s,t,this))
+  
+  val leftPanelId="leftWrap"
+  val leftPanel=tutorialUI match {
+    case None => div(id:=leftPanelId
+        ,editorUI.root)
     case Some(t) => {
-      val tutorialUI=new TutorialUI(s,t)
-      tutorialContainer.appendChild(tutorialUI.root)
+      div(id:=leftPanelId
+        ,t.root
+        ,editorUI.root)
     }
   }
   
   val sim = div(id := "main",
-    div(id:="leftWrap"
-        ,tutorialContainer
-        ,editorUI.root),
+    leftPanel,
     mainboardUI.root).render
 
   val root = div(id := "pagewrap"
@@ -128,7 +143,7 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Opt
   simulatorEvent()
   compilationEvent()
   
-  
+  tutorialUI.foreach(f => f.startTutorial)
   
   def compilationEvent() {
     println("compilationEvent triggered "+ s.c)
@@ -168,8 +183,8 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Opt
   }
   def runInstructions(){
      println("Running... ")
-     editorUI.disable()
-     headerUI.controlsUI.disable()
+     editorUI.disableTextArea()
+     headerUI.controlsUI.disableControls()
      setTimeout(50)({ 
        val instructions=s.s.runInstructions()
        simulatorEvent()
@@ -220,5 +235,11 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Opt
   def saveCode(){
     dom.window.localStorage.setItem(saveCodeKey, editorUI.getCode())
   }
+  def applyUIConfig(uiConfig:UIConfig){
+    headerUI.setDisabled(uiConfig.disableControls)
+    editorUI.setDisabled(uiConfig.disableEditor)
+    mainboardUI.setDisabled(uiConfig.disableMainboard)
+  }
+  
 
 }

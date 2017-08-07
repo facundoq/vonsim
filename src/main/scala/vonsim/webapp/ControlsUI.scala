@@ -82,13 +82,11 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
         loadButton.classList.add(hiddenClass)
         stopButton.classList.remove(hiddenClass)  
       }
-      def disable(){
-        root.disabled=true
+      def disableControls(){
         loadButton.classList.add("disabled")
         stopButton.classList.add("disabled")
       }
-      def enable(){
-        root.disabled=false
+      def enableControls(){
         loadButton.classList.remove("disabled")
         stopButton.classList.remove("disabled")
       }
@@ -152,12 +150,13 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
     }
       
   }
-  def disable(){
+  def disableControls(){
     setEnabled(quickButton,false)
     setEnabled(finishButton,false)
     setEnabled(stepButton,false)
-    loadOrStopButton.disable()
+    loadOrStopButton.disableControls()
   }
+  
   def updateUI(){  
     
     setEnabled(quickButton,s.canLoadOrQuickRun())
@@ -167,13 +166,13 @@ class ControlsUI(s: VonSimState) extends VonSimUI(s) {
     
     if (s.canLoadOrQuickRun()){
       loadOrStopButton.stateLoad()
-      loadOrStopButton.enable()
+      loadOrStopButton.enableControls()
     }else if (s.isSimulatorExecuting() ){
       loadOrStopButton.stateStop()
-      loadOrStopButton.enable()
+      loadOrStopButton.enableControls()
     }else{
       loadOrStopButton.stateLoad()
-      loadOrStopButton.disable()
+      loadOrStopButton.disableControls()
     }
     
     

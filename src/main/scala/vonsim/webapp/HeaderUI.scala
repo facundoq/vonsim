@@ -102,10 +102,20 @@ class HeaderUI(s: VonSimState) extends VonSimUI(s) {
       , helpUIButton
       )).render
   
+  def disableControls(){
+    
+  }
+  override def disable(){
+    controlsUI.disable()
+  }
+  override def enable(){
+    controlsUI.enable()
+  }
   def simulatorEvent() {
     controlsUI.simulatorEvent()
     
   }
+  
   
   def simulatorEvent(i:InstructionInfo) {
         controlsUI.simulatorEvent(i)

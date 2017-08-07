@@ -62,6 +62,21 @@ abstract class VonSimUI(val s: VonSimState) extends HTMLUI{
   def simulatorEvent() // update changes made to the simulator
   def simulatorEvent(i:InstructionInfo) // update UI after execution of instruction
   def compilationEvent()
+  
+  def disable(){
+    root.classList.add("disabledElement")
+  }
+  def enable(){
+    
+    root.classList.remove("disabledElement")
+  }
+  def setDisabled(disabled:Boolean){
+    if (disabled){
+      disable
+    }else{
+      enable
+    }
+  }
 
   
   

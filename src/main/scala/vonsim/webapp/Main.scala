@@ -33,6 +33,7 @@ import vonsim.webapp.i18n.UILanguage
 import vonsim.assembly.i18n.CompilerLanguage
 import vonsim.simulator.i18n.SimulatorLanguage
 import vonsim.webapp.tutorials.BasicTutorial
+import vonsim.webapp.tutorials.Tutorial
 
 
 class Languages(val uiLanguage:UILanguage,val compilerLanguage:CompilerLanguage,val simulatorLanguage:SimulatorLanguage){
@@ -52,15 +53,12 @@ object Main extends JSApp {
   }
   val codeURLKey="url"
   val cookieLanguageKey="lang"
+  val tutorialKey="tutorial"
   def saveCodeKey="code"
   var fallbackLanguage=Spanish.code
 
-  
-  def main(): Unit = {
-    val languageCode=getLanguageCode()
-    val languages=getLanguages(languageCode)    
-    val parameters = getParameters()
-
+  def getInitialCode(languages:Languages,parameters:Map[String,String],initializationFunction:Function1[String,Unit]){
+      
     if (parameters.keySet.contains(codeURLKey)){
       val url=parameters(codeURLKey)
       val headers=Map("crossDomain" -> "true"
@@ -70,29 +68,54 @@ object Main extends JSApp {
       val promise=Ajax.get(url,timeout=5000,headers=headers,responseType="text")
       promise.onSuccess{ 
         case xhr =>
-          initializeUI(xhr.responseText,languages)
+          initializationFunction.apply(xhr.responseText)
       }
       promise.onFailure{
         case xhr =>
-          initializeUI(defaultCode,languages)
+          initializationFunction.apply(defaultCode)
           dom.window.alert(languages.uiLanguage.alertURLNotFound(url))
       }
       
     }else{
       val lastCode=dom.window.localStorage.getItem(saveCodeKey)
       if (lastCode!=null){
-        initializeUI(lastCode,languages)
+        initializationFunction.apply(lastCode)
       }else{
-        initializeUI(defaultCode,languages)
+        initializationFunction.apply(defaultCode)
       }
     }
+  }
+  def main(): Unit = {
+    val languageCode=getLanguageCode()
+    val languages=getLanguages(languageCode)
     
+    val parameters = getParameters()
+    val tutorial = getTutorial(parameters)
+    getInitialCode(languages,parameters, code => {
+      initializeUI(code,languages,tutorial) 
+    })
+
     
   }
+  
   var ui:MainUI=null
   var s:VonSimState=null
   
-  def initializeUI(initialCode:String,l:Languages){
+  def getTutorial(parameters:Map[String,String])={
+    if (parameters.keySet.contains(tutorialKey)){
+      val tutorialId=parameters(tutorialKey)
+      if (Tutorial.tutorials.keySet.contains(tutorialId)){
+        val tutorial=Tutorial.tutorials(tutorialId)
+        Option(tutorial)  
+      }else{
+        None
+      }
+    }else{
+      None
+    }
+  }
+  
+  def initializeUI(initialCode:String,l:Languages,tutorial:Option[Tutorial]){
     
     val compilationResult=Compiler(initialCode)
 
@@ -101,9 +124,8 @@ object Main extends JSApp {
     simulator.language=l.simulatorLanguage
     
     var s=new VonSimState(simulator,compilationResult,l.uiLanguage)
-    val tutorial=new BasicTutorial()
     
-    ui = new MainUI(s,initialCode,saveCodeKey,Some(tutorial))
+    ui = new MainUI(s,initialCode,saveCodeKey,tutorial)
     document.body.appendChild(ui.root)
     ui.editorUI.editor.resize(true)
     setTimeout(2000)({ui.editorUI.editor.resize(true)})

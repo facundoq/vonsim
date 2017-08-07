@@ -75,9 +75,9 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   def simulatorEvent() {
     // TODO check if code can be run and if the cpu is halted to allow enable buttons    
     if (s.isSimulatorExecuting()){
-      disable()
+      disableTextArea()
     }else{
-      enable()
+      enableTextArea()
     }
     removeAllMarkers()
     
@@ -93,16 +93,14 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
     //editor.getSession().addMarker(new Range(i.line, 0, i.line+1, 1), "executedLine", "fullLine",true)
   }
   
-  
-  def enable(){
-    container.disabled=false
-    root.disabled=false
-    editor.setReadOnly(false)
-  }
-  def disable(){
+  def disableTextArea(){
     container.disabled=true
-    root.disabled=true
     editor.setReadOnly(true)
+  }
+  
+  def enableTextArea(){
+    container.disabled=false
+    editor.setReadOnly(false)
   }
   
   def compilationEvent(){

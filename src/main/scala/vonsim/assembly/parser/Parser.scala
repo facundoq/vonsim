@@ -13,7 +13,7 @@ import vonsim.assembly.i18n.English
 import vonsim.assembly.i18n.CompilerLanguage
 
 
-object Parser extends Parsers {
+object Parser extends MyParsers {
   var compilerLanguage:CompilerLanguage=new English()
   
   override type Elem = Token
