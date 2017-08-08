@@ -28,7 +28,7 @@ instrucción del procesador, lo cual resultaría engorroso y propenso a errores.
 <p>El lenguaje assembly le da nombres a estos códigos, de manera que para sumar 
 podamos escribir "add" en lugar de "01010101", por ejemplo.
 Por ende, assembly es el lenguaje de programación de más bajo nivel de abstracción que existe, 
-ya que es solo una pequeña capa de abstracción sobre los códigos de instrucción del preprocesador.</p>
+ya que es solo una pequeña capa de abstracción sobre los códigos de instrucción del procesador.</p>
 """,UIConfig.disableAll)
 
 ,TutorialStep("¿Por qué aprender assembly?"
