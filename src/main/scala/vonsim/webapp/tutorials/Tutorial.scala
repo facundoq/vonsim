@@ -7,11 +7,11 @@ import vonsim.webapp.UIConfig
 
 
 object TutorialStep{
-  def apply(title:String,content:String,config:UIConfig=UIConfig())={
-    new TutorialStep(title,content,config)
+  def apply(title:String,content:String,config:UIConfig=UIConfig(),code:Option[String]=None)={
+    new TutorialStep(title,content,config,code)
   }
 }
-class TutorialStep(val title:String,val content:String,val config:UIConfig){
+class TutorialStep(val title:String,val content:String,val config:UIConfig,val code:Option[String]=None){
   def canForward(s:VonSimState)=true
   def canBackward(s:VonSimState)=true
 }
@@ -38,6 +38,7 @@ abstract class Tutorial{
   def next{step+=1}
   def previous{step-=1}
   def current=steps(step)
+  def goto(step:Int){this.step=step}
   
   
 }

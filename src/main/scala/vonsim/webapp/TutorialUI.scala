@@ -106,6 +106,10 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
     subtitle.textContent=tutorial.current.title
     content.innerHTML=tutorial.current.content
     mainUI.applyUIConfig(tutorial.current.config)
+    tutorial.current.code match {  
+      case Some(s)=> mainUI.editorUI.setCode(s)
+      case None => 
+    }
   }
   def simulatorEvent() {
     // TODO check if code can be run and if the cpu is halted to allow enable buttons    

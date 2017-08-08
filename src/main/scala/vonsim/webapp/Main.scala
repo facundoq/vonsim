@@ -54,6 +54,7 @@ object Main extends JSApp {
   val codeURLKey="url"
   val cookieLanguageKey="lang"
   val tutorialKey="tutorial"
+  val stepKey="step"
   def saveCodeKey="code"
   var fallbackLanguage=Spanish.code
 
@@ -106,6 +107,12 @@ object Main extends JSApp {
       val tutorialId=parameters(tutorialKey)
       if (Tutorial.tutorials.keySet.contains(tutorialId)){
         val tutorial=Tutorial.tutorials(tutorialId)
+        if (parameters.keySet.contains(stepKey)){
+          val step=parameters(stepKey).toInt
+          if ( step >=0 && step<tutorial.steps.length){
+            tutorial.goto(step)
+          }
+        }
         Option(tutorial)  
       }else{
         None

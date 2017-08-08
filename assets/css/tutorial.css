@@ -23,8 +23,10 @@
 	
 }
 #tutorialTitle{
+	margin-left:10px;
 }
 #tutorialStepTitle{
+	margin-right:10px;
 }
 #tutorial h3{
 	display:flex;
