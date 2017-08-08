@@ -36,5 +36,6 @@ abstract class CompilerLanguage {
   def DWordWordOperands:String
   def indirectPointerTypeUndefined:String
   def WordDWordOperands:String
+  def parserError:String
   
 }

@@ -20,8 +20,10 @@ object Parser extends MyParsers {
   
   def apply(tokens: Seq[Token]): Either[ParserError, Instruction] = {
     val reader = new TokenReader(tokens)
+    val defaultMessage=compilerLanguage.parserError // temporary until the parser is improved
     program(reader) match {
-      case NoSuccess(msg, next) => Left(ParserError(Location(next.pos.line, next.pos.column), msg))
+      
+      case NoSuccess(msg, next) => Left(ParserError(Location(next.pos.line, next.pos.column), defaultMessage))
       case Success(result, next) => Right(result)
     }
   }

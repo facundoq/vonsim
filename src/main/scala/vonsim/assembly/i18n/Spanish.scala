@@ -33,6 +33,7 @@ class Spanish extends CompilerLanguage{
   def memoryMemory= "Ambos operandos acceden a la memoria. No se puede acceder a la memoria con dos operandos distintos en una misma instrucción."
   def DWordWordOperands="El segundo operando requiere solo 8 bits para representarsepero el primer operando tiene 16 bits. Entonces, no está claro si se debe escribir el resultado sobre los primeros o últimos 8 bits."
   def indirectPointerTypeUndefined= "El direccionamiento indirecto ([bx]) con un operando inmediato requiere que se especifique el tipo de puntero con las palabras clave WORD PTR (para operandos inmediatos de 16 bits) o BYTE PTR (para operandos de 8 bits). Por ejemplo, MOV WORD PTR [BX], 15."
-  def WordDWordOperands="El segundo operando requiere 16 bits para representarse, pero el primero sólo tiene 8 bits" 
+  def WordDWordOperands="El segundo operando requiere 16 bits para representarse, pero el primero sólo tiene 8 bits"
+  def parserError="Error sintáctico."
   
 }

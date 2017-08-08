@@ -35,4 +35,5 @@ class English extends CompilerLanguage{
   def DWordWordOperands="The second operand needs only 8 bits to be encoded, but the first operand has 16 bits, so it is not clear if you want to set the first or last 8 bits."
   def indirectPointerTypeUndefined= "Indirect addressing with an immediate operand requires specifying the type of pointer with WORD PTR or BYTE PTR before [BX]."
   def WordDWordOperands="The second operand needs 16 bits to be encoded, but the first one only has 8 bits."
+  def parserError="Syntax error."
 }
