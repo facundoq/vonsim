@@ -17,8 +17,8 @@
 
 #tutorialContent{
 	
-	margin:10px;
-	padding:10px;
+	margin:5px;
+	padding:5px;
 	
 	
 }
@@ -32,7 +32,7 @@
 	display:flex;
 	justify-content: space-between;
 	margin:0px;
-	margin-top:10px;
+	margin-top:5px;
 	
 }
 
@@ -42,5 +42,5 @@
 #tutorialControls{
 	text-align:center;
 	margin:0px;
-	margin-bottom: 10px;
+	margin-top: 10px;
 }

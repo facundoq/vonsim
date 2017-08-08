@@ -91,9 +91,10 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   val title=span(id:="tutorialTitle").render
   val header=h3(title,subtitle)
   val root = div(id := "tutorial"
+     ,controls.root
      ,header
      ,div(id:="tutorialContent",content)
-     ,controls.root
+     
      ).render
   
   
