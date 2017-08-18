@@ -36,11 +36,15 @@ class TutorialUIControl(s: VonSimState,val tutorial:Tutorial,tutorialUpdated:Fun
   val previousButton=buttonFactory("Anterior","fa-previous")
   val current=span().render
   val total=span().render
+  val tutorialTitle=span(id:="tutorialTitle",tutorial.title).render
+  
   val root=div(id:="tutorialControls"
+      ,tutorialTitle
+      ,div(id:="tutorialControlsInner"
       ,previousButton
       ,span(id:="tutorialCount",current,"/",total)
       ,nextButton
-      ).render
+      )).render
   update() 
   def setDisabled(button:Anchor,disabled:Boolean){
     disabled match{
@@ -88,11 +92,13 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   })
   val content=p().render
   val subtitle=span(id:="tutorialStepTitle").render
-  val title=span(id:="tutorialTitle").render
-  val header=h3(title,subtitle)
+  
+  val header=h3(subtitle)
+  
   val root = div(id := "tutorial"
-     ,controls.root
-     ,header
+     ,div(id:="tutorialHeader"
+       ,controls.root
+       ,header)
      ,div(id:="tutorialContent",content)
      
      ).render
@@ -100,10 +106,11 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   
   def startTutorial(){
     mainUI.editorUI.setCode(tutorial.initialCode)
+//    title.textContent=tutorial.title
     displayTutorialStep()  
   }
   def displayTutorialStep(){
-    title.textContent=tutorial.title
+    
     subtitle.textContent=tutorial.current.title
     content.innerHTML=tutorial.current.content
     mainUI.applyUIConfig(tutorial.current.config)
