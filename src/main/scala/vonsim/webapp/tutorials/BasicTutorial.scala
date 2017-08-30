@@ -190,6 +190,73 @@ de minúscula a mayúscula o viceversa y vuelve a ejecutar el programa. En todos
 """,UIConfig.enableAll,Some("oRg 2000h\nHLt\nEnD")
 )
 
+,TutorialStep("Registros e instrucciones"
+,"""<p>A continuación, presentaremos los registros de la CPU donde se puede guardar información,
+  y las instrucciones para manipularlos.</p>
+  
+<p>Comenzaremos viendo como manipularlos sin ningún enunciado de utilidad. 
+A medida que tengamos más conocimiento, vamos a poder hacer programas que sean útiles.<p> 
+
+
+""",UIConfig.enableAll,Some("oRg 2000h\nHLt\nEnD")
+)
+
+,TutorialStep("Registros y mov (parte 1)"
+,"""<p>La CPU del MSX88 tiene 4 registros de propósito general que sirven para almacenar información.</p>
+  
+<p> Los registros se llaman ax, bx, cx y dx. Cada uno guarda un valor de 16 bits (2 bytes).<p> 
+
+<p> Cuando se comienza a ejecutar un programa, el simulador le pone el valor 0 a estos registros.</p>
+
+<p> Se puede cambiar su valor con la instrucción mov.</p>
+
+<p> Dicha instrucción tiene la sintaxis mov registro, valor</p>
+<p> Por ejemplo, "mov ax,2" pone el valor 2 en el registro ax, o "mov cx,12" pone el valor 12 en el registro cx</p>
+<p> Prueba el código de abajo, que le pone el valor 5 al registro ax.</p>
+<p> Luego agrega una línea al programa para que el registro dx tenga el valor 3.</p>
+""",UIConfig.enableAll,Some("org 2000h\nmov ax,5\nhlt\nend")
+)
+
+,TutorialStep("Registros y mov (parte 2)"
+,"""<p>También se puede mover el valor de un registro a otro registro</p>
+  
+<p> Por ejemplo, podemos ponerle el valor 5 a bx, y luego pasar el valor de bx a cx para que ambos valgan 5.<p> 
+
+<p> Para ello, después de "mov bx,5" debemos ejecutar "mov cx,bx"</p>
+
+<p> Es decir, le pasamos a cx el valor de bx</p>
+
+<p> Entonces la instrucción mov también puede usarse con la sintaxis "mov registro, registro"</p>
+<p> Prueba el código de abajo, que hace lo descripto más arriba.</p>
+<p> Luego agrega una línea al programa para copiar también el valor del registro 
+bx al registro dx. Los tres registros (bx,cx y dx) deberían terminar con el mismo valor (5) al 
+ejecutar el programa.</p>
+""",UIConfig.enableAll,Some("org 2000h\nmov bx,5\nmov bx,cx\nhlt\nend")
+)
+
+,TutorialStep("Registros y mov (parte 3)"
+,"""<p>Algo que no se puede hacer es mover el valor de un registro a otro valor</p>
+  
+<p> Por ejemplo, la instrucción "mov 3, bx" es inválida.<p> 
+
+<p> O sea, la sintaxis "mov valor, registro" es inválida.</p>
+
+<p> Prueba dicho código en el editor de código; el programa no compilará.</p>
+
+""",UIConfig.enableAll,Some("org 2000h\nhlt\nend")
+)
+  
+,TutorialStep("Instrucción add"
+,"""<p>La instrucción add nos permite sumar dos números.</p>
+  
+<p> La sintaxis de dicha instrucción es "add registro, valor" <p>
+
+<p> Por ejemplo, para sumarle 3 al registro ax, escribimos "add ax, 3"</p>  
+
+
+""",UIConfig.enableAll,Some("org 2000h\nmov ax,4\nadd ax,3\nhlt\nend")
+)
+
 ,TutorialStep("Resumen"
 ,"""
  <p>Assembly es un lenguaje programación de bajo nivel.</p>
