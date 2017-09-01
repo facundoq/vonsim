@@ -6,10 +6,6 @@ class BasicTutorial extends Tutorial {
   val title="Assembly con VonSim"
   
   val initialCode="""
-org 2
-; variables aquí
-mi_variable db 1Ah
-
 org 2000h
 ; código aquí
 hlt
@@ -124,42 +120,47 @@ Tiene como ventaja que hay muchas más celdas para almacenar datos, pero su acce
 """,UIConfig.enableAll,Some(initialCode))
 
 ,TutorialStep("El programa más simple"
-,"""<p>En assembly todos los programas deben terminar con la sentencia END. Por ende, el programa 
-  más simple que compila correctamente solo tiene esta instrucción.</p>
-<p>Escribe en el editor la sentencia END y luego ejecuta el programa.</p>
+,"""<p>En assembly todos los programas deben terminar con la sentencia <code>end</code>. Por ende, el programa 
+  más simple que compila correctamente solo tiene esta sentencia.</p>
+<p>Escribe en el editor la sentencia <code>end</code>y luego ejecuta el programa.</p>
 <p> Si bien este programa compila, genera un error en su ejecución. </p>
 <p> El error radica en que cuando un programa en assembly comienza a ejecutarse, sólo termina cuando
-se encuentra la sentencia HLT, que detiene al procesador.</p>
+se encuentra la instrucción <code>hlt</code>, que detiene al procesador.</p>
 """,UIConfig.enableAll,Some(""))
 
-,TutorialStep("Deteniendo al procesador"
-,"""<p>Para detener al procesador entonces, debemos agregar una instrucción HLT. Agrega la misma antes de
-  la sentencia END.</p>
-<p> Observa que el compilador marca un error. Este error se genera debido a que no le hemos dicho dónde
-se ubicará en memoria la el código binario de la instrucción HLT. Para ello, utilizaremos la sentencia
-ORG <dirección> que nos permite especificar la dirección de las instrucciones.<p>
+,TutorialStep("Deteniendo al procesador con <code>hlt</code>"
+,"""<p>Para detener al procesador entonces, debemos agregar una instrucción <code>hlt</code>. Agrega la misma antes de
+  la sentencia <code>end</code>.</p>
+  
+<p> Observa que el compilador marca un error. Lleva el puntero hacia la <strong>x</strong> que indica
+el error a la izquierda de la instrucción <code>hlt</code>.</p> 
+<p>Cómo dice el mensaje, el error se genera debido a que no le hemos dicho al compilador dónde 
+se ubicará en memoria el código binario de la instrucción <code>hlt</code>.<p>
 """,UIConfig.enableAll,Some("end"))
 
+,TutorialStep("Ubicando las instrucciones con <code>org</code>"
+,"""<p>La sentencia <code>org</code> nos permite indicar donde se van 
+  a cargar las instrucciones en la memoria.</p>
+  <p>Su sintaxis es <code>org <strong>dirección<strong></code><p>
+  <p>Por ejemplo, <code>org 2000h</code><p>
+  <p> En VonSim el h al final de un número se utiliza para que 
+se interprete como hexadecimal. En general, las direcciones de memoria las escribiremos en hexadecimal.</p>
+""",UIConfig.enableAll,Some("end"))
 
-,TutorialStep("La ubicación de las instrucciones"
-,"""<p>Para ubicar la instrucción HLT en la memoria, debemos utilizar una sentencia ORG, que debe 
-  aparecer antes en una línea anterior a la del HLT</p>
-  
-<p> La sentencia ORG tiene el formato "org DIRECCION". Por ejemplo, si queremos que la instrucción HLT
-se ubique en la dirección de memoria 2000h (en VonSim el h al final de un número se utiliza para que 
-se interprete como hexadecimal), debemos agregar la línea "org 2000h" antes del HLT.<p> 
+,TutorialStep("Ubicando la instrucción <code>hlt</code>"
+,"""<p>Para ubicar la instrucción <code>hlt</code> en la memoria, debemos agregar un <code>org</code>
+  en la línea anterior a la del <code>hlt</code>.</p>
 
-<p> Agrega la línea "org 2000h" y corre el programa. </p>
+<p> Agrega la sentencia <code>org 2000h</code> antes de <code>hlt</code> y corre el programa. </p>
 """,UIConfig.enableAll,Some("hlt\nend"))
 
-,TutorialStep("La ubicación de las instrucciones"
-,"""<p>Ahora podemos ver que el programa se ejecuta correctamente (aunque todavía no hace nada útil)</p>
+,TutorialStep("La ubicación de las instrucciones en la memoria"
+,"""<p>Ahora podemos ver que el programa se ejecuta correctamente (aunque todavía no hace nada útil).</p>
   
-<p> Además, si te fijas en la memoria, la dirección 2000h aparece tiene el valor 45h, que es el código
-binario que representa la instrucción HLT <p> 
-
-<p> Las líneas "org 2000h" y "end" no son instrucciones sino directivas del compilador, por eso no se
-guardan en la memoria ni tienen forma de ser codificadas en binario.</p>
+ <p> Verifiquemos que el <code>hlt</code> se cargó en la dirección 2000h efectivamente
+<p> Ejecuta el programa y busca en la memoria la celda con dirección 2000h (la dirección es la primer columna de la memoria) </p>
+<p> En esa dirección está el valor 45h (el valor es la columna de la derecha de la memoria), que es el código binario que representa la instrucción <code>hlt</code>.<p>
+<p> Esto es porque el compilador generó el código binario de la instrucción <code>hlt</code> y lo puso en esa dirección.
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend"))
 
 ,TutorialStep("La dirección de comienzo"
@@ -173,16 +174,27 @@ guardan en la memoria ni tienen forma de ser codificadas en binario.</p>
 están en la dirección 2000h, pero ahí no hay realmente nada ya que las mismas están en la 20h. Por ende 
 es muy importante que las instrucciones de un programa se ubiquen después de la 2000h</p>
 
-<p> No obstante, la instrucción HLT se sigue codificando y copiando a la memoria, sólo que no en la 
+<p> No obstante, la instrucción <code>hlt</code> se sigue codificando y copiando a la memoria, sólo que no en la 
 dirección 2000h, sino en la 20h. Verifica que en la dirección 20h de la memoria se encuentre guardado 
-el valor 45h, el código binario del HLT </p>
+el valor 45h, el código binario del <code>hlt</code> </p>
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend")
 )
+
+,TutorialStep("Sentencias e instrucciones"
+,"""<p>Habrás notado que hablamos de <strong>sentencias</strong> y de <strong>instrucciones</strong>. 
+  ¿Cuál es la diferencia?</p> 
+
+<p> Llamamos sentencias a <code>org 2000h</code> y <code>end</code> porque no son realmente instrucciones
+que el procesador ejecuta.</p> 
+<p> En verdad, son directivas del compilador que lo ayudan a generar código binario del programa, 
+por eso no se guardan en la memoria ni tienen forma de ser codificadas en binario.</p>
+""",UIConfig.enableAll,Some("org 2000h\nhlt\nend"))
+
  
 ,TutorialStep("Mayúsculas y minúsculas"
 ,"""<p>Assembly es generalmente insensible a mayúsculas y minúsculas.</p>
   
-<p> Por ende es lo mismo escribir HLT que hlt o HlT. Lo mismo sucede con la sentencia END y otras.<p> 
+<p> Por ende es lo mismo escribir <code>HLT</code> que <code>hlt</code> o <code>HlT</code>. Lo mismo sucede con la sentencia <code>END</code> y otras.<p> 
 
 <p> Prueba el siguiente programa y verifica que es igual al anterior. Modifica alguna letra para pasarla
 de minúscula a mayúscula o viceversa y vuelve a ejecutar el programa. En todos los casos el programa se comporta igual. </p>
@@ -190,91 +202,33 @@ de minúscula a mayúscula o viceversa y vuelve a ejecutar el programa. En todos
 """,UIConfig.enableAll,Some("oRg 2000h\nHLt\nEnD")
 )
 
-,TutorialStep("Registros e instrucciones"
-,"""<p>A continuación, presentaremos los registros de la CPU donde se puede guardar información,
-  y las instrucciones para manipularlos.</p>
-  
-<p>Comenzaremos viendo como manipularlos sin ningún enunciado de utilidad. 
-A medida que tengamos más conocimiento, vamos a poder hacer programas que sean útiles.<p> 
-
-
-""",UIConfig.enableAll,Some("oRg 2000h\nHLt\nEnD")
-)
-
-,TutorialStep("Registros y mov (parte 1)"
-,"""<p>La CPU del MSX88 tiene 4 registros de propósito general que sirven para almacenar información.</p>
-  
-<p> Los registros se llaman ax, bx, cx y dx. Cada uno guarda un valor de 16 bits (2 bytes).<p> 
-
-<p> Cuando se comienza a ejecutar un programa, el simulador le pone el valor 0 a estos registros.</p>
-
-<p> Se puede cambiar su valor con la instrucción mov.</p>
-
-<p> Dicha instrucción tiene la sintaxis mov registro, valor</p>
-<p> Por ejemplo, "mov ax,2" pone el valor 2 en el registro ax, o "mov cx,12" pone el valor 12 en el registro cx</p>
-<p> Prueba el código de abajo, que le pone el valor 5 al registro ax.</p>
-<p> Luego agrega una línea al programa para que el registro dx tenga el valor 3.</p>
-""",UIConfig.enableAll,Some("org 2000h\nmov ax,5\nhlt\nend")
-)
-
-,TutorialStep("Registros y mov (parte 2)"
-,"""<p>También se puede mover el valor de un registro a otro registro</p>
-  
-<p> Por ejemplo, podemos ponerle el valor 5 a bx, y luego pasar el valor de bx a cx para que ambos valgan 5.<p> 
-
-<p> Para ello, después de "mov bx,5" debemos ejecutar "mov cx,bx"</p>
-
-<p> Es decir, le pasamos a cx el valor de bx</p>
-
-<p> Entonces la instrucción mov también puede usarse con la sintaxis "mov registro, registro"</p>
-<p> Prueba el código de abajo, que hace lo descripto más arriba.</p>
-<p> Luego agrega una línea al programa para copiar también el valor del registro 
-bx al registro dx. Los tres registros (bx,cx y dx) deberían terminar con el mismo valor (5) al 
-ejecutar el programa.</p>
-""",UIConfig.enableAll,Some("org 2000h\nmov bx,5\nmov bx,cx\nhlt\nend")
-)
-
-,TutorialStep("Registros y mov (parte 3)"
-,"""<p>Algo que no se puede hacer es mover el valor de un registro a otro valor</p>
-  
-<p> Por ejemplo, la instrucción "mov 3, bx" es inválida.<p> 
-
-<p> O sea, la sintaxis "mov valor, registro" es inválida.</p>
-
-<p> Prueba dicho código en el editor de código; el programa no compilará.</p>
-
-""",UIConfig.enableAll,Some("org 2000h\nhlt\nend")
-)
-  
-,TutorialStep("Instrucción add"
-,"""<p>La instrucción add nos permite sumar dos números.</p>
-  
-<p> La sintaxis de dicha instrucción es "add registro, valor" <p>
-
-<p> Por ejemplo, para sumarle 3 al registro ax, escribimos "add ax, 3"</p>  
-
-
-""",UIConfig.enableAll,Some("org 2000h\nmov ax,4\nadd ax,3\nhlt\nend")
-)
 
 ,TutorialStep("Resumen"
 ,"""
  <p>Assembly es un lenguaje programación de bajo nivel.</p>
  <p>Las instrucciones en assembly se asemejan a las de código de máquina pero son 
  más amenas para leer y escribir.</p>
- <p> Un programa en assembly contiene varias sentencias, una por línea. El programa debe finalizar
- con la sentencia END. <p>
+ <p> Un programa en assembly contiene varias sentencias e instrucciones, una por línea.</p>
+  <p>El programa debe finalizar con la sentencia <code>end</code> para indicarle al compilador donde termina el programa. <p>
   
-  <p> Para que la CPU se detenga al finalizar el programa, el mismo debe contener una instrucción
-  HLT.<p>
+  <p> Para que la CPU se detenga al finalizar el programa, el mismo debe contener una instrucción <code>hlt</code>.<p>
  
- <p> A las instrucciones ejecutables como HLT se les debe indicar dónde ubicarse en la memoria.
- Para ello, se utilizan sentencias org, con sintaxis "org DIRECCIÓN". Las direcciones generalmente se escriben en hexadecimal
-, de modo que siempre terminan con h.<p>
+ <p> A las instrucciones, como <code>hlt</code> se les debe indicar dónde ubicarse en la memoria.
+ Para ello, se utilizan sentencias <code>org</code>, con sintaxis <code> org direccion</code>. Las direcciones generalmente 
+se escriben en hexadecimal, de modo que siempre terminan con h.<p>
   
- <p> Las sentencias en assembly son insensibles a mayúsculas y minúsculas, por lo que es lo mismo escribir HLT que hlt o HlT.<p> 
+ <p> Las sentencias e instrucciones en assembly son insensibles a mayúsculas y minúsculas, 
+ por lo que es lo mismo escribir <code>HLT</code> que <code>hlt</code> o <code>HlT</code>.<p> 
 
 """,UIConfig.disableAll,Some(""))
-)
 
+
+,TutorialStep("A continuación"
+,"""
+ <p>Ahora que has dado los primeros paso en Assembly con VonSim, podés avanzar
+ más con el <a href="?tutorial=simple">tutorial sobre registros e instrucciones simples</a>.</p>
+ 
+""",UIConfig.disableAll,Some(""))
+
+)
 }

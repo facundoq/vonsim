@@ -111,7 +111,7 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   }
   def displayTutorialStep(){
     
-    subtitle.textContent=tutorial.current.title
+    subtitle.innerHTML=tutorial.current.title
     content.innerHTML=tutorial.current.content
     mainUI.applyUIConfig(tutorial.current.config)
     tutorial.current.code match {  
