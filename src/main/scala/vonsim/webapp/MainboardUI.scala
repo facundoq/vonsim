@@ -1,6 +1,6 @@
 package vonsim.webapp
-import vonsim.simulator.InstructionInfo
 import vonsim.utils.CollectionUtils._
+import vonsim.simulator.InstructionInfo
 import scalatags.JsDom.all._
 import org.scalajs.dom.html._
 import org.scalajs.dom.raw.HTMLElement
@@ -23,6 +23,7 @@ import vonsim.simulator.SimulatorExecutionStopped
 import vonsim.simulator.SimulatorExecutionError
 import vonsim.simulator.SimulatorExecutionFinished
 import vonsim.assembly.Compiler.CompilationResult
+
 
 
 
@@ -93,8 +94,32 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
   val memoryTableDiv = div(id := "memoryTable", cls := "memoryTable clusterize-scroll",
       memoryTable).render
   
-  contentDiv.appendChild(memoryTableDiv)
-    
+  
+  val addressSearchInput=input(cls:="addressSearchInput",maxlength:="4",`type`:="text").render
+  
+  addressSearchInput.onkeypress = (e:dom.KeyboardEvent) =>{
+    val isNumber=(e.charCode>='0' && e.charCode<='9') 
+    val isNumericChar = (e.charCode>='a' && e.charCode<='f') || (e.charCode>='A' && e.charCode<='F')
+    val isOperation= List(46, 8, 9, 27, 110, 190).contains(e.keyCode)
+    val isCutCopyPaste = (e.ctrlKey || e.metaKey) && List(65,67,88).contains(e.keyCode)
+    val isNavigation = e.keyCode >= 35 && e.keyCode <= 39    
+                 
+    val isInput=isNumber || isNumericChar || isOperation || isCutCopyPaste || isNavigation
+    if (!isInput){
+      e.preventDefault()
+      if (e.keyCode==13){
+        scrollToAddress()
+      }
+    }
+  }
+
+  val addressSearchButton=a(cls:="btn btn-primary addressSearchButton",i(cls:="fa fa-search"),
+      title:=s.uil.addressSearch).render
+  addressSearchButton.onclick = (e: dom.Event) => { scrollToAddress() }
+  val addressSearchControls=span(id:="addressSearchControls",addressSearchInput,addressSearchButton)
+  val wrapper=div(addressSearchControls,memoryTableDiv)
+  contentDiv.appendChild(wrapper.render)
+
   var stringRows=generateRows().toJSArray
   val clusterizePropsElements = new ClusterizeProps {
     override val rows=Some(stringRows).orUndefined
@@ -126,6 +151,18 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
   def simulatorEvent(i:InstructionInfo) {
     // TODO
     simulatorEvent()
+  }
+  def scrollToAddress(){
+    
+    val addressString=addressSearchInput.value
+    if (addressString.length > 0){
+      val address=  Integer.parseInt(addressString, 16)
+      if (address<s.s.memory.values.length){
+        val itemHeight=29 // TODO calculate this value accessing the DOM
+        val pixel= 10+address*itemHeight // TODO calculate this magic '10'
+        memoryTableDiv.scrollTop=pixel
+      }
+    }
   }
   
 

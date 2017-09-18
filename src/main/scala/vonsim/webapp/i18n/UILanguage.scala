@@ -54,6 +54,7 @@ abstract class UILanguage {
   def cpuSpecialRegisters:String
   def cpuGeneralPurposeRegisters:String
   def memoryTitle:String
+  def addressSearch:String 
   
   def alertCompilationFailed:String
   

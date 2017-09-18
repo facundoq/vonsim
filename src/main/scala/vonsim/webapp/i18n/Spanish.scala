@@ -64,6 +64,9 @@ Mientras el programa está ejecutándose no se puede modificar el código en el 
   def cpuSpecialRegisters="Registros Especiales"
   def cpuGeneralPurposeRegisters="Registros de Propósito General"
   def memoryTitle="Memoria"
+  
+  def addressSearch="Ver dirección de memoria"
+  
   def alertCompilationFailed="La compilación ha fallado, no se puede cargar el programa."
  
   def describeInstruction(i:Instruction)="Instrucción correcta."

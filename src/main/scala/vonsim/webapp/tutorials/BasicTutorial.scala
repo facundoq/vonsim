@@ -162,7 +162,8 @@ se interprete como hexadecimal. En general, las direcciones de memoria las escri
 ,"""<p>Ahora podemos ver que el programa se ejecuta correctamente (aunque todavía no hace nada útil).</p>
   
  <p> Verifiquemos que el <code>hlt</code> se cargó en la dirección 2000h efectivamente
-<p class="exercise"> Ejecuta el programa y busca en la memoria la celda con dirección 2000h (la dirección es la primer columna de la memoria) </p>
+<p class="exercise"> Ejecuta el programa y busca en la memoria la celda con dirección 2000h (la dirección es la primer columna de la memoria).
+Puedes escribir esta dirección en el buscador de la memoria para encontrarla más rápidamente.</p>
 <p> En esa dirección está el valor 45h (el valor es la columna de la derecha de la memoria), que es el código binario que representa la instrucción <code>hlt</code>.<p>
 <p> Esto es porque el compilador generó el código binario de la instrucción <code>hlt</code> y lo puso en esa dirección.
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend"))

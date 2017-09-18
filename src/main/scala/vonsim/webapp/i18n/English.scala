@@ -53,6 +53,8 @@ class English extends UILanguage {
   def cpuSpecialRegisters="Special Registers"
   def cpuGeneralPurposeRegisters="General Purpose Registers"
   def memoryTitle="Memory"
+  def addressSearch="Find memory address"
+  
   def alertCompilationFailed="Compilation failed, can't load/run program"
   
   def describeInstruction(i:Instruction)="Valid instruction."
