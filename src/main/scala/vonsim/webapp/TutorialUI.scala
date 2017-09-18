@@ -90,7 +90,7 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   val controls=new TutorialUIControl(s,tutorial,() => {
     displayTutorialStep()
   })
-  val content=p().render
+  val content=span().render
   val subtitle=span(id:="tutorialStepTitle").render
   
   val header=h3(subtitle)
@@ -114,6 +114,7 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
     subtitle.innerHTML=tutorial.current.title
     content.innerHTML=tutorial.current.content
     mainUI.applyUIConfig(tutorial.current.config)
+    dom.window.location.hash=(tutorial.step+1).toString()
     tutorial.current.code match {  
       case Some(s)=> mainUI.editorUI.setCode(s)
       case None => 

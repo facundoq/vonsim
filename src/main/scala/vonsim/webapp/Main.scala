@@ -107,11 +107,14 @@ object Main extends JSApp {
       val tutorialId=parameters(tutorialKey)
       if (Tutorial.tutorials.keySet.contains(tutorialId)){
         val tutorial=Tutorial.tutorials(tutorialId)
-        if (parameters.keySet.contains(stepKey)){
-          val step=parameters(stepKey).toInt
+        val stepString=dom.window.location.hash.substring(1)
+        try{
+          val step=Integer.parseUnsignedInt(stepString)-1
           if ( step >=0 && step<tutorial.steps.length){
             tutorial.goto(step)
           }
+        }catch {
+          case e:NumberFormatException => 
         }
         Option(tutorial)  
       }else{

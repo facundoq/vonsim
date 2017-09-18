@@ -50,8 +50,8 @@
 #tutorialContent{
 	align-self: stretch;
 	
-	width:100%;
-	margin:5px;
+	width:95%;
+	margin:5px auto ;
 	padding:5px;
 	
 	
@@ -73,4 +73,13 @@
 
 #tutorialCount{
 	margin:0px 15px;
+}
+
+.exercise{
+/* 	background-color: #272822; */
+	background-color: #BBB;
+	color: #272822;
+	border-radius:15px;
+	padding: 5px 15px; 
+	
 }
