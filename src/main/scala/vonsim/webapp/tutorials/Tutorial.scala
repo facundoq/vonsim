@@ -18,7 +18,7 @@ class TutorialStep(val title:String,val content:String,val config:UIConfig,val c
 
 object Tutorial{
   val bt=new BasicTutorial()
-  val st=new SimpleTutorial()
+  val st=new CodeTutorial()
   val tutorials=Map(bt.id -> bt,st.id -> st)
 }
 abstract class Tutorial{

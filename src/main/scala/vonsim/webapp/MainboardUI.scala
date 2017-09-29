@@ -110,7 +110,23 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
       if (e.keyCode==13){
         scrollToAddress()
       }
+    }else{
+      updateSearchButton()
     }
+  }
+  def updateSearchButton(){
+     val addressString=addressSearchInput.value
+    if (addressString.length > 0){
+      try{
+        val address=  Integer.parseInt(addressString, 16)
+        addressSearchButton.disabled=false 
+      }catch {
+        case e:NumberFormatException => addressSearchButton.disabled=true  
+      }
+    }else{
+      addressSearchButton.disabled=true  
+    }
+    
   }
 
   val addressSearchButton=a(cls:="btn btn-primary addressSearchButton",i(cls:="fa fa-search"),
@@ -126,6 +142,7 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
     override val scrollElem = Some(memoryTableDiv).orUndefined
     override val contentElem = Some(body).orUndefined
   }
+  updateSearchButton()
   
   val clusterize = new Clusterize(clusterizePropsElements)
   

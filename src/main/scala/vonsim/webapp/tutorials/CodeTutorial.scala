@@ -2,7 +2,7 @@ package vonsim.webapp.tutorials
 
 import vonsim.webapp.UIConfig
 
-class SimpleTutorial extends Tutorial {
+class CodeTutorial extends Tutorial {
   val title="Instrucciones de assembly"
   
   val initialCode="""
@@ -13,7 +13,7 @@ end
     """
   
   
-  val id="simple"
+  val id="code"
   
   val steps=List(
 
@@ -37,7 +37,7 @@ end
 <p> Cuando se comienza a ejecutar un programa, el simulador le pone el valor 0 a ambos bytes de estos registros.</p>
 <p> Puedes observar su valor en la pantalla del simulador.</p>
 
-""",UIConfig.enableAll,Some("org 2000h\n\nhlt\nend")
+""",UIConfig.disableAll,None
 )
 
 
@@ -47,12 +47,22 @@ end
 
 <p> Dicha instrucción tiene la sintaxis <code>mov registro, valor</code></p>
 <p> Por ejemplo, <code>mov ax,2</code> pone el valor 2 en el registro ax, o <code>mov cx,12</code> pone el valor 12 en el registro <code>cx</code> </p>
-<p> Prueba el código del editor, que le pone el valor 5 al registro <code>ax</code>.</p>
-<p> Luego agrega una línea al programa para que el registro <code>dx</code> tenga el valor 3.</p>
+<p class="exercise"> Ejecuta el código del editor, y verifica que al registro <code>ax</code> se le asigna el valor 5.</p>
+<p class="exercise"> Agrega una instrucción <code>mov</code> al programa para que el registro <code>dx</code> tenga el valor 3.</p>
 """,UIConfig.enableAll,Some("org 2000h\nmov ax,5\nhlt\nend")
 )
 
 ,TutorialStep("Registros y mov (parte 2)"
+,"""
+<p class="exercise"> Escribe un programa que le asigne el valor <code>16</code> al registro <code>ax</code>,
+ el valor <code>16h</code> al registro <code>ax</code>, el <code>3A2h</code> al <code>cx</code> 
+ y el <code>120</code> al registro <code>dx</code>.</p>
+<p class="exercise">Verifica el valor de los registros. ¿Se muestran codificados en hexadecimal, o en decimal? </p>
+
+""",UIConfig.enableAll,Some("org 2000h\n\nhlt\nend")
+)
+
+,TutorialStep("Registros y mov (parte 3)"
 ,"""<p>También se puede mover el valor de un registro a otro registro</p>
   
 <p> Por ejemplo, podemos ponerle el valor 5 a bx, y luego pasar el valor de bx a cx para que ambos valgan 5.<p> 
@@ -61,26 +71,26 @@ end
 
 <p> Es decir, le pasamos a cx el valor de bx</p>
 
-<p> Prueba el código del editor, que hace lo descripto más arriba.</p>
-<p> Luego agrega una línea al programa para copiar también el valor del registro 
-bx al registro dx. Los tres registros (bx,cx y dx) deberían terminar con el mismo valor (5) al 
-ejecutar el programa.</p>
+<p class="exercise"> Prueba el código del editor, que hace lo descripto más arriba.</p>
+<p class="exercise"> Agrega una línea al programa para copiar también el valor del registro 
+bx al registro dx.</p>
+ <p class="exercise"> Ejecuta el programa y verifica que los tres registros (<code>bx,cx y dx</code>) terminan con el mismo valor (5).</p>
 """,UIConfig.enableAll,Some("org 2000h\nmov bx,5\nmov bx,cx\nhlt\nend")
 )
 
-,TutorialStep("Registros y mov (parte 3)"
+,TutorialStep("Registros y mov (parte 4)"
     
     
 ,"""<p> Entonces la instrucción <code>mov</code> también puede usarse con la sintaxis <code>mov registro, registro</code></p>
   
-  <p>Algo que no se puede hacer es mover el valor de un registro a otro valor</p>
+  <p>Algo que no se puede hacer es mover el valor de un registro hacia un valor</p>
   
 <p> Por ejemplo, la instrucción <code>mov 3, bx</code> es inválida.<p> 
 
 <p> O sea, en general, la sintaxis <code>mov valor, registro</code> es inválida.
 O sea, el orden de los operandos es importante</p>
 
-<p> Prueba dicho código en el editor de código; el programa no compilará.</p>
+<p class="exercise"> Prueba dicho código en el editor de código; el programa no compilará.</p>
 
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend")
 )
@@ -91,7 +101,9 @@ O sea, el orden de los operandos es importante</p>
 <p> La sintaxis de dicha instrucción es <code>add registro, valor</code> <p>
 
 <p> Por ejemplo, para sumarle 3 al registro ax, escribimos <code>add ax, 3</code>. Si antes tenía el valor 4
-ahora tendrá el valor 7. Prueba el código del editor que hace justamente esto.</p>
+ahora tendrá el valor 7. </p>
+
+<p class="exercise">Prueba el código del editor que hace justamente esto.</p>
 
 <p> Luego agrega dos líneas; una para ponerle 5 al registro bx, y otra para sumarle 2 </p>
 
@@ -107,6 +119,13 @@ ahora tendrá el valor 7. Prueba el código del editor que hace justamente esto.
 )
 
 
+,TutorialStep("Instrucción add (parte 2)"
+,"""<p>La instrucción add también nos permite sumar dos registros</p>
+ <p> Entonces, <code>mov ax,bx</code> suma el valor de ax y el de bx<p> 
+<p>El resultado queda almacenado en ax.</p>
+
+""",UIConfig.enableAll,Some("org 2000h\nmov ax,4\nadd ax,3\nadd ax,bx\nhlt\nend")
+)
 
 )
 
