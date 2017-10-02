@@ -19,8 +19,10 @@ class TutorialStep(val title:String,val content:String,val config:UIConfig,val c
 object Tutorial{
   val bt=new BasicTutorial()
   val st=new CodeTutorial()
-  val tutorials=Map(bt.id -> bt,st.id -> st)
+  val vt=new VariablesTutorial()
+  val tutorials=Map(bt.id -> bt,st.id -> st,vt.id -> vt)
 }
+
 abstract class Tutorial{
   def steps:List[TutorialStep]
   def initialCode:String
