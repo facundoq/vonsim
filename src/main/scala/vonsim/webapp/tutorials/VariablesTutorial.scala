@@ -50,16 +50,53 @@ se ubicarán a partir de la dirección de memoria <code>5</code> </p>
 y las <code>dw</code> que ocupan dos bytes</p>
 
 <p>Entonces, para definir una variable llamada peso 
-que ocupe un solo byte y tenga como valor inicial 25, debemos agregar la línea
-<code>peso db 25</code> debajo de la línea <code>org 5</code> </p>
+que ocupe un solo byte y tenga como valor inicial 25h (25 hexadecimal), debemos agregar la línea
+<code>peso db 25h</code> debajo de la línea <code>org 5h</code> </p>
 
-<p class="exercise"> Agrega la línea <code>peso db 25</code> para definir la variable peso con valor 25. 
+<p class="exercise"> Agrega la línea <code>peso db 25h</code> para definir la variable peso con valor 25h. 
 Ejecuta el programa para cargar las variables en la memoria.</p>
 
-<p class="exercise"> Busca la celda de memoria con dirección 5. Debería tener el valor 25, 
-pero codificado en hexadecimal (o sea, 19h) </p>
+<p class="exercise"> Busca la celda de memoria con dirección 5h. Debería tener el valor 25 
+(sin la h, ya que por defecto el simulador muestra todos los bytes codificados en hexadecimal). </p>
 
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Orden de almacenamiento de las variables (parte 1)"
+,"""
+<p> La variable <code>peso</code> que declaramos se ubicó en la celda con dirección 5h.</p>
+
+<p> ¿Qué sucede si declaramos otra variable, también de un byte, a continuación?</p>
+
+<p class="exercise"> Agrega la línea <code>temperatura db 15h</code> 
+para definir la variable temperatura con valor 15h debajo de la variable peso. 
+Ejecuta el programa.</p>
+
+<p class="exercise"> Busca la celda de memoria con dirección 5. Debería tener el valor 25.
+Mirá la celda siguiente, con dirección 6. ¿Qué valor tiene? </p>
+
+""",UIConfig.enableAll,Some("org 5h\npeso db 25h\n\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Orden de almacenamiento de las variables (parte 2)"
+,"""
+<p> La variable <code>temperatura</code> que declaramos se ubicó 
+en la celda con dirección 6. Esto es porque las variables se ubican una tras de otra 
+a partir de la dirección indicada en la sentencia <code>org</code> </p>
+
+<p class="exercise"> Intercambia las declaraciones de las variables <code>peso</code> y 
+<code>temperatura</code>. Ejecuta el programa y verifica que ahora los valores se invierten, es decir, primero 
+se ubica la variable temperatura y luego la variable peso en la memoria.</p>
+
+<p class="exercise"> Agrega otras dos variables de un byte llamadas <code>edad</code> y 
+<code>altura</code>, con valores iniciales 3Ah y 4Ch, debajo de la variable peso.  
+para definir la variable temperatura con valor 14h debajo de la variable peso. 
+Ejecuta el programa.</p>
+
+<p class="exercise"> Busca la celda de memoria con dirección 5. Debería tener el valor 25.
+Mirá la celda siguiente, con dirección 6. ¿Qué valor tiene? </p>
+
+""",UIConfig.enableAll,Some("org 5h\npeso db 25h\ntemperatura db 14h\norg 2000h\nhlt\nend")
 )
 
 ,TutorialStep("Valores de las variables"
