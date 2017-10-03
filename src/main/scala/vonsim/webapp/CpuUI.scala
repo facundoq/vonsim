@@ -47,8 +47,8 @@ class RegistersUI(s: VonSimState,val registers:List[FullRegister],title:String,b
   val lowRow=tr(th("L")).render
   val highRow=tr(th("H")).render
   registers.foreach(r => {
-    val valueElementH=td("00").render
-    val valueElementL=td("00").render
+    val valueElementH=td("00h").render
+    val valueElementL=td("00h").render
     registerToValueL(r)=valueElementL
     registerToValueH(r)=valueElementH
     namesRow.appendChild(th(r.toString).render)
@@ -77,8 +77,8 @@ class RegistersUI(s: VonSimState,val registers:List[FullRegister],title:String,b
   def simulatorEvent(){
     registers.foreach(r=>{
       val value=s.s.cpu.get(r)
-      registerToValueL(r).textContent=formatWord(value.l)
-      registerToValueH(r).textContent=formatWord(value.h)
+      registerToValueL(r).textContent=formatWord(value.l)+"h"
+      registerToValueH(r).textContent=formatWord(value.h)+"h"
     })
   }
   def simulatorEvent(i:InstructionInfo){

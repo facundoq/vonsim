@@ -56,8 +56,10 @@ que ocupe un solo byte y tenga como valor inicial 25h (25 hexadecimal), debemos 
 <p class="exercise"> Agrega la línea <code>peso db 25h</code> para definir la variable peso con valor 25h. 
 Ejecuta el programa para cargar las variables en la memoria.</p>
 
-<p class="exercise"> Busca la celda de memoria con dirección 5h. Debería tener el valor 25 
-(sin la h, ya que por defecto el simulador muestra todos los bytes codificados en hexadecimal). </p>
+<p class="exercise"> Busca la celda de memoria con dirección 5h. Debería tener el valor 25h. </p>
+
+<p> Más tarde veremos como definir variables con valores decimales o binarios, pero por ahora 
+lo haremos con valores hexadecimales</p>
 
 """,UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
@@ -69,10 +71,10 @@ Ejecuta el programa para cargar las variables en la memoria.</p>
 <p> ¿Qué sucede si declaramos otra variable, también de un byte, a continuación?</p>
 
 <p class="exercise"> Agrega la línea <code>temperatura db 15h</code> 
-para definir la variable temperatura con valor 15h debajo de la variable peso. 
+para definir la variable temperatura con valor 14h debajo de la variable peso. 
 Ejecuta el programa.</p>
 
-<p class="exercise"> Busca la celda de memoria con dirección 5. Debería tener el valor 25.
+<p class="exercise"> Busca la celda de memoria con dirección 5. Debería tener el valor 25h.
 Mirá la celda siguiente, con dirección 6. ¿Qué valor tiene? </p>
 
 """,UIConfig.enableAll,Some("org 5h\npeso db 25h\n\norg 2000h\nhlt\nend")
@@ -89,33 +91,101 @@ a partir de la dirección indicada en la sentencia <code>org</code> </p>
 se ubica la variable temperatura y luego la variable peso en la memoria.</p>
 
 <p class="exercise"> Agrega otras dos variables de un byte llamadas <code>edad</code> y 
-<code>altura</code>, con valores iniciales 3Ah y 4Ch, debajo de la variable peso.  
-para definir la variable temperatura con valor 14h debajo de la variable peso. 
+<code>altura</code>, con valores iniciales 3Ah y 4Ch, debajo de la variable <code>peso</code>.   
 Ejecuta el programa.</p>
 
-<p class="exercise"> Busca la celda de memoria con dirección 5. Debería tener el valor 25.
-Mirá la celda siguiente, con dirección 6. ¿Qué valor tiene? </p>
+<p class="exercise"> Observa el valor de las celdas de memoria con dirección 7 y 8. ¿Qué valores tienen?</p>
 
 """,UIConfig.enableAll,Some("org 5h\npeso db 25h\ntemperatura db 14h\norg 2000h\nhlt\nend")
 )
 
+,TutorialStep("Variables de dos bytes (parte 1)"
+,"""
+<p> Las variables que declaramos ocupaban todas un byte, ya que usaban el tipo <code>db</code></p>
+
+<p> Podemos definir variables que ocupen 2 bytes con el tipo <code>dw</code></p>
+
+<p class="exercise"> Agrega la línea <code>peso dw 5A12h</code> para definir la variable peso con valor 5A12h. 
+Ejecuta el programa y observa el valor de las celdas 5h y 6h.</p>
+
+
+<p> Entonces, las variables de dos bytes ocupan dos celdas de memoria, ya que cada celda de la
+memoria guarda un byte. En este caso vemos que la parte menos significativa del valor (12h) se ubicó
+en la celda con la dirección más chica (5h). Por otro lado, la parte más significativa (5Ah) se ubicó
+en la celda con la dirección más alta (6h). Este esquema para guardar las variables se llama, por 
+razones históricas, <strong>little-endian</strong>. </p>
+
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Variables de dos bytes (parte 2)"
+,"""
+<p> Podemos definir varias variables de tipo dw también, y también se ubicarán secuencialmente.</p>
+
+<p> <code>dw</code></p>
+
+<p class="exercise"> Define las variables <code>vida</code>, <code>mana</code> y <code>energía</code>, en ese orden, de tipo <code>dw</code>,
+con valores iniciales 32h, 15Dh y 1A4Bh.</p>
+
+<p class="exercise"> Ejecuta el programa y observa el valor de las celdas 5h a Ah.
+¿Qué sucede cuando ponemos un valor chico, como 32h, en una variable de 2 bytes?
+¿Cómo se rellena la parte más significativa? </p>
+
+
+""",UIConfig.enableAll,Some("org 5h\n;aca van las variables\norg 2000h\nhlt\nend")
+)
+,TutorialStep("Variables de dos bytes (parte 3)"
+,"""
+
+<p class="exercise"> El programa del editor declara las variables del paso anterior. Ejecútalo 
+nuevamente y observa en qué dirección comienza cada variable.</p>
+
+
+<p> En este caso, la variable <code>vida</code> empieza en la dirección 5h;
+la variable <code>mana</code> en la dirección 7h y la variable <code>energia</code> 
+en la dirección 9h</p>
+
+<p> Por ende la variable <code>vida</code> ocupa las celdas 5h y 6h;
+la variable <code>mana</code> ocupa las celdas 7h y 8h y la variable <code>energia</code> 
+las celdas 9h y 10h</p>
+
+<p class="exercise"> Si definieramos una nueva variable debajo de <code>energia</code>,
+¿en qué dirección de memoria se ubicaría?</p>
+
+
+""",UIConfig.enableAll,Some("org 5h\nvida dw 32h\nmana dw 15Dh\nenergia dw 1A4Bh\norg 2000h\nhlt\nend")
+)
+
+
+,TutorialStep("Ubicación de las variables con <code>db</code> y <code>dw</code> "
+,"""
+<p> Hemos definido varias variables de uno y dos bytes por separado. ¿Qué sucede si las combinamos?</p>
+
+
+<p class="exercise"> Ejecuta el programa del editor, en donde se definen distintos tipos de variables.</p>
+
+<p class="exercise"> ¿Cuál es la dirección de comienzo de cada variable? ¿Qué celdas de memoria ocupa cada variable? </p>
+
+""",UIConfig.enableAll,Some("org 5h\nprecipitaciones dw 134h\nnubes db 45h\ntemperatura dw 2Ah\nviento db 8Ah\norg 2000h\nhlt\nend")
+)
+
 ,TutorialStep("Valores de las variables"
 ,"""
-<p> Recién inicializamos la variable con un valor codificado en decimal, pero también podemos hacerlo
-con un valor codificado en hexadecimal o binario</p>
+<p> Recién inicializamos la variable con un valor codificado en hexadecimal, pero también podemos hacerlo
+con un valor codificado en decimal o binario</p>
 
-<p> Para que el valor esté en hexadecimal, simplemente debemos poner una <em>h</em> al final del mismo.
-Entonces 25 es el número 25 en decimal, pero 25h es el 25 en hexadecimal, o sea, el 37 en decimal</p>
+<p> Para que el valor esté en decimal, simplemente debemos quitar la <em>h</em> al final del mismo.
+Entonces 25h es el número 25 hexadecimal, pero 25 es simplemente eso, que codificado en hexadecimal
+aparecerá como 19h</p>
 
-<p class="exercise"> Agrega la línea <code>peso db 25h</code> para definir la variable peso con valor 25h. 
-Ejecuta el programa y verifica que la celda de memoria con dirección 5 tiene el valor 25h.</p>
+<p class="exercise"> Agrega la línea <code>peso db 25</code> para definir la variable peso con valor 25. 
+Ejecuta el programa y verifica que la celda de memoria con dirección 5 tiene el valor 19h.</p>
 
 <p> Podemos también ingresar un byte en formato binario agregando una <em>b</em> al final del mismo.
-Por ejemplo, el valor 00101001b representa al valor 41 en decimal, o 29h</p>
+Recuerda que el valor 00101001b representa al valor 41 en decimal, o 29h</p>
 
-<p class="exercise"> Agrega la línea <code>peso db 00101001b</code> para definir la variable peso con valor 29h. 
-Ejecuta el programa y verifica que la celda de memoria con dirección 5 tiene el valor 29h.</p>
-
+<p class="exercise"> Agrega debajo de <code>peso<code> la línea <code>peso db 00101001b</code> para definir la variable peso con valor 29h. 
+Ejecuta el programa y verifica que la celda de memoria con dirección 6 tiene el valor 29h.</p>
 
 """,UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
 )

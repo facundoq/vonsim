@@ -155,7 +155,7 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
     val formattedValue = s.uil.formatWord(s.s.memory.values(address))
     val description=s.uil.describeMemoryCell(address, value)
       
-      s"""<tr title="$description">  <td class="rowWithTooltip"><span class="memoryTooltip">$description</span>  $formattedAddress </td> <td> $formattedValue  </td> </tr>"""
+      s"""<tr title="$description">  <td class="rowWithTooltip"><span class="memoryTooltip">$description</span>  ${formattedAddress}h </td> <td> ${formattedValue}h  </td> </tr>"""
   }
   
   def addressToId(address:String)={
