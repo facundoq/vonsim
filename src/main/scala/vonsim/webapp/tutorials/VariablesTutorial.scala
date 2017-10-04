@@ -199,6 +199,22 @@ y el tercero para el código, a partir de la dirección 2000h.</p>
 """,UIConfig.enableAll,Some("org 5h\nprecipitaciones dw 134h\nnubes db 45h\norg 12h\ntemperatura dw 2Ah\nviento db 8Ah\norg 2000h\nhlt\nend")
 )
 
+,TutorialStep("Valores decimales para la dirección del <code>org</code>"
+,"""
+<p>En algunos casos puede ser más fácil especificar la dirección de memoria en decimal.
+Supongamos que queremos ubicar variables a partir de la dirección de memoria 12. En tal caso,
+en lugar de tener que convertirla a hexadecimal, podemos escribir el 12 sin la <em>h</em> en
+la instrucción <code>org</code>.</p>
+
+<p class="exercise"> Lee y ejecuta el programa del editor. Las variables se ubican a partir
+de la dirección 12h.</p>
+
+<p class="exercise"> Quita el <em>h</em> de la sentencia <code>org 12h</code> y ejecuta
+el programa. ¿Dónde se ubican las variables ahora?</p> 
+<p class="answer">Las variables se ubican a partir de la dirección 12, o sea Bh.</p>
+""",UIConfig.enableAll,Some("org 12h\ntemperatura dw 2Ah\nviento db 8Ah\norg 2000h\nhlt\nend")
+)
+
 
 ,TutorialStep("Valores decimales para inicializar las variables"
 ,"""
@@ -206,61 +222,124 @@ y el tercero para el código, a partir de la dirección 2000h.</p>
 que es lo más común, en verdad lo que se guarda en cada celda son 8 bits, un byte,
 que codifican un número utilizando el sistema binario. </p>
 
-<p> Recién inicializamos la variable con un valor codificado en hexadecimal, pero al
+<p> Hasta ahora hemos inicializado las variables con un valor codificado en hexadecimal, pero al
 cargarse en la memoria en verdad se guarda en formato binario.</p> 
 
 <p>Entonces, en realidad el formato hexadecimal es solo una conveniencia para 
 escribir los valores de forma más cómoda.</p>
 
-<p> También podemos hacerlo con un valor codificado en decimal. Para ello, simplemente 
-debemos no poner una <em>h</em> al final del mismo.</p>
+<p> También podemos escribirlos con un valor codificado en decimal, como hicimos con la 
+dirección del <code>org</code>. 
+Para ello, recordemos que simplemente debemos no poner una <em>h</em> al final del valor.</p>
 
 <p class="exercise"> Agrega la línea <code>peso db 25</code> para definir la variable peso con valor 25 (decimal). 
 Ejecuta el programa y busca el valor de la celda de memoria donde se cargó</p>
 
-<p> Ese valor, ¿es 25? ¿por qué no? ¿con qué codificación se está mostrando?</p>
+<p class="exercise"> Ese valor, ¿es 25? ¿por qué no? ¿con qué codificación se está mostrando?</p>
 
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
+<p class="answer">Se muestra el valor 19h, porque se muestra en hexadecimal <p>
+
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Valores binarios para inicializar las variables TODO"
+,TutorialStep("Valores máximos"
+,"""
+
+<p>Las variables de tipo <code>db</code> tienen un rango de 0 a 255 para valores sin signo,
+ ya que disponen de 8 bits.</p>
+
+<p class="exercise"> Intenta poner un valor mayor a 255 en la variable edad. ¿Qué sucede? </p>
+
+<p>Las variables de tipo <code>dw</code> tienen un rango de 0 a 65536 para valores sin signo,
+ ya que disponen de 16 bits.</p>
+
+<p class="exercise"> Intenta poner un valor mayor a 65536 en la variable distancia. ¿Qué sucede? </p>
+
+<p> En ambos casos, como son valores positivos, se codifican en el sistema Binario Sin Signo 
+(BSS) al guardarse en la memoria.</p>
+
+""",UIConfig.enableAll,Some("org 5h\nedad db 50\ndistancia dw 1529\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Valores negativos"
+,"""
+
+<p>También se pueden usar valores negativos para inicializar una variable. </p>
+
+<p class="exercise"> Prueba poniendo el valor -10 a la variable temperatura y ejecutando
+el programa. ¿Qué se almacena en la memoria en la dirección 5h? ¿Por qué?</p>
+
+<p class="answer"> Se almacena el valor F6h, o sea 11110110b, que es la codificación
+en Complemento a 2 (CA2) del número -10. Hay que tener en cuenta que tanto el número
+119 como el número -10 se codifican como 11110110b. Por ende es el programador quien
+debe saber de antemano como interpretar esa cadena de bits, si en CA2 o en BSS. </p>
+
+""",UIConfig.enableAll,Some("org 5h\ntemperatura db 10\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Valores mínimos"
+,"""
+
+<p>Como se utiliza el sistema CA2 para los números negativos, el valor
+mínimo para las variables de tipo <code>db</code> es de -128.</p>
+
+<p class="exercise"> Intenta poner un valor menor a -128 en la variable edad. ¿Qué sucede? </p>
+
+<p>Las variables de tipo <code>dw</code> tienen como valor mínimo entonces el -32768</p>
+
+<p class="exercise"> Intenta poner un valor menor a -32768 en la variable distancia. ¿Qué sucede? </p>
+
+""",UIConfig.enableAll,Some("org 5h\nedad db -15\ndistancia dw -1234\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Valores binarios para inicializar las variables"
 ,"""
 
 <p> Podemos también ingresar un byte en formato binario agregando una <em>b</em> al final del mismo.</p>
 
+<p class="exercise"> Agrega debajo de <code>peso</code> la línea <code>peso db 00101001b</code> para definir la variable peso con valor 29h. 
+Ejecuta el programa y verifica que la celda de memoria con dirección 6h tiene el valor 29h.</p>
 
-<p class="exercise"> Agrega debajo de <code>peso<code> la línea <code>peso db 00101001b</code> para definir la variable peso con valor 29h. 
-Ejecuta el programa y verifica que la celda de memoria con dirección 6 tiene el valor 29h.</p>
+<p> Recuerda que el valor 00101001b representa el valor 41 en BSS, o 29h en hexadecimal </p>
 
-<p> Recuerda que el valor 00101001b representa al valor 41 en decimal, o 29h en hexadecimal </p>
-
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Caracteres para inicializar las variables TODO"
+
+,TutorialStep("Vectores (parte 1)"
 ,"""
+<p>También puedes definir algo similar a un vector, es decir, una variable con varios valores.
+ En ese caso la sintaxis es <code>nombre tipo valor1, valor2, valor3, ...</code> </p>
+<p> Los valores se guardan uno seguido del otro en la memoria.</p>
+<p> </p>
+<p class="exercise">Ejecutar el código del editor. ¿En qué celdas de memoria se guardan
+los valores? ¿Cuántas celdas ocupan en total? </p>
 
-<p> También podemos hacerlo con un valor codificado en decimal. Para ello, simplemente 
-debemos no poner una <em>h</em> al final del mismo.</p>
+<p class="answer"> Ocupan 6 celdas; la 5h, 6h, 7h, 8h, 9h y Ah.</p>
 
-<p class="exercise"> Agrega la línea <code>peso db 25</code> para definir la variable peso con valor 25 (decimal). 
-Ejecuta el programa y busca el valor de la celda de memoria donde se cargó</p>
-
-<p> Podemos también ingresar un byte en formato binario agregando una <em>b</em> al final del mismo.
-Recuerda que el valor 00101001b representa al valor 41 en decimal, o 29h</p>
-
-<p class="exercise"> Agrega debajo de <code>peso<code> la línea <code>peso db 00101001b</code> para definir la variable peso con valor 29h. 
-Ejecuta el programa y verifica que la celda de memoria con dirección 6 tiene el valor 29h.</p>
-
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
+""",UIConfig.enableAll,Some("org 5h\ntabla db 1,3,5,7,9,11\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Vectores TODO"
+,TutorialStep("Vectores (parte 2)"
 ,"""
-<p></p>
+<p>Recién definimos un vector donde cada elemento era de tipo <</p>
+<p> Los valores se guardan uno seguido del otro en la memoria.</p>
+<p> </p>
+<p class="exercise">Ejecutar el código del editor. ¿En qué celdas de memoria se guardan
+los valores? ¿Cuántas celdas ocupan en total? </p>
 
-<p class="exercise"> </p>
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
+<p class="answer"> Ocupan 6 celdas; la 5h, 6h, 7h, 8h, 9h y Ah.</p>
+
+""",UIConfig.enableAll,Some("org 5h\ntabla db 1,3,5,7,9,11\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Variables vs Etiquetas TODO"
+,"""
+<p>Cuando tenemos una variable de tipo <code>dw</code>, reservamos dos celdas de memoria
+para guardar un valor. Por ejemplo, en el programa del editor, las celdas 5h y 6h
+contienen el valor de la variable distancia.</p>
+
+""",UIConfig.enableAll,Some("org 5h\ndistancia dw 14A3\norg 2000h\nhlt\nend")
 )
 
 ,TutorialStep("Cadenas de caracters TODO"
@@ -280,12 +359,7 @@ Ejecuta el programa y verifica que la celda de memoria con dirección 6 tiene el
 )
 
 
-,TutorialStep("Variables vs Etiquetas TODO"
-,"""
-<p> .</p>
 
-""",UIConfig.enableAll,Some("org 2000h\nmov ax,5\nhlt\nend")
-)
 
 ,TutorialStep("A continuación"
 ,"""
