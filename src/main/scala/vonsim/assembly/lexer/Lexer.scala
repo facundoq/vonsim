@@ -158,7 +158,7 @@ def literalhex= positioned {
 }
 
 def literalbyte= positioned {
-  "[0-1]{1,16}B".r ^^ { str => {
+  "[0-1]{1,16}[Bb]".r ^^ { str => {
     val byteString=str.substring(0,str.length-1)
     
     LITERALINTEGER(Integer.parseInt(byteString, 2))  

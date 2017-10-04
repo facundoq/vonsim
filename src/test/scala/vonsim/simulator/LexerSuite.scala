@@ -57,7 +57,12 @@ test("expression") {
      val program = " 3 + 2 "
      val tokens=getTokens(program, 4)
 }
-   
+
+test("binary values") {
+     val program = "10101010b"
+     val tokens=getTokens(program, 2)
+     
+}
 }
 
   
