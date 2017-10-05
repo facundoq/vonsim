@@ -10,7 +10,7 @@ org 2000h
 ; código aquí
 hlt
 end
-    """
+"""
   
   
   val id="variables"
@@ -388,6 +388,31 @@ Verifica que los códigos corresponden a los de los caracteres h, o, l, y a. </p
 </ul>
 </div>
 
+<p class="exercise"> Cambia el contenido de la cadena de caracteres de "hola" a "123#! wubba lubba dub dub" y 
+ejecuta el programa. ¿Cómo se codifica el "123"?¿Y los caracteres "#!"?¿Y los espacios?</p>
+
+
+""",UIConfig.enableAll,Some("org 5h\ncadena db \"hola\"\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Codificación de caracteres no alfabéticos"
+,"""
+
+<p class="exercise"> En el editor se encuentra el mismo código que antes.
+Cambia el contenido de la cadena de caracteres de "hola" a "123#!   wubba lubba dub dub" y 
+ejecuta el programa. ¿Cómo se codifica el "123"?¿Y los caracteres "#!"?¿Y los espacios?</p>
+
+<div class="answer">
+<p>La cadena "123" contiene tres caracteres, el 1, con código ASCII 31h, el 2 con código 32h
+y el 3 con código 33h. Ten cuidado, ya que el código de un número (32h) difiere del valor 
+del mismo (2).</p>
+<p> Los caracteres "#" y "!" también tienen un código asociado, en este caso
+el 23h y 21h, así como "?,.-+*" y otros símbolos.</p> 
+<p>Por último, los espacios también tienen un código, el 20h. Si hay varios espacios
+habrá la misma cantidad de códigos 20h en la memoria.    
+</p>
+</div>
+
 """,UIConfig.enableAll,Some("org 5h\ncadena db \"hola\"\norg 2000h\nhlt\nend")
 )
 
@@ -470,19 +495,17 @@ En cambio, tenemos un mecanismo para <strong>inicializar celdas de memoria</stro
 //)
 
 
-,TutorialStep("Dup TODO"
+//,TutorialStep("Dup TODO"
+//,"""
+//<p>En ocasiones, queremos definir un vector pero con todos los elementos iguales.</p>
+//
+//<p class="exercise"> </p>
+//""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
+//)
+
+
+,TutorialStep("Resumen"
 ,"""
-<p>En ocasiones, queremos definir un vector pero con todos los elementos iguales.</p>
-
-<p class="exercise"> </p>
-""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
-)
-
-
-,TutorialStep("Resumen TODO"
-,"""
-
-
 <p>En resumen, en assembly se pueden etiquetar celdas de memoria e inicializar su valor,
 que llamamos <strong>declarar variables</strong> aunque su significado sea algo
 diferente del de otros lenguajes de programación.</p>
@@ -490,13 +513,27 @@ diferente del de otros lenguajes de programación.</p>
 <p>Para ello primero debemos establecer la dirección donde se comienzan a ubicar las variables
 con la sentencia <code>org</code>.</p>
 
-<p>Luego podemos definir variables. Pueden ser de dos tipos: <code>db</code>, si ocupan un byte,
+<p>Luego podemos definir variables. La sintaxis para definir variables es
+<code>nombre tipo valor1, valor2, ...</code></p>
+
+<p> Hay dos tipos de variables: <code>db</code>, si ocupan un byte,
 o <code>dw</code> si ocupan 2 bytes. </p>
-<p>Las variables tienen una etiqueta, que luego nos servirá como referencia para accederlas o modificarlas
+
+<p>Las variables tienen un nombre o etiqueta, que luego nos servirá como referencia para accederlas o modificarlas
 </p>
 
+<p>Las variables se ubican secuencialmente en la memoria, es decir, donde termina una empieza la siguiente.
+</p>
 
-<p class="exercise"> </p>
+<p>Los valores pueden ingresarse en hexadecimal (Bh), en binario (00001011b) o en decimal (11).
+Los números positivos se codifican en el sistema BSS. Además, se pueden ingresar números negativos, que
+se codifican con el sistema CA2.
+</p>
+
+<p>Podemos declarar vectores poniendo varios valores a una variable, separados por coma.
+También podemos declarar vectores de caracteres o strings, escribiendo un texto entre comillas.
+</p>
+
 """,UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
@@ -504,7 +541,7 @@ o <code>dw</code> si ocupan 2 bytes. </p>
 ,TutorialStep("A continuación"
 ,"""
  <p>Ahora que sabes más sobre cómo se codifican los datos en assembly y cómo definir variables,
-  puedes avanzar más con el <a href="?tutorial=simple">tutorial sobre 
+  puedes avanzar más con el <a href="?tutorial=code">tutorial sobre 
   registros e instrucciones simples</a>.</p>
  
 """,UIConfig.disableAll,Some(""))

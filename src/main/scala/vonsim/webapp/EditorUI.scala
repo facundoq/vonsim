@@ -38,6 +38,7 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   session.setMode("ace/mode/assembly_x86")
   editor.setValue(defaultCode)
   session.setUseSoftTabs(true)
+  session.setTabSize(1)
   session.setUseWorker(false)
   
   editor.clearSelection()
