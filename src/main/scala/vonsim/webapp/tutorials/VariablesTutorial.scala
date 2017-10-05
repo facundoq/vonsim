@@ -39,7 +39,7 @@ información: la memoria principal o RAM y los registros.</p>
 <p> Esto quiere decir que las variables que ahora declaremos debajo de la línea <code>org 5h</code>
 se ubicarán a partir de la dirección de memoria 5h, es decir 5 en hexadecimal (siempre escribiremos las direcciones en hexadecimal) </p>
 
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
 ,TutorialStep("Declaración de variables"
@@ -64,6 +64,24 @@ Ejecuta el programa para cargar las variables en la memoria.</p>
 lo haremos con valores hexadecimales</p>
 
 """,UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Valos hexadecimales"
+,"""
+<p> Como vimos, los valores hexadecimales requieren una <em>h</em> al final para
+especificar este sistema.</p>
+<p> Recuerda que tanto 5h, 25h, 1Ah, Ah o BCDEh son valores hexadecimales, ya que las letras
+A, B, C, D, E y F codifican los valores decimales 10, 11, 12, 13, 14 y 15 en el sistema
+hexadecimal.</p>
+<p>En el caso de valores como Ah o BCDEh, que <em>comienzan</em> con una letra, el simulador
+requiere que se anteponga un 0 al valor. Entonces en lugar de escribir Ah o BCDEh, escribiremos
+0Ah o 0BCDEh.</p>
+<p> De este modo, el simulador puede distinguir el valor Ah de una variable llamada Ah.</p>
+
+<p class="exercise"> El programa del editor no compila. Agrega el 0 al valor A3h de la variable
+<code>peso</code> para que compile y ejecútalo. ¿Qué valor aparece en la dirección 5h?</p>
+
+""",UIConfig.enableAll,Some("org 5h\npeso db A3h\norg 2000h\nhlt\nend")
 )
 
 ,TutorialStep("Orden de almacenamiento de las variables (parte 1)"
@@ -305,6 +323,18 @@ Ejecuta el programa y verifica que la celda de memoria con dirección 6h tiene e
 """,UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
+,TutorialStep("Variables sin valor"
+,"""
+
+<p>También podemos declarar variables sin valor. Para ello ponemos <em>?</em> en lugar del valor.</p>
+
+<p class="exercise"> Define la variable <code>peso</code> de tipo <code>db</code> con valor <em>?</em>.
+Antes de ejecutar el código, anota el valor de la celda de memoria 5h. Luego ejecuta el código. ¿Qué
+valor tiene ahora esta celda? </p>
+
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
+)
+
 
 ,TutorialStep("Vectores de <code>db</code>"
 ,"""
@@ -361,7 +391,7 @@ Verifica que los códigos corresponden a los de los caracteres h, o, l, y a. </p
 """,UIConfig.enableAll,Some("org 5h\ncadena db \"hola\"\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Las cadenas de caracteres son solo de <code>db</code>"
+,TutorialStep("Las cadenas de caracteres son sólo de tipo <code>db</code>"
 ,"""
 <p>Las cadenas de caracteres sólo pueden ser de tipo <code>db</code>.</p>
 
@@ -393,8 +423,11 @@ o varias para un vector).</p>
 
 <div class="answer"> 
 <ul>
-<li>La variable <code>distancia</code> tiene dirección 5h </li>
-<li>La variable <code>amigos</code> tiene dirección 7h </li>
+<li>La variable <code>distancia</code> tiene dirección 5h.</li>
+<li>La variable <code>amigos</code> tiene dirección 7h.</li>
+<li>La variable <code>mensaje</code> tiene dirección 8h.</li>
+<li>La variable <code>tablita</code> tiene dirección 16h.</li>
+<li>La variable <code>androide</code> tiene dirección 22h.</li>
 </ul>
 </div>
 
@@ -403,29 +436,74 @@ o varias para un vector).</p>
 distancia dw 14A3h
 amigos db 4Ah
 mensaje db "Buenas noches."
-tablita dw 10,5,4Bh,1D4Ch,3h
+tablita dw 10,5,4Fh,1D4Ch,3h,4BCDh
 androide db "R2D2"
 org 2000h
 hlt
 end""")
 )
 
+,TutorialStep("Variables vs Etiquetas"
+,"""
+<p>Pensándolo de ese modo, en assembly <em>declarar una variable</em> es simplemente etiquetar una dirección de memoria.
+Entonces más que una variable, tenemos una <strong>etiqueta</strong> para una celda de memoria. </p>
+
+<p> Entonces, en realidad assembly no nos da un mecanismo para definir <strong>variables</strong> como
+las entendemos en otros lenguajes de programación.
+En cambio, tenemos un mecanismo para <strong>inicializar celdas de memoria</strong> con algún valor y 
+<strong>etiquetar celdas de memoria</strong> con un nombre. 
+</p>
+
+""",UIConfig.enableAll,Some("org 5h\ndw 1A3Bh\norg 2000h\nhlt\nend")
+)
+
+//,TutorialStep("Variables sin etiquetas TODO"
+//,"""
+//
+//
+//<p class="exercise"> Lee y ejecuta el código del editor</p>
+//
+//<p class="answer"> El compilador detecta el error y no compila el programa.
+//</p>
+//
+//""",UIConfig.enableAll,Some("org 5h\ndw 1A3Bh\norg 2000h\nhlt\nend")
+//)
 
 
 ,TutorialStep("Dup TODO"
 ,"""
-<p></p>
+<p>En ocasiones, queremos definir un vector pero con todos los elementos iguales.</p>
 
 <p class="exercise"> </p>
 """,UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
 
+,TutorialStep("Resumen TODO"
+,"""
+
+
+<p>En resumen, en assembly se pueden etiquetar celdas de memoria e inicializar su valor,
+que llamamos <strong>declarar variables</strong> aunque su significado sea algo
+diferente del de otros lenguajes de programación.</p>
+
+<p>Para ello primero debemos establecer la dirección donde se comienzan a ubicar las variables
+con la sentencia <code>org</code>.</p>
+
+<p>Luego podemos definir variables. Pueden ser de dos tipos: <code>db</code>, si ocupan un byte,
+o <code>dw</code> si ocupan 2 bytes. </p>
+<p>Las variables tienen una etiqueta, que luego nos servirá como referencia para accederlas o modificarlas
+</p>
+
+
+<p class="exercise"> </p>
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
+)
 
 
 ,TutorialStep("A continuación"
 ,"""
- <p>Ahora que sabes cómo se codifican los datos en assembly y cómo definir variables,
+ <p>Ahora que sabes más sobre cómo se codifican los datos en assembly y cómo definir variables,
   puedes avanzar más con el <a href="?tutorial=simple">tutorial sobre 
   registros e instrucciones simples</a>.</p>
  
