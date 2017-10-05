@@ -388,9 +388,6 @@ Verifica que los códigos corresponden a los de los caracteres h, o, l, y a. </p
 </ul>
 </div>
 
-<p class="exercise"> Cambia el contenido de la cadena de caracteres de "hola" a "123#! wubba lubba dub dub" y 
-ejecuta el programa. ¿Cómo se codifica el "123"?¿Y los caracteres "#!"?¿Y los espacios?</p>
-
 
 """,UIConfig.enableAll,Some("org 5h\ncadena db \"hola\"\norg 2000h\nhlt\nend")
 )

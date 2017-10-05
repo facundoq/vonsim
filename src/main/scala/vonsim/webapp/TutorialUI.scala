@@ -90,7 +90,7 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   val controls=new TutorialUIControl(s,tutorial,() => {
     displayTutorialStep()
   })
-  val content=span().render
+  val content=div().render
   val subtitle=span(id:="tutorialStepTitle").render
   
   val header=h3(subtitle)
@@ -118,6 +118,24 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
     tutorial.current.code match {  
       case Some(s)=> mainUI.editorUI.setCode(s)
       case None => 
+    }
+    val elements=content.getElementsByClassName("answer")
+    for (i <- 0 until elements.length){
+      
+      val element=elements.item(i)
+      println(element)
+      val answerId="answer"+i
+      val link = button(cls:="btn btn-info","Respuesta",data("toggle"):="collapse",data("target"):="#"+answerId).render
+      val answerContainer=div(cls:="answerContainer",link).render
+      link.onclick=(e:Any) =>{
+        
+      } 
+      element.parentNode.replaceChild(answerContainer, element)
+      val answerContent=div(id:=answerId,cls:="answerContent collapse",element).render
+      //container.appendChild(answerContainer)
+      answerContainer.appendChild(answerContent)
+//      element.insertBefore(link, element.firstChild)
+//      element.attributes.setNamedItem(arg)
     }
   }
   def simulatorEvent() {

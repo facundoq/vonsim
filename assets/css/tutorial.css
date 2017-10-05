@@ -80,12 +80,17 @@
 	background-color: #BBB;
 	color: #272822;
 	border-radius:15px;
-	padding: 5px 15px; 
+	padding: 5px 15px;
+	margin-top: 5px; 
 	
 }
 .answer{
 	border-radius:15px;
 	border:1px solid #BBB;
 	padding: 5px 15px;
+	margin-top: 5px; 
 }
 
+#tutorial pre{
+	text-align: left;
+}
