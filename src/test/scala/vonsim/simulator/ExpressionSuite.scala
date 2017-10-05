@@ -95,6 +95,20 @@ class ExpressionSuite extends FunSuite {
     assert(compilation.isLeft)    
 }
 
+test("Undefined label references should not compile") {
+     val program = 
+"""
+  
+  org 1000h
+ hola dw chau
+  org 2000h  
+  hlt
+  end
+"""
+    val compilation= Compiler(program)
+    println("Compilation output:"+compilation)
+    assert(compilation.isLeft)    
+}
    
 }
 

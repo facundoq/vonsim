@@ -32,11 +32,7 @@ import vonsim.assembly.lexer.DB
 
 object Compiler {
 
-  class SuccessfulCompilation(val instructions: List[InstructionInfo] 
-     ,val addressToInstruction: Map[MemoryAddress, InstructionInfo]
-     ,val variablesMemory: Map[MemoryAddress, Int]
-     ,val instructionsMemory : Map[MemoryAddress, Int]
-     , val warnings: List[Warning]) {
+  class SuccessfulCompilation(val instructions: List[InstructionInfo], val addressToInstruction: Map[MemoryAddress, InstructionInfo], val variablesMemory: Map[MemoryAddress, Int], val instructionsMemory: Map[MemoryAddress, Int], val warnings: List[Warning]) {
     override def toString() = {
       s"SuccessfulCompilation(${instructions.length} instructions)"
     }
@@ -52,15 +48,15 @@ object Compiler {
   type Warning = (Line, String)
   type Line = Int
   type ParsingResult = List[Either[CompilationError, parser.Instruction]]
-  var language:CompilerLanguage=new English()
-  
-  def setLanguage(c:CompilerLanguage){
-    language=c
-    Lexer.compilerLanguage=c
-    parser.Parser.compilerLanguage=c
+  var language: CompilerLanguage = new English()
+
+  def setLanguage(c: CompilerLanguage) {
+    language = c
+    Lexer.compilerLanguage = c
+    parser.Parser.compilerLanguage = c
   }
-  
-  def apply(code: String,compilerLanguage:CompilerLanguage=language): CompilationResult = {
+
+  def apply(code: String, compilerLanguage: CompilerLanguage = language): CompilationResult = {
     setLanguage(compilerLanguage)
     val rawInstructions = code.split("(\r\n)|\r|\n")
     var optionTokens = rawInstructions map { Lexer(_) }
@@ -70,21 +66,21 @@ object Compiler {
     val fixedTokensNoEmpty = fixedTokens.filter(p => {
       !(p.isRight && p.right.get.length == 1 && p.right.get(0).equals(EMPTY()))
     })
-    
+
     def parseValidTokens(t: Either[LexerError, List[Token]]): Either[CompilationError, parser.Instruction] = {
       if (t.isLeft) Left(t.left.get) else parser.Parser(t.right.get.toSeq)
     }
 
     val parsedInstructions = fixedTokensNoEmpty map parseValidTokens toList
-    
-//    println("Compiler: parsed instructions")
-//    parsedInstructions.foreach(f => println(f))
-    
-    val compilation = transformToSimulatorInstructions(parsedInstructions,rawInstructions)
+
+    //    println("Compiler: parsed instructions")
+    //    parsedInstructions.foreach(f => println(f))
+
+    val compilation = transformToSimulatorInstructions(parsedInstructions, rawInstructions)
     compilation
   }
 
-  def transformToSimulatorInstructions(instructions: ParsingResult,rawInstructions:Array[String]): CompilationResult = {
+  def transformToSimulatorInstructions(instructions: ParsingResult, rawInstructions: Array[String]): CompilationResult = {
     if (instructions.isEmpty) {
       return Left(new FailedCompilation(List(), List(GlobalError(Option.empty, language.emptyProgram))))
     }
@@ -101,18 +97,18 @@ object Compiler {
     ins = checkLoopsInLabels(ins)
     ins = checkFirstOrgBeforeInstructionsWithAddress(ins)
 
-    val firstPassResolver=new FirstPassResolver(ins)
-    
-//    println("Vardef label to line " + firstPassResolver.vardefLabelToLine)
-//    println("Vardef label to type" + firstPassResolver.vardefLabelToType)
-//    println("jump label to line" + firstPassResolver.jumpLabelToLine)
-//    ins.foreach(println(_))
+    val firstPassResolver = new FirstPassResolver(ins)
+
+    //    println("Vardef label to line " + firstPassResolver.vardefLabelToLine)
+    //    println("Vardef label to type" + firstPassResolver.vardefLabelToType)
+    //    println("jump label to line" + firstPassResolver.jumpLabelToLine)
+    //    ins.foreach(println(_))
     val unlabeledInstructions = unlabelInstructions(ins)
 
     //Transform from parser.Instruction to simulator.Instruction 
     // Note that at this point the jump and memory addresses are actually dummy values    
-    val firstPassResult = compileInstructions(unlabeledInstructions,firstPassResolver,rawInstructions)  
-    
+    val firstPassResult = compileInstructions(unlabeledInstructions, firstPassResolver, rawInstructions)
+
     if (firstPassResult.allRight && globalErrors.isEmpty) {
       //      println(s"Instructions $r")
       val firstPassInstructions = firstPassResult.rights
@@ -121,33 +117,32 @@ object Compiler {
         val hltWarning = (0, language.noHltInstructionsWarning)
         warnings += hltWarning
       }
-      
+
       //Build a db of information after getting correctly parsed instructions
-      val secondPassResolver=new SecondPassResolver(firstPassInstructions,firstPassResolver)
+      val secondPassResolver = new SecondPassResolver(firstPassInstructions, firstPassResolver)
       //println("Memory"+memory)
       //println("Vardef address" + vardefLineToAddress)
       //println("executable" + executableLineToAddress)
-      val secondPassResult = compileInstructions(unlabeledInstructions,secondPassResolver,rawInstructions)
+      val secondPassResult = compileInstructions(unlabeledInstructions, secondPassResolver, rawInstructions)
 
-      val secondPassInstructions=secondPassResult.rights()
+      val secondPassInstructions = secondPassResult.rights()
 
-      val (variablesMemory,instructionsMemory ) = getMemory(secondPassInstructions,secondPassResolver.executableLineToAddress)
+      val (variablesMemory, instructionsMemory) = getMemory(secondPassInstructions, secondPassResolver.executableLineToAddress)
       val executableInstructions = secondPassInstructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
       val addressToInstruction = executableInstructions.map(x => (secondPassResolver.executableLineToAddress(x.line), x)).toMap
-      Right(new SuccessfulCompilation(secondPassInstructions, addressToInstruction, variablesMemory,instructionsMemory , warnings.toList))
+      Right(new SuccessfulCompilation(secondPassInstructions, addressToInstruction, variablesMemory, instructionsMemory, warnings.toList))
     } else {
       Left(new FailedCompilation(firstPassResult, globalErrors.toList))
     }
   }
-  def compileInstructions(instructions:ParsingResult,resolver:Resolver,rawInstructions:Array[String])={
+  def compileInstructions(instructions: ParsingResult, resolver: Resolver, rawInstructions: Array[String]) = {
     instructions.mapRightEither(x => {
-      val compiled=parserToSimulatorInstruction(x,resolver)
-      val line=x.location.line
-      compiled.right.map(i =>new InstructionInfo(line,i,rawInstructions(line)))
-      
+      val compiled = parserToSimulatorInstruction(x, resolver)
+      val line = x.location.line
+      compiled.right.map(i => new InstructionInfo(line, i, rawInstructions(line)))
 
     })
-    
+
   }
 
   def checkRepeatedEnds(ins: ParsingResult) = {
@@ -163,58 +158,64 @@ object Compiler {
       case other => Right(other)
     })
   }
-  
-  def checkExpressionLabelReferences(ins: ParsingResult) = {
-      ins
-    
-  }
-  
+
+//  def checkExpressionLabelReferences(ins: ParsingResult) = {
+//    ins.last.right.get.location.line
+//    val equ = ins.collect { case Right(parser.EQUDef(l, e)) => l }
+//
+//    val refs = ins.collect {
+//      case Right(parser.EQUDef(l, e)) => (l, e)
+//      case Right(parser.EQUDef(l, e)) => (l, e)
+//    }
+//    ins
+//  }
+
   def checkLoopsInLabels(ins: ParsingResult) = {
-    
-    val graph =makeGraph(ins)
-    val loopyLabels=loopyEquStatements(graph)
-    ins.mapRightEither(_ match{
-      case x@parser.EQUDef(l,e) => if (loopyLabels.contains(l)) semanticError(x,language.loopsInEqu) else Right(x) 
-      case other => Right(other)
+
+    val graph = makeGraph(ins)
+    val loopyLabels = loopyEquStatements(graph)
+    ins.mapRightEither(_ match {
+      case x @ parser.EQUDef(l, e) => if (loopyLabels.contains(l)) semanticError(x, language.loopsInEqu) else Right(x)
+      case other                   => Right(other)
     })
-    
+
   }
-  def makeGraph(ins:ParsingResult)={
-    val equ=ins.collect{case Right(parser.EQUDef(l,e))=> (l,e)}
-    val equLabels=equ.map(_._1).toSet
-    val graphPairs=equ.map(p => (p._1,p._2.labels.toSet.intersect(equLabels)))
+  def makeGraph(ins: ParsingResult) = {
+    val equ = ins.collect { case Right(parser.EQUDef(l, e)) => (l, e) }
+    val equLabels = equ.map(_._1).toSet
+    val graphPairs = equ.map(p => (p._1, p._2.labels.toSet.intersect(equLabels)))
     makeMutable(graphPairs.toMap)
   }
-  
-  def loopyEquStatements(g:mutable.Map[String,Set[String]]) = {
-    var graph=g
-    var inDegrees=getInDegrees(graph)
-    var edges=inDegrees.filter(_._2==0 ).map(_._1).toSet
-    while (!edges.isEmpty){
-      graph--=edges
-      graph= graph.map(p => (p._1,p._2.filterNot(s => edges.contains(s))))
-      inDegrees=getInDegrees(graph)
-      edges=inDegrees.filter(_._2==0 ).map(_._1).toSet
+
+  def loopyEquStatements(g: mutable.Map[String, Set[String]]) = {
+    var graph = g
+    var inDegrees = getInDegrees(graph)
+    var edges = inDegrees.filter(_._2 == 0).map(_._1).toSet
+    while (!edges.isEmpty) {
+      graph --= edges
+      graph = graph.map(p => (p._1, p._2.filterNot(s => edges.contains(s))))
+      inDegrees = getInDegrees(graph)
+      edges = inDegrees.filter(_._2 == 0).map(_._1).toSet
     }
     graph.keySet
   }
-  
-  def makeMutable[E,T](a:Map[E,T]):mutable.Map[E,T]={
+
+  def makeMutable[E, T](a: Map[E, T]): mutable.Map[E, T] = {
     mutable.Map(a.toSeq: _*)
   }
-  def getInDegrees(graph:mutable.Map[String,Set[String]])={
-    val init=graph.keys.map(k => (k,0))
-    val inDegrees= makeMutable(init.toMap)
-    graph.foreach( p => p._2.foreach( l => {
-      inDegrees(l)=inDegrees(l)+1 
-      }))
+  def getInDegrees(graph: mutable.Map[String, Set[String]]) = {
+    val init = graph.keys.map(k => (k, 0))
+    val inDegrees = makeMutable(init.toMap)
+    graph.foreach(p => p._2.foreach(l => {
+      inDegrees(l) = inDegrees(l) + 1
+    }))
     inDegrees
   }
 
   def checkRepeatedLabels(ins: ParsingResult) = {
     val labels = ins.rights.collect {
       case x: parser.LabelDefinition => x.label
-      }
+    }
     val labelCounts = mutable.Map[String, Int]()
     labels.foreach(label => labelCounts(label) = labelCounts.getOrElse(label, 0) + 1)
 
@@ -247,25 +248,25 @@ object Compiler {
         }
     }
   }
-  def getMemory(instructions: List[InstructionInfo],executableLineToAddress:Map[Int,Int]) = {
+  def getMemory(instructions: List[InstructionInfo], executableLineToAddress: Map[Int, Int]) = {
     val variablesMemory = mutable.Map[MemoryAddress, Int]()
     val instructionsMemory = mutable.Map[MemoryAddress, Int]()
-    
+
     instructions.foreach(f =>
-      f.instruction match{
-      case v:VarDefInstruction =>
-        setMemory(variablesMemory,v.address,v.values)
-        
-      case x:ExecutableInstruction =>{
-        setMemory(instructionsMemory,executableLineToAddress(f.line),Simulator.encode(x))
-      }
-      case other => 
-      
-    })
-    
-    (variablesMemory.toMap,instructionsMemory.toMap)
+      f.instruction match {
+        case v: VarDefInstruction =>
+          setMemory(variablesMemory, v.address, v.values)
+
+        case x: ExecutableInstruction => {
+          setMemory(instructionsMemory, executableLineToAddress(f.line), Simulator.encode(x))
+        }
+        case other =>
+
+      })
+
+    (variablesMemory.toMap, instructionsMemory.toMap)
   }
-  def setMemory(memory:mutable.Map[MemoryAddress, Int],baseAddress:Int,values:List[ComputerWord]){
+  def setMemory(memory: mutable.Map[MemoryAddress, Int], baseAddress: Int, values: List[ComputerWord]) {
     var address = baseAddress
 
     values.foreach(cw =>
@@ -274,12 +275,7 @@ object Compiler {
         address += 1
       }))
   }
-  
 
-
-
-
- 
   def unlabelInstructions(instructions: ParsingResult): ParsingResult = {
 
     instructions.mapRight(_ match {
@@ -288,8 +284,8 @@ object Compiler {
     })
   }
 
-  def parserToSimulatorInstruction(i: parser.Instruction,resolver:Resolver): Either[CompilationError, simulator.Instruction] = {
-//    println(s"Transforming $i")
+  def parserToSimulatorInstruction(i: parser.Instruction, resolver: Resolver): Either[CompilationError, simulator.Instruction] = {
+    //    println(s"Transforming $i")
     val zeroary = Map(parser.Popf() -> Popf, parser.Pushf() -> Pushf, parser.Hlt() -> Hlt, parser.Nop() -> Nop, parser.IRet() -> Iret, parser.Ret() -> Ret, parser.Cli() -> Cli, parser.Sti() -> Sti, parser.End() -> End)
     i match {
       case x: ZeroAry     => successfulTransformation(x, zeroary(x))
@@ -313,56 +309,64 @@ object Compiler {
       case x: parser.Mov =>
         parserToSimulatorBinaryOperands(x, x.m, x.v, resolver).right.flatMap(
           op => successfulTransformation(x, Mov(op)))
-      case x: parser.BinaryArithmetic =>{        
+      case x: parser.BinaryArithmetic => {
         parserToSimulatorBinaryOperands(x, x.m, x.v, resolver).right.flatMap(
           operands => successfulTransformation(x, ALUBinary(binaryOperations(x.op), operands)))
-          
+
       }
       case x: parser.UnaryArithmetic =>
         parserToSimulatorOperand(x.m, resolver).right.flatMap(
           _ match {
             case operand: UnaryOperandUpdatable => successfulTransformation(x, ALUUnary(unaryOperations(x.op), operand))
-            case o:ImmediateOperand             => semanticError(x, language.immediateOperandsNotUpdatable(o.toString()) )
-            case other                          => semanticError(x, language.operandNotUpdatable(other.toString()) )
+            case o: ImmediateOperand            => semanticError(x, language.immediateOperandsNotUpdatable(o.toString()))
+            case other                          => semanticError(x, language.operandNotUpdatable(other.toString()))
           })
 
       case x: parser.VarDef => {
-        val values = x.values.map(_ match{
-          case Right(e) => resolver.expression(e)
-          case Left(u) => new Random().nextInt(x.t match {
-            case t:lexer.DB => 256
-            case t:lexer.DW => 65536
-          })
-        })
-        val optionValues = values.map(ComputerWord.minimalWordFor)
-        if (optionValues.map(_.isEmpty).fold(false)(_ || _)) {
-          semanticError(x, language.dontFitIn16Bits)
+        val undefinedLabels = x.values.collect { case Right(e) => resolver.undefinedLabels(e) }.flatten
+
+        if (!undefinedLabels.isEmpty) {
+          semanticError(x, language.labelsUndefined(undefinedLabels))
         } else {
-          val values = optionValues.filter(_.isDefined).map(_.get)
-          x.t match {
-            case t: lexer.DB => {
-              if (!values.map(_.isInstanceOf[Word]).fold(true)(_ && _)) {
-                semanticError(x, language.dontFitIn8Bits)
-              } else {
-                successfulTransformation(x, WordDef(x.label, resolver.vardefLabelAddress(x.label), values.asInstanceOf[List[Word]]))
+
+          val values = x.values.map(_ match {
+            case Right(e) => {
+              resolver.expression(e)
+            }
+            case Left(u) => new Random().nextInt(x.t match {
+              case t: lexer.DB => 256
+              case t: lexer.DW => 65536
+            })
+          })
+          val optionValues = values.map(ComputerWord.minimalWordFor)
+          if (optionValues.map(_.isEmpty).fold(false)(_ || _)) {
+            semanticError(x, language.dontFitIn16Bits)
+          } else {
+            val values = optionValues.filter(_.isDefined).map(_.get)
+            x.t match {
+              case t: lexer.DB => {
+                if (!values.map(_.isInstanceOf[Word]).fold(true)(_ && _)) {
+                  semanticError(x, language.dontFitIn8Bits)
+                } else {
+                  successfulTransformation(x, WordDef(x.label, resolver.vardefLabelAddress(x.label), values.asInstanceOf[List[Word]]))
+                }
+              }
+              case t: lexer.DW => {
+                successfulTransformation(x, DWordDef(x.label, resolver.vardefLabelAddress(x.label), values.map(_.toDWord)))
               }
             }
-            case t: lexer.DW => {
-              successfulTransformation(x, DWordDef(x.label, resolver.vardefLabelAddress(x.label), values.map(_.toDWord)))
-            }
+
           }
-
         }
-
       }
       case x: parser.EQUDef => {
-        val undefinedLabels=resolver.undefinedLabels(x.expression)
-        if (undefinedLabels.isEmpty){
-          successfulTransformation(x, EQUDef(x.label,resolver.expression(x.expression)))
-        }else{
-          semanticError(x,language.labelsUndefined(undefinedLabels))
+        val undefinedLabels = resolver.undefinedLabels(x.expression)
+        if (undefinedLabels.isEmpty) {
+          successfulTransformation(x, EQUDef(x.label, resolver.expression(x.expression)))
+        } else {
+          semanticError(x, language.labelsUndefined(undefinedLabels))
         }
-        
+
       }
       case other => semanticError(other, language.instructionNotSupported(other.toString()))
 
@@ -373,109 +377,107 @@ object Compiler {
   def successfulTransformation[T](x: parser.Instruction, y: Instruction) = {
     Right[T, Instruction](y)
   }
-  
-  def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Operand, y: lexer.Operand, resolver:Resolver): Either[SemanticError, BinaryOperands] = {
+
+  def parserToSimulatorBinaryOperands(i: parser.Instruction, x: lexer.Operand, y: lexer.Operand, resolver: Resolver): Either[SemanticError, BinaryOperands] = {
     parserToSimulatorOperand(x, resolver).right.flatMap(o1 =>
       parserToSimulatorOperand(y, resolver).right.flatMap(o2 =>
-        
+
         unaryOperandsToBinaryOperands(i, o1, o2)))
   }
-  
 
   def unaryOperandsToBinaryOperands(i: parser.Instruction, op1: UnaryOperand, op2: UnaryOperand): Either[SemanticError, BinaryOperands] = {
     (op1, op2) match {
-      case (r: FullRegister, x: FullRegister)            => Right(DWordRegisterRegister(r, x))
-      case (r: HalfRegister, x: HalfRegister)            => Right(WordRegisterRegister(r, x))
-      
-      case (r: HalfRegister, x: WordValue)               => Right(WordRegisterValue(r, x))
-      case (r: FullRegister, x: WordValue)               => Right(DWordRegisterValue(r, DWordValue(x.v)))
-      case (r: FullRegister, x: DWordValue)              => Right(DWordRegisterValue(r, x))
-      
-      case (r: HalfRegister, x: DirectMemoryAddressOperand)       => Right(WordRegisterMemory(r, x.asWord))
-      case (r: FullRegister, x: DirectMemoryAddressOperand)      => Right(DWordRegisterMemory(r, x.asDWord))
-      
-      case (r: HalfRegister, WordIndirectMemoryAddress)  => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
+      case (r: FullRegister, x: FullRegister) => Right(DWordRegisterRegister(r, x))
+      case (r: HalfRegister, x: HalfRegister) => Right(WordRegisterRegister(r, x))
+
+      case (r: HalfRegister, x: WordValue) => Right(WordRegisterValue(r, x))
+      case (r: FullRegister, x: WordValue) => Right(DWordRegisterValue(r, DWordValue(x.v)))
+      case (r: FullRegister, x: DWordValue) => Right(DWordRegisterValue(r, x))
+
+      case (r: HalfRegister, x: DirectMemoryAddressOperand) => Right(WordRegisterMemory(r, x.asWord))
+      case (r: FullRegister, x: DirectMemoryAddressOperand) => Right(DWordRegisterMemory(r, x.asDWord))
+
+      case (r: HalfRegister, WordIndirectMemoryAddress) => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
       case (r: FullRegister, DWordIndirectMemoryAddress) => Right(DWordRegisterIndirectMemory(r, DWordIndirectMemoryAddress))
-      case (r: HalfRegister, UndefinedIndirectMemoryAddress)  => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
+      case (r: HalfRegister, UndefinedIndirectMemoryAddress) => Right(WordRegisterIndirectMemory(r, WordIndirectMemoryAddress))
       case (r: FullRegister, UndefinedIndirectMemoryAddress) => Right(DWordRegisterIndirectMemory(r, DWordIndirectMemoryAddress))
-      
-      case (r:DirectMemoryAddressOperand, x:FullRegister)=> Right(DWordMemoryRegister(r.asDWord, x))
-      case (r:DirectMemoryAddressOperand, x:HalfRegister)=> Right(WordMemoryRegister(r.asWord, x))
-      
-//      case (r: DWordMemoryAddress, x: FullRegister)      => Right(DWordMemoryRegister(r, x))
-//      case (r: WordMemoryAddress, x: HalfRegister)       => Right(WordMemoryRegister(r, x))
-      case (r: WordMemoryAddress, x: WordValue)          => Right(WordMemoryValue(r, x))
-      case (r: DWordMemoryAddress, x: WordValue)         => Right(DWordMemoryValue(r, DWordValue(x.v)))
-      case (r: DWordMemoryAddress, x: DWordValue)        => Right(DWordMemoryValue(r, x))
-      
-      
-      case (DWordIndirectMemoryAddress, x: DWordValue)   => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, x))
-      case (WordIndirectMemoryAddress, x: WordValue)     => Right(WordIndirectMemoryValue(WordIndirectMemoryAddress, x))
-      case (DWordIndirectMemoryAddress, x: WordValue)    => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, DWordValue(x.v)))
-      
+
+      case (r: DirectMemoryAddressOperand, x: FullRegister) => Right(DWordMemoryRegister(r.asDWord, x))
+      case (r: DirectMemoryAddressOperand, x: HalfRegister) => Right(WordMemoryRegister(r.asWord, x))
+
+      //      case (r: DWordMemoryAddress, x: FullRegister)      => Right(DWordMemoryRegister(r, x))
+      //      case (r: WordMemoryAddress, x: HalfRegister)       => Right(WordMemoryRegister(r, x))
+      case (r: WordMemoryAddress, x: WordValue) => Right(WordMemoryValue(r, x))
+      case (r: DWordMemoryAddress, x: WordValue) => Right(DWordMemoryValue(r, DWordValue(x.v)))
+      case (r: DWordMemoryAddress, x: DWordValue) => Right(DWordMemoryValue(r, x))
+
+      case (DWordIndirectMemoryAddress, x: DWordValue) => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, x))
+      case (WordIndirectMemoryAddress, x: WordValue) => Right(WordIndirectMemoryValue(WordIndirectMemoryAddress, x))
+      case (DWordIndirectMemoryAddress, x: WordValue) => Right(DWordIndirectMemoryValue(DWordIndirectMemoryAddress, DWordValue(x.v)))
+
       case (DWordIndirectMemoryAddress, x: FullRegister) => Right(DWordIndirectMemoryRegister(DWordIndirectMemoryAddress, x))
-      case (WordIndirectMemoryAddress, x: HalfRegister)  => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress, x))
+      case (WordIndirectMemoryAddress, x: HalfRegister) => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress, x))
       case (UndefinedIndirectMemoryAddress, x: FullRegister) => Right(DWordIndirectMemoryRegister(DWordIndirectMemoryAddress, x))
-      case (UndefinedIndirectMemoryAddress, x: HalfRegister)  => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress, x))
-      
-      case (UndefinedIndirectMemoryAddress, x: ImmediateOperand)    => Left(IndirectPointerTypeUndefined(i))
-      case (r: MemoryOperand, x: MemoryOperand)          => Left(MemoryMemoryReferenceError(i))
-      case (r: WordOperand, x: DWordOperand)             => Left(WordDWordOperandSizeMismatchError(i))
-      case (r: DWordOperand, x: WordOperand)             => Left(DWordWordOperandSizeMismatchError(i))
-      case other                                         => semanticError(i, language.invalidOperands)
+      case (UndefinedIndirectMemoryAddress, x: HalfRegister) => Right(WordIndirectMemoryRegister(WordIndirectMemoryAddress, x))
+
+      case (UndefinedIndirectMemoryAddress, x: ImmediateOperand) => Left(IndirectPointerTypeUndefined(i))
+      case (r: MemoryOperand, x: MemoryOperand) => Left(MemoryMemoryReferenceError(i))
+      case (r: WordOperand, x: DWordOperand) => Left(WordDWordOperandSizeMismatchError(i))
+      case (r: DWordOperand, x: WordOperand) => Left(DWordWordOperandSizeMismatchError(i))
+      case other => semanticError(i, language.invalidOperands)
     }
 
   }
-  
+
   def semanticError[T](p: Positional, message: String): Left[SemanticError, T] = {
     Left(new GenericSemanticError(p, message))
   }
-  def parserToSimulatorOperand(op: lexer.Operand, resolver:Resolver): Either[SemanticError, UnaryOperand] = {
-    
+  def parserToSimulatorOperand(op: lexer.Operand, resolver: Resolver): Either[SemanticError, UnaryOperand] = {
+
     op match {
 
       //        case x:lexer.SP => semanticError(x, s"Using SP as a register is not supported")
       case x: lexer.RegisterToken => Right(registers(x))
-      
+
       case e: parser.Expression => {
 
-        def valueToWord(v:Integer)={
+        def valueToWord(v: Integer) = {
           ComputerWord.bytesFor(v) match {
             case 1 => Right(WordValue(v))
             case 2 => Right(DWordValue(v))
             case _ => semanticError(e, language.dontFitIn16Bits(v))
           }
         }
-        def valueToMemoryAddress(v:Integer)={
-          
-          resolver.memoryExpressionType(e) match{
-            case None => semanticError(e,language.cannotDetermineMemoryReferenceType)
+        def valueToMemoryAddress(v: Integer) = {
+
+          resolver.memoryExpressionType(e) match {
+            case None => semanticError(e, language.cannotDetermineMemoryReferenceType)
             case Some(varType) => Right(varType match {
               case lexer.DB() => WordMemoryAddress(v)
               case lexer.DW() => DWordMemoryAddress(v)
-              })
+            })
           }
         }
-        
-        val expressionValue=resolver.expression(e)
-        val undefinedLabels=resolver.undefinedLabels(e)
-//        println(s"WORD PTRCompiler:Undefined labels = $undefinedLabels for expression $e")
-        if (undefinedLabels.isEmpty){
-          if (resolver.isMemoryExpression(e)){
+
+        val expressionValue = resolver.expression(e)
+        val undefinedLabels = resolver.undefinedLabels(e)
+        //        println(s"WORD PTRCompiler:Undefined labels = $undefinedLabels for expression $e")
+        if (undefinedLabels.isEmpty) {
+          if (resolver.isMemoryExpression(e)) {
             valueToMemoryAddress(expressionValue)
-          }else{
+          } else {
             valueToWord(expressionValue)
           }
-        }else{
-          semanticError(e,language.labelsUndefined(undefinedLabels))
+        } else {
+          semanticError(e, language.labelsUndefined(undefinedLabels))
         }
       }
-      
-      case x: lexer.LITERALSTRING => semanticError(x, language.literalStringsAsImmediate(x.str) )
+
+      case x: lexer.LITERALSTRING   => semanticError(x, language.literalStringsAsImmediate(x.str))
       // TODO remove UndefinedIndirectMemoryAddress and use hints to remove its need
-      case x: lexer.INDIRECTBX    => Right(UndefinedIndirectMemoryAddress)
-      case x: lexer.WORDINDIRECTBX    => Right(WordIndirectMemoryAddress)
-      case x: lexer.DWORDINDIRECTBX    => Right(DWordIndirectMemoryAddress)
+      case x: lexer.INDIRECTBX      => Right(UndefinedIndirectMemoryAddress)
+      case x: lexer.WORDINDIRECTBX  => Right(WordIndirectMemoryAddress)
+      case x: lexer.DWORDINDIRECTBX => Right(DWordIndirectMemoryAddress)
 
     }
   }

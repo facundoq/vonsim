@@ -285,7 +285,7 @@ mínimo para las variables de tipo <code>db</code> es de -128.</p>
 
 <p class="exercise"> Intenta poner un valor menor a -128 en la variable edad. ¿Qué sucede? </p>
 
-<p>Las variables de tipo <code>dw</code> tienen como valor mínimo entonces el -32768</p>
+<p>Por otro lado, las variables de tipo <code>dw</code> tienen como valor mínimo el -32768.</p>
 
 <p class="exercise"> Intenta poner un valor menor a -32768 en la variable distancia. ¿Qué sucede? </p>
 
@@ -306,56 +306,118 @@ Ejecuta el programa y verifica que la celda de memoria con dirección 6h tiene e
 )
 
 
-,TutorialStep("Vectores (parte 1)"
+,TutorialStep("Vectores de <code>db</code>"
 ,"""
-<p>También puedes definir algo similar a un vector, es decir, una variable con varios valores.
+<p>También puedes declarar una variable una variable con varios valores, es decir, un vector.
  En ese caso la sintaxis es <code>nombre tipo valor1, valor2, valor3, ...</code> </p>
 <p> Los valores se guardan uno seguido del otro en la memoria.</p>
-<p> </p>
-<p class="exercise">Ejecutar el código del editor. ¿En qué celdas de memoria se guardan
+
+<p class="exercise">Leer y ejecutar el código del editor. ¿En qué celdas de memoria se guardan
 los valores? ¿Cuántas celdas ocupan en total? </p>
 
-<p class="answer"> Ocupan 6 celdas; la 5h, 6h, 7h, 8h, 9h y Ah.</p>
+<p class="answer"> Ocupan 6 celdas, una por elemento; la 5h, 6h, 7h, 8h, 9h y Ah.</p>
 
 """,UIConfig.enableAll,Some("org 5h\ntabla db 1,3,5,7,9,11\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Vectores (parte 2)"
+,TutorialStep("Vectores de <code>dw</code>"
 ,"""
-<p>Recién definimos un vector donde cada elemento era de tipo <</p>
-<p> Los valores se guardan uno seguido del otro en la memoria.</p>
-<p> </p>
+<p>Recién definimos un vector donde cada elemento era de tipo <code>db</code>.</p>
+<p> Si ahora los elementos son de tipo <code>dw</code> entonces cada elemento ocupará
+dos bytes de memoria.</p>
+
 <p class="exercise">Ejecutar el código del editor. ¿En qué celdas de memoria se guardan
 los valores? ¿Cuántas celdas ocupan en total? </p>
 
-<p class="answer"> Ocupan 6 celdas; la 5h, 6h, 7h, 8h, 9h y Ah.</p>
+<p class="answer"> Ocupan 12 celdas, dos por cada elemento; de la 5h a la 10h.</p>
 
-""",UIConfig.enableAll,Some("org 5h\ntabla db 1,3,5,7,9,11\norg 2000h\nhlt\nend")
+""",UIConfig.enableAll,Some("org 5h\ntabla dw 1,3,5,7,9,11\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Variables vs Etiquetas TODO"
+,TutorialStep("Cadenas de caracteres"
+,"""
+<p>También se pueden declarar strings o cadenas de caracteres. Recuerda que los caracteres en 
+verdad se almacenan como códigos; los mismos se obtienen del 
+<a href="https://es.wikipedia.org/wiki/ASCII#Caracteres_imprimibles_ASCII">estándar ASCII</a>.</p>
+<p> Por ejemplo, la letra <em>A</em> se codifica con el número 41h, y la letra <em>a</em> con el 
+número 61h.</p> 
+<p> Entonces, como assembly es un lenguaje de bajo nivel, en realidad lo que declararemos es un vector
+de números, donde cada número es el código ASCII de un carácter.</p>
+<p> Por suerte, no debemos buscar e ingresar los códigos uno por uno, ya que el compilador de 
+assembly nos permite ingresar un texto entre comillas y el convierte el mismo en códigos.</p>
+
+<p class="exercise"> Lee y ejecuta el código del editor. ¿Qué se guarda a partir de la dirección 5h?
+Verifica que los códigos corresponden a los de los caracteres h, o, l, y a. </p>
+
+<div class="answer"> <p>Se almacenan:</p>
+<ul>
+<li>En la celda 5h, el valor 68h, código del carácter h</li>
+<li>En la celda 6h, el valor 6Fh, código del carácter o</li>
+<li>En la celda 7h, el valor 6Ch, código del carácter l</li>
+<li>En la celda 8h, el valor 61h, código del carácter a</li>
+</ul>
+</div>
+
+""",UIConfig.enableAll,Some("org 5h\ncadena db \"hola\"\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Las cadenas de caracteres son solo de <code>db</code>"
+,"""
+<p>Las cadenas de caracteres sólo pueden ser de tipo <code>db</code>.</p>
+
+<p class="exercise"> Modifica el código del editor, reemplazando el tipo <code>db</code> por <code>dw</code>.
+¿Qué sucede? </p>
+
+<p class="answer"> El compilador detecta el error y no compila el programa.
+</p>
+
+""",UIConfig.enableAll,Some("org 5h\ncadena db \"hola\"\norg 2000h\nhlt\nend")
+)
+
+,TutorialStep("Variables vs Etiquetas "
 ,"""
 <p>Cuando tenemos una variable de tipo <code>dw</code>, reservamos dos celdas de memoria
 para guardar un valor. Por ejemplo, en el programa del editor, las celdas 5h y 6h
 contienen el valor de la variable distancia.</p>
 
-""",UIConfig.enableAll,Some("org 5h\ndistancia dw 14A3\norg 2000h\nhlt\nend")
+<p>De la misma forma, cuando tenemos un vector, se utilizan varias celdas de memoria para almacenarlo.</p>
+
+<p>Generalmente hablamos de la <strong>dirección</strong> de estas variables, pero no queda claro
+a qué nos referimos, si a la dirección de la primer celda, de la última, de todas, etc.</p>
+
+<p>Por eso, se define la <strong>dirección</strong> de una variable como la dirección de su 
+primera celda, sin importar cuantas ocupe (1 para <code>db</code>, 2 para <code>dw</code>, 
+o varias para un vector).</p>
+
+<p class="exercise"> Lee y ejecuta el código del editor. ¿Cuáles son las direcciones de las variables declaradas?</p>
+
+<div class="answer"> 
+<ul>
+<li>La variable <code>distancia</code> tiene dirección 5h </li>
+<li>La variable <code>amigos</code> tiene dirección 7h </li>
+</ul>
+</div>
+
+
+""",UIConfig.enableAll,Some("""org 5h
+distancia dw 14A3h
+amigos db 4Ah
+mensaje db "Buenas noches."
+tablita dw 10,5,4Bh,1D4Ch,3h
+androide db "R2D2"
+org 2000h
+hlt
+end""")
 )
 
-,TutorialStep("Cadenas de caracters TODO"
-,"""
-<p></p>
 
-<p class="exercise"> </p>
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
-)
 
 ,TutorialStep("Dup TODO"
 ,"""
 <p></p>
 
 <p class="exercise"> </p>
-""",UIConfig.enableAll,Some("org 5\n;las variables van aqui\norg 2000h\nhlt\nend")
+""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
 
