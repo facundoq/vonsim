@@ -207,7 +207,7 @@ mov cx,57h
 mov cl,al
 mov dl,12h
 mov dh,10
-mov dx,123h
+mov dx,321h
 hlt
 end""")
 )
@@ -330,44 +330,168 @@ Lee y ejecuta el código del editor. Verifica que los resultados finales sean co
 """,UIConfig.enableAll,Some("org 2000h\nmov ax,5\ninc ax\nmov bl,20\ndec bl\nhlt\nend\n")
 )
 
-
-,TutorialStep("Un ejemplo completo TODO"
+,TutorialStep("Realizando cálculos aritméticos"
     
-,"""<p> Los registros ocupan 2 bytes o 16 bits. Al byte más significativo se lo llama 
-<strong>parte alta</strong>, y al menos significativo, <strong>parte baja</strong></p>
+,"""<p> Podemos realizar cálculos con algunas de las instrucciones vistas. </p>
 
-<p>
-
+<p class="exercise">
+Lee y ejecuta el código del editor, que realiza una cuenta que se guarda finalmente
+en el registro cx. ¿Qué cálculo está realizando?
 </p>
   
-<p> 
+<p class="answer">
+Al comenzar, ax=30 y bx=15. Luego se le suma 12 a ax, por ende ax=42. Después se le resta
+1 a bx con el <code>dec</code>, entonces bx=14. Finalmente se le resta bx a ax, llegando
+a ax=28. Luego se pasa el valor de ax a cx, con lo que cx=28, que en hexadecimal es 1Ch.
+En resumen, hicimos que cx = (a+12)-(b-1), donde a y b son los valores iniciales de ax y bx.
 </p> 
 
+""",UIConfig.enableAll,Some("""org 2000h
+; asignacion inicial
+mov ax,30
+mov bx,15
+;calculos
+add ax,12
+dec bx
+sub ax,bx
+; asignacion del resultado en cx
+mov cx,ax
+hlt
+end""")
+)
 
-<p class="exercise"> </p>
+,TutorialStep("Realizando cálculos aritméticos"
+    
+,"""
 
-""",UIConfig.enableAll,Some("org 2000h\nhlt\nend")
+<p class="exercise">
+Escribe un programa en base a los valores iniciales de ax y bx, calcule
+cx = (b+1)+(a-3), donde a y b son los valores iniciales de ax y bx. 
+</p>
+  
+<p class="answer">
+
+</p> 
+
+""",UIConfig.enableAll,Some("""org 2000h
+; asignacion inicial
+mov ax,21
+mov bx,35
+;calculos
+
+; asignacion del resultado en cx
+
+hlt
+end""")
+)
+
+,TutorialStep("Aplicando máscaras binarias"
+    
+,"""<p> Podemos aplicar máscaras binarias con algunas de las instrucciones vistas. </p>
+
+<p class="exercise">
+Lee y ejecuta el código del editor, que utiliza instrucciones lógicas para aplicar 
+máscaras binarias. ¿Qué está calculando?
+</p>
+  
+<div class="answer">
+
+<p>El programa aplica las siguientes máscaras</p>
+<pre>    10010111
+xor 11110010
+    --------
+    01100101
+and 11111011
+    --------
+or  01100001
+    00000010
+    --------
+not 01100011
+    --------    
+    10011100
+</pre>
+</div> 
+
+""",UIConfig.enableAll,Some("""org 2000h
+; asignacion inicial
+mov al,10010111b
+;mascaras
+xor al,11110010b
+and al,11111011b
+or  al,00000010b
+not al
+hlt
+end""")
+)
+
+,TutorialStep("Aplicando máscaras binarias"
+    
+,"""
+
+<div class="exercise">
+<p>
+Escribe un programa que aplique varias máscaras al registro al, con valor inicial 10101010b.
+<p>
+</p> 
+Primero,utilizar un <code>and</code> con la máscara 01111111 para hacer que el bit 7 
+(el más significativo) se convierta en 0 y el resto quede igual.
+</p>
+<p>
+Luego aplicar un <code>or</code> con la máscara 00000100 para hacer que el bit 2
+se convierta en 1. Después, invierte todos los bits.
+</p> 
+<p>Finalmente, aplica un xor
+con la máscara 11110000 para invertir los 4 bits más significativos y dejar igual los otros.  
+</p>
+</div>
+  
+<div class="answer">
+<pre>
+<code>and ax, 01111111b
+or  ax, 00000100b
+not ax
+xor ax, 11110000b
+</code>
+</pre>
+</div> 
+
+""",UIConfig.enableAll,Some("""org 2000h
+; asignacion inicial
+mov al,10101010b
+;aplicación de máscaras
+
+hlt
+end""")
 )
 
 
-,TutorialStep("Resumen: TODO"
+,TutorialStep("Resumen"
     
-,"""<p> Los registros ocupan 2 bytes o 16 bits. Al byte más significativo se lo llama 
+,"""<p> VonSim tiene 4 registros llamados ax, bx, cx y dx.
+  Los registros ocupan 2 bytes o 16 bits. Al byte más significativo se lo llama 
 <strong>parte alta</strong>, y al menos significativo, <strong>parte baja</strong></p>
 
-<p> Cada registro puede accederse o modificarse completo, utilizando, por ejemplo, 
-ax como identificador, o se pueden utilizar las partes altas y bajas de forma independiente,
-con ah y al como identificadores. Esto vale para todos los registros (ax, bx, cx y dx).
+<p> Cada registro puede accederse o modificarse completo utilizando
+ax, bx, cx o dx como identificador. 
+También se pueden utilizar las partes altas y bajas de forma independiente, con
+al, ah, bl, bh, cl, ch, dl y dh como identificadores.
 </p>
   
 <p>
-Hay varias instrucciones para modificar registros. Tenemos add, sub, inc y dec, para sumar y restar,
-or, xor, and y not, para realizar operaciones lógicas, y neg para hacer negativo (o positivo)
+Hay varias instrucciones para modificar registros. Tenemos <code>add, sub, inc y dec</code>, para sumar y restar,
+<code>or, xor, and y not</code>, para realizar operaciones lógicas, y <code>neg</code> para hacer negativo (o positivo)
  un número.
+</p>
+
+ <p>
+Dichas instrucciones pueden operar tanto en un registro completo como ax, como en partes 
+del mismo, como al y ah.
 </p> 
 
-
-
+ <p>
+Podemos utilizar varias instrucciones aritméticas para realizar cálculos.
+Asimismo podemos utilizar varias instrucciones lógicas para aplicar máscaras de bits.
+</p> 
 
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend")
 )
