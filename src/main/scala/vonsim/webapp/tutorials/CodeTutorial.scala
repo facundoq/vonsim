@@ -87,7 +87,8 @@ mov dx,120
 <p class="exercise"> Prueba el código del editor, que hace lo descripto más arriba.</p>
 <p class="exercise"> Agrega una línea al programa para copiar también el valor del registro 
 bx al registro dx.</p>
- <p class="exercise"> Ejecuta el programa y verifica que los tres registros (<code>bx,cx y dx</code>) terminan con el mismo valor (5).</p>
+ <p class="exercise"> Ejecuta el programa y verifica que los 
+ tres registros (<code>bx,cx y dx</code>) terminan con el mismo valor (5h).</p>
 """,UIConfig.enableAll,Some("org 2000h\nmov bx,5\nmov cx,bx\nhlt\nend")
 )
 
@@ -100,10 +101,12 @@ bx al registro dx.</p>
   
 <p> Por ejemplo, la instrucción <code>mov 3, bx</code> es inválida.</p> 
 
-<p> O sea, en general, la sintaxis <code>mov valor, registro</code> es inválida.
-O sea, el orden de los operandos es importante</p>
+
 
 <p class="exercise"> Prueba dicho código en el editor de código; el programa no compilará.</p>
+
+<p> Entonces, podemos concluir que la sintaxis <code>mov valor, registro</code> es inválida,
+o sea que el orden de los operandos es importante.</p>
 
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend")
 )
