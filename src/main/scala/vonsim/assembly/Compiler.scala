@@ -492,7 +492,7 @@ object Compiler {
   val binaryOperations = Map[lexer.BinaryArithmeticOp, ALUOpBinary](
     lexer.ADD() -> ADD, lexer.ADC() -> ADC, lexer.SUB() -> SUB, lexer.SBB() -> SBB, lexer.XOR() -> XOR, lexer.OR() -> OR, lexer.AND() -> AND, lexer.CMP() -> CMP)
   val unaryOperations = Map[lexer.UnaryArithmeticOp, ALUOpUnary](
-    lexer.NOT() -> NOT, lexer.DEC() -> DEC, lexer.INC() -> INC)
+    lexer.NOT() -> NOT,lexer.NEG() -> NEG, lexer.DEC() -> DEC, lexer.INC() -> INC)
 
 }
   

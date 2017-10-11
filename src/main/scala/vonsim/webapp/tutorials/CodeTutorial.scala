@@ -39,7 +39,7 @@ La memoria permite guardar mucha más información, pero el acceso a la misma de
 más lento; en cambio, los registros son pocos pero su acceso es prácticamente instantáneo para la CPU.
 </p>
 <p>La CPU de VonSim tiene 4 registros de propósito general, es decir, que sirven para cualquier cosa.</p>
-<p> Los registros se llaman <code>ax</code>, <code>bx</code>, <code>cx</code> y <code>dx</code>. Cada uno guarda un valor de 16 bits (2 bytes).<p> 
+<p> Los registros se llaman _ax, _bx, _cx y dx_. Cada uno guarda un valor de 16 bits (2 bytes).<p> 
 <p> Cuando se comienza a ejecutar un programa, el simulador le pone el valor 0 a ambos bytes de estos registros.</p>
 <p> Puedes observar su valor en la pantalla del simulador.</p>
 
@@ -52,17 +52,17 @@ más lento; en cambio, los registros son pocos pero su acceso es prácticamente 
 <p> Se puede asignar un valor a un registro con la instrucción <code>mov</code>.</p>
 
 <p> Dicha instrucción tiene la sintaxis <code>mov registro, valor</code></p>
-<p> Por ejemplo, <code>mov ax,2</code> pone el valor 2 en el registro ax, o <code>mov cx,12</code> pone el valor 12 en el registro <code>cx</code> </p>
-<p class="exercise"> Ejecuta el código del editor, y verifica que al registro <code>ax</code> se le asigna el valor 5.</p>
-<p class="exercise"> Agrega una instrucción <code>mov</code> al programa para que el registro <code>dx</code> tenga el valor 3.</p>
+<p> Por ejemplo, <code>mov ax,2</code> pone el valor _2 en el registro _ax, o <code>mov cx,12</code> pone el valor _12 en el registro _cx </p>
+<p class="exercise"> Ejecuta el código del editor, y verifica que al registro _ax se le asigna el valor _5.</p>
+<p class="exercise"> Agrega una instrucción <code>mov</code> al programa para que el registro _dx tenga el valor _3.</p>
 """,UIConfig.enableAll,Some("org 2000h\nmov ax,5\nhlt\nend")
 )
 
 ,TutorialStep("Registros y mov (parte 2)"
 ,"""
-<p class="exercise"> Escribe un programa que le asigne el valor <code>16</code> al registro <code>ax</code>,
- el valor <code>16h</code> al registro <code>bx</code>, el <code>3A2h</code> al <code>cx</code> 
- y el <code>120</code> al registro <code>dx</code>.</p>
+<p class="exercise"> Escribe un programa que le asigne el valor _16 al registro _ax,
+ el valor _16h al registro _bx, el _3A2h al _cx 
+ y el _120 al registro _dx.</p>
 <p>Recuerda que puedes ingresar valores en decimal, hexadecimal o binario, pero el simulador
 siempre los muestra codificados en hexadecimal.</p>
 <div class="answer"><p>El código a ingresar es:</p>
@@ -78,17 +78,17 @@ mov dx,120
 ,TutorialStep("Registros y mov (parte 3)"
 ,"""<p>También se puede mover el valor de un registro a otro registro</p>
   
-<p> Por ejemplo, podemos ponerle el valor 5 a bx, y luego pasar el valor de bx a cx para que ambos valgan 5.<p> 
+<p> Por ejemplo, podemos ponerle el valor 5 a _bx, y luego pasar el valor de _bx a _cx para que ambos valgan 5.<p> 
 
 <p> Para ello, después de <code>mov bx,5</code> debemos ejecutar <code>mov cx,bx</code>.</p>
 
-<p> Es decir, le pasamos a cx el valor de bx.</p>
+<p> Es decir, le pasamos a _cx el valor de _bx.</p>
 
 <p class="exercise"> Prueba el código del editor, que hace lo descripto más arriba.</p>
 <p class="exercise"> Agrega una línea al programa para copiar también el valor del registro 
-bx al registro dx.</p>
+bx al registro _dx.</p>
  <p class="exercise"> Ejecuta el programa y verifica que los 
- tres registros (<code>bx,cx y dx</code>) terminan con el mismo valor (5h).</p>
+ tres registros (_bx, _cx y _dx) terminan con el mismo valor (5h).</p>
 """,UIConfig.enableAll,Some("org 2000h\nmov bx,5\nmov cx,bx\nhlt\nend")
 )
 
@@ -110,17 +110,17 @@ o sea que el orden de los operandos es importante.</p>
 
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend")
 )
-
+  
 ,TutorialStep("Parte alta y parte baja de un registro."
        
 ,"""<p> Los registros ocupan 2 bytes o 16 bits. Al byte más significativo se lo llama 
-<strong>parte alta</strong>, y al menos significativo, <strong>parte baja</strong></p>
+<strong>parte alta</strong>, y al menos significativo, <strong>parte baja</strong>.</p>
 
-<p>Por ejemplo, si ax tiene el valor 3A4Fh, entonces el byte más significativo o parte alta
+<p>Por ejemplo, si _ax tiene el valor 3A4Fh, entonces el byte más significativo o parte alta
 vale 34h, y el byte menos significativo o parte baja vale 4Fh.</p>
 
 <p class="exercise"> Lee y prueba el código del editor. ¿Cómo queda almacenado el valor
-3A4Fh en el registro ax? ¿Cuál es la parte alta? ¿Y la baja?
+3A4Fh en el registro _ax? ¿Cuál es la parte alta? ¿Y la baja?
 </p>
 
 <p class="answer">
@@ -142,27 +142,27 @@ toda la capacidad de un registro completo de 16 bits.</p>
 
 <p>En esos casos podemos acceder o cambiar sólo la parte alta o baja de los registros.</p>
 
-<p> Para cambiar el valor de un registro entero utilizamos los identificadores ax, bx, cx o dx.
+<p> Para cambiar el valor de un registro entero utilizamos los identificadores _ax, _bx, _cx o _dx.
 </p>
 
 <p> Pero también podemos cambiar sólo la parte alta o la parte baja utilizando otros identificadores.
-Para el registro ax, podemos utilizar los identificadores al y ah, para acceder a la parte 
+Para el registro _ax, podemos utilizar los identificadores _al y _ah, para acceder a la parte 
 baja y a la parte alta de al directamente.
 </p>
 
 <p class="exercise">
-Lee y ejecuta el código del editor. ¿Cómo se modifica el registro ax?
+Lee y ejecuta el código del editor. ¿Cómo se modifica el registro _ax?
 </p>
 
 <div class="answer">
 <p>
-El registro ax termina con el valor 5A94h, ya que en la parte alta (ah) se cargó el valor 5Ah,
-y en la parte baja (al) se cargó el valor 94h.
+El registro _ax termina con el valor 5A94h, ya que en la parte alta (_ah) se cargó el valor 5Ah,
+y en la parte baja (_al) se cargó el valor 94h.
 </p>
 
 <p>
-De la misma forma, podemos acceder a las partes altas y bajas de bx con bl y bh, de cx con cl y ch
-y de dx con dl y dh.
+De la misma forma, podemos acceder a las partes altas y bajas de _bx con _bl y _bh, de _cx con _cl y _ch
+y de _dx con _dl y _dh.
 </p>
 </div>
 
@@ -179,15 +179,15 @@ y de dx con dl y dh.
 
 <div class="answer"> 
 <p>
-El primer <code>mov</code> cambia el valor de todo el registro ax, tanto de 
+El primer <code>mov</code> cambia el valor de todo el registro _ax, tanto de 
 su parte alta como de su parte baja. Por otro lado, el segundo <code>mov</code> sólo
 cambia la parte baja. La parte alta sigue valiendo 5Ah, es decir, no se modificó.
 </p>
 <p>
-Por ende, podemos decir que cuando se accede directamente a la parte baja de ax utilizando
+Por ende, podemos decir que cuando se accede directamente a la parte baja de _ax utilizando
 el identificador al, en verdad estamos viendo a al como un registro independiente. Es decir,
-podríamos considerar que tenemos 4 registros de 16 bits (ax, bx, cx y dx) u 8 registros de 8 bits
-(al, ah, bl, bh, cl, ch, dl y dh) según nos convenga cuando escribimos el programa. 
+podríamos considerar que tenemos 4 registros de 16 bits (_ax, _bx, _cx y _dx) u 8 registros de 8 bits
+(_al, _ah, _bl, _bh, _cl, _ch, _dl y _dh) según nos convenga cuando escribimos el programa. 
  </p>
 </div>
 
@@ -216,30 +216,41 @@ end""")
 )
 
 ,TutorialStep("Instrucción add (sumar)"
-,"""<p>Además de la instrucción <code>mov</code>, tenemos la instrucción <code>add</code> (<em>sumar</em> en inglés) nos permite sumar dos números.</p>
+,"""<p>Además de la instrucción <code>mov</code>, tenemos la instrucción <code>add</code> 
+  (<em>sumar</em> en inglés) que nos permite sumar dos números.</p>
   
 <p> La sintaxis de dicha instrucción es <code>add registro, valor</code> <p>
 
-<p> Por ejemplo, para sumarle 3 al registro ax, escribimos <code>add ax, 3</code>. Si antes tenía el valor 4
+<p> Por ejemplo, para sumarle 3 al registro _ax, escribimos <code>add ax, 3</code>. Si antes tenía el valor 4
 ahora tendrá el valor 7. </p>
 
-<p class="exercise">Lee y ejecuta el código del editor; verifica que ax termina con el valor 7.</p>
+<p class="exercise">Lee y ejecuta el código del editor; verifica que _ax termina con el valor 7.</p>
 
 <p class="exercise"> Luego agrega dos líneas; una para ponerle el valor 4
- al registro bx, y otra para sumarle 2.</p>
-
+ al registro _bx, y otra para sumarle 2.</p>
+<div class="answer">
+<p> Las líneas a agregar son: </p>
+<pre><code>mov bx,4
+add bx,2</code></pre>
+</div>
 
 """,UIConfig.enableAll,Some("org 2000h\nmov ax,4\nadd ax,3\nhlt\nend")
 )
 
 ,TutorialStep("Instrucción add con dos registros"
 ,"""<p>La instrucción add también nos permite sumar dos registros</p>
- <p> Entonces, <code>mov ax,bx</code> suma el valor de ax y el de bx<p> 
-<p>El resultado queda almacenado en ax.</p>
-<p class="exercise">Lee y ejecuta el código del editor; verifica que ax termina con el valor 7.</p>
+ <p> Entonces, <code>mov ax,bx</code> suma el valor de _ax y el de _bx<p> 
+<p>El resultado queda almacenado en _ax.</p>
+<p class="exercise">Lee y ejecuta el código del editor; verifica que _ax termina con el valor 7.</p>
 
-<p class="exercise">Agrega dos líneas al programa para darle el valor 2 a cx y luego sumarle cx a bx.
-El valor final del registro bx debería ser 5. </p>
+<p class="exercise">Agrega dos líneas al programa para darle el valor 2 a _cx y luego sumarle _cx a _bx.
+El valor final del registro _bx debería ser 5. </p>
+
+<div class="answer">
+<p> Las líneas a agregar son: </p>
+<pre><code>mov cx,2
+add bx,cx</code></pre>
+</div>
 
 """,UIConfig.enableAll,Some("org 2000h\nmov ax,4\nmov bx,3\nadd ax,bx\nhlt\nend")
 )
@@ -251,7 +262,7 @@ El valor final del registro bx debería ser 5. </p>
 <p> 
 <p class="exercise">
 Lee y ejecuta el código del editor, que utiliza instrucciones lógicas para calcular valores
-en los registros ax, bx, cx y dx. Observa el resultado.
+en los registros _ax, _bx, _cx y _dx. Observa el resultado.
 </p>
 <p class="answer">
 Las instrucciones <code>or</code>, <code>xor</code> y <code>and</code> aplican bit a bit las
@@ -284,7 +295,8 @@ end""")
 </p>
   
 <p>A diferencia de las otras instrucciones que vimos que son <em>binarias</em>, es decir,
-tienen dos operandos, el not es <em>unario<em>. Su sintaxis es simplemente <code>not registro</code>.</p>
+tienen dos operandos, el not es <em>unario</em>, o sea que tiene un solo operando.
+Su sintaxis es simplemente <code>not registro</code>.</p>
 
 <p class="exercise"> Lee y ejecuta el código del editor. Verifica el valor final del registro al.</p>
 
@@ -314,21 +326,19 @@ Recuerda que los números negativos se almacenan codificados en CA2.
 ,"""<p> Cuando sumamos y restamos, algo muy común es que sumemos o restemos uno.</p>
 
 <p>
-Por ejemplo, si queremos sumarle 1 al registro ax y restarle 1 al registro bl, podemos escribir
+Por ejemplo, si queremos sumarle 1 al registro _ax y restarle 1 al registro _bl, podemos escribir
 <code>add ax,1</code> y <code>sub bl,1</code>.
 </p>
  
 <p>
-Como estas operaciones de sumar y restar uno son 
-muy comunes, el simulador tiene instrucciones especiales para eso que se llaman <code>inc</code> 
-y <code>dec</code>. La primera incrementa un registro en uno y la otra lo decrementa
+Estas operaciones de sumar uno o restar uno son 
+muy comunes. Por eso, el simulador tiene instrucciones especiales que se llaman <code>inc</code> 
+y <code>dec</code> que hacen justamente eso. La primera incrementa un registro en uno y la otra lo decrementa
 </p>
   
-<p>
+<p class="exercise">
 Lee y ejecuta el código del editor. Verifica que los resultados finales sean correctos. 
 </p> 
-
-<p class="exercise"> </p>
 
 """,UIConfig.enableAll,Some("org 2000h\nmov ax,5\ninc ax\nmov bl,20\ndec bl\nhlt\nend\n")
 )
@@ -339,14 +349,15 @@ Lee y ejecuta el código del editor. Verifica que los resultados finales sean co
 
 <p class="exercise">
 Lee y ejecuta el código del editor, que realiza una cuenta que se guarda finalmente
-en el registro cx. ¿Qué cálculo está realizando?
+en el registro _cx. ¿Qué cálculo está realizando?
 </p>
   
 <p class="answer">
-Al comenzar, ax=30 y bx=15. Luego se le suma 12 a ax, por ende ax=42. Después se le resta
-1 a bx con el <code>dec</code>, entonces bx=14. Finalmente se le resta bx a ax, llegando
-a ax=28. Luego se pasa el valor de ax a cx, con lo que cx=28, que en hexadecimal es 1Ch.
-En resumen, hicimos que cx = (a+12)-(b-1), donde a y b son los valores iniciales de ax y bx.
+Al ejecutar las dos líneas de asignación inicial, sabemos que _ax=30 y _bx=15. 
+Luego se le suma 12 a _ax, por ende _ax=42. Después se le resta
+1 a _bx con el <code>dec</code>, entonces _bx=14. Finalmente se le resta _bx a _ax, llegando
+a _ax=28. Luego se pasa el valor de _ax a _cx, con lo que _cx=28, que en hexadecimal es 1Ch.
+En resumen, hicimos que _cx = (a+12)-(b-1), donde a y b son los valores iniciales de _ax y _bx.
 </p> 
 
 """,UIConfig.enableAll,Some("""org 2000h
@@ -368,13 +379,19 @@ end""")
 ,"""
 
 <p class="exercise">
-Escribe un programa en base a los valores iniciales de ax y bx, calcule
-cx = (b+1)+(a-3), donde a y b son los valores iniciales de ax y bx. 
+Escribe un programa en base a los valores iniciales de _ax y _bx, calcule
+_cx = (b+1)+(a-3), donde a y b son los valores iniciales de _ax y _bx. 
 </p>
   
-<p class="answer">
-
-</p> 
+<div class="answer">
+<p>Una implementación posible (puede haber otras) para ese cálculo es:</p>
+<pre><code>;calculos
+inc bx
+sub ax,3
+add bx,ax
+; asignacion del resultado en cx
+mov cx,bx</pre></code>
+</div> 
 
 """,UIConfig.enableAll,Some("""org 2000h
 ; asignacion inicial
@@ -433,18 +450,18 @@ end""")
 
 <div class="exercise">
 <p>
-Escribe un programa que aplique varias máscaras al registro al, con valor inicial 10101010b.
+Escribe un programa que aplique varias máscaras al registro _al, con valor inicial 10101010b.
 <p>
 </p> 
-Primero,utilizar un <code>and</code> con la máscara 01111111 para hacer que el bit 7 
+Primero,utilizar un <code>and</code> con la máscara _01111111b para hacer que el bit 7 
 (el más significativo) se convierta en 0 y el resto quede igual.
 </p>
 <p>
-Luego aplicar un <code>or</code> con la máscara 00000100 para hacer que el bit 2
+Luego aplicar un <code>or</code> con la máscara _00000100b para hacer que el bit 2
 se convierta en 1. Después, invierte todos los bits.
 </p> 
 <p>Finalmente, aplica un xor
-con la máscara 11110000 para invertir los 4 bits más significativos y dejar igual los otros.  
+con la máscara _11110000b para invertir los 4 bits más significativos y dejar igual los otros.  
 </p>
 </div>
   
@@ -470,14 +487,14 @@ end""")
 
 ,TutorialStep("Resumen"
     
-,"""<p> VonSim tiene 4 registros llamados ax, bx, cx y dx.
+,"""<p> VonSim tiene 4 registros llamados _ax, _bx, _cx y _dx.
   Los registros ocupan 2 bytes o 16 bits. Al byte más significativo se lo llama 
 <strong>parte alta</strong>, y al menos significativo, <strong>parte baja</strong></p>
 
 <p> Cada registro puede accederse o modificarse completo utilizando
-ax, bx, cx o dx como identificador. 
+ _ax, _bx, _cx o _dx como identificador. 
 También se pueden utilizar las partes altas y bajas de forma independiente, con
-al, ah, bl, bh, cl, ch, dl y dh como identificadores.
+_al, _ah, _bl, _bh, _cl, _ch, _dl y _dh como identificadores.
 </p>
   
 <p>
@@ -487,8 +504,8 @@ Hay varias instrucciones para modificar registros. Tenemos <code>add, sub, inc y
 </p>
 
  <p>
-Dichas instrucciones pueden operar tanto en un registro completo como ax, como en partes 
-del mismo, como al y ah.
+Dichas instrucciones pueden operar tanto en un registro completo como _ax, como en partes 
+del mismo, como _al y _ah.
 </p> 
 
  <p>

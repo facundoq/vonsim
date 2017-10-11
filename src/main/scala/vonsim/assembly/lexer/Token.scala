@@ -18,7 +18,7 @@ object Token{
   def keyword= List( END(),NOP(),RET(),HLT(),EQU())
   def ops = List(ORG(),MOV(),CMP())++binaryArithmetic++unaryArithmetic
   def binaryArithmetic = List(ADD(),ADC(),SUB(),SBB(),OR(),XOR(),AND(),CMP())
-  def unaryArithmetic = List(INC(),DEC(),NOT())
+  def unaryArithmetic = List(INC(),DEC(),NOT(),NEG())
   def registers:List[RegisterToken] = lRegisters++hRegisters++xRegisters++List(SP(),IP())
   def lRegisters =List(AL(),BL(),CL(),DL())
   def hRegisters =List(AH(),BH(),CH(),DH())
@@ -116,6 +116,7 @@ trait UnaryArithmeticOp extends ArithmeticOp
 case class DEC() extends UnaryArithmeticOp
 case class INC() extends UnaryArithmeticOp
 case class NOT() extends UnaryArithmeticOp
+case class NEG() extends UnaryArithmeticOp
 
 trait JumpInstructionToken extends InstructionToken
 case class JMP() extends JumpInstructionToken

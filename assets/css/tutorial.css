@@ -94,3 +94,14 @@
 #tutorial pre{
 	text-align: left;
 }
+
+.register{
+  background-color: white;
+  border-radius:5px;
+  color: navy;
+  padding: 2px;
+}
+
+.value{
+  background-color:#72b1c6;
+}
