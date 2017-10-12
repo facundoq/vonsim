@@ -96,12 +96,30 @@
 }
 
 .register{
-  background-color: white;
-  border-radius:5px;
   color: navy;
-  padding: 2px;
 }
 
 .value{
-  background-color:#72b1c6;
+  color:#cc0000;
+}
+.type{
+	color:#00CC00;
+}
+
+.instruction{
+    color:#000000;
+}
+.register, .value, .instruction, .type{
+	background-color: white;
+ border-radius:5px;
+  padding: 1px 3px;
+  font-family: 'Fira Code';
+  font-weight: bold;
+}
+
+pre,code{
+	font-family: 'Fira Code';
+	background-color: white;
+	color:black;
+	font-weight: bold;
 }

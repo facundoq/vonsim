@@ -32,9 +32,9 @@ información: la memoria principal o RAM y los registros.</p>
 
 ,TutorialStep("Ubicación de las variables"
 ,"""
-<p> Al igual que las instrucciones, las variables también deben ser ubicadas con una sentencia <code>org</code>, como vimos en el tutorial anterior.</p>
+<p> Al igual que las instrucciones, las variables también deben ser ubicadas con una sentencia org, como vimos en el tutorial anterior.</p>
 
-<p>Por eso agregamos otra sentencia <code>org</code> al comienzo del programa, en este caso en la dirección 5h de memoria.</p>
+<p>Por eso agregamos otra sentencia org al comienzo del programa, en este caso en la dirección 5h de memoria.</p>
 
 <p> Esto quiere decir que las variables que ahora declaremos debajo de la línea <code>org 5h</code>
 se ubicarán a partir de la dirección de memoria 5h, es decir 5 en hexadecimal (siempre escribiremos las direcciones en hexadecimal) </p>
@@ -45,13 +45,14 @@ se ubicarán a partir de la dirección de memoria 5h, es decir 5 en hexadecimal 
 ,TutorialStep("Declaración de variables"
 ,"""
 <p> Las variables se declaran en una línea aparte, con  
-la sintaxis <code>nombre tipo valor_inicial</code>.</p>
+la sintaxis</p> 
+<p><code>nombre tipo valor_inicial</code></p>.
 
-<p> Hay dos tipos de variables, las <code>db</code>, que ocupan un byte, 
-y las <code>dw</code> que ocupan dos bytes.</p>
+<p> Hay dos tipos de variables, las db, que ocupan un byte, 
+y las dw que ocupan dos bytes.</p>
 
 <p>Entonces, para definir una variable llamada <code>peso</code> 
-que ocupe un solo byte (<code>db</code>) y tenga como valor inicial 25h (25 hexadecimal), debemos agregar la línea
+que ocupe un solo byte (db) y tenga como valor inicial 25h (25 hexadecimal), debemos agregar la línea
 <code>peso db 25h</code> debajo de la línea <code>org 5h</code> </p>
 
 <p class="exercise"> Agrega la línea <code>peso db 25h</code> para definir la 
@@ -79,7 +80,7 @@ requiere que se anteponga un 0 al valor. Entonces en lugar de escribir Ah o BCDE
 <p> De este modo, el simulador puede distinguir el valor Ah de una variable llamada Ah.</p>
 
 <p class="exercise"> El programa del editor no compila. Agrega el 0 al valor A3h de la variable
-<code>peso</code> para que compile y ejecútalo. ¿Qué valor aparece en la dirección 5h?</p>
+peso para que compile y ejecútalo. ¿Qué valor aparece en la dirección 5h?</p>
 
 """,UIConfig.enableAll,Some("org 5h\npeso db A3h\norg 2000h\nhlt\nend")
 )
@@ -104,7 +105,7 @@ Mirá la celda siguiente, con dirección 6. ¿Qué valor tiene? </p>
 ,"""
 <p> La variable <code>temperatura</code> que declaramos se ubicó 
 en la celda con dirección 6. Esto es porque las variables se ubican una tras de otra 
-a partir de la dirección indicada en la sentencia <code>org</code> </p>
+a partir de la dirección indicada en la sentencia org </p>
 
 <p class="exercise"> Intercambia las declaraciones de las variables <code>peso</code> y 
 <code>temperatura</code>. Ejecuta el programa y verifica que ahora los valores se invierten
@@ -123,10 +124,10 @@ Ejecuta el programa.</p>
 ,TutorialStep("Variables de dos bytes (parte 1)"
 ,"""
 <p> Las variables que declaramos ocupaban todas un byte, ya que 
-usaban el tipo <code>db</code>.</p>
+usaban el tipo db.</p>
 
-<p> Podemos definir variables que ocupen 2 bytes con el tipo <code>dw</code>.
-Reservando 2 bytes para la variable, podemos guardar números más grandes.</p>
+<p> Podemos definir variables que ocupen 2_ bytes con el tipo dw.
+Reservando 2_ bytes para la variable, podemos guardar números más grandes.</p>
 
 <p class="exercise"> Agrega la línea <code>peso dw 5A12h</code> para definir 
 la variable peso con valor 5A12h. 
@@ -146,11 +147,11 @@ razones históricas, <strong>little-endian</strong>. </p>
 ,"""
 <p> Podemos definir varias variables de tipo dw también, y también se ubicarán secuencialmente.</p>
 
-<p class="exercise"> Define las variables <code>vida</code>, <code>mana</code> y <code>energía</code>, en ese orden, de tipo <code>dw</code>,
+<p class="exercise"> Define las variables <code>vida</code>, <code>mana</code> y <code>energía</code>, en ese orden, de tipo dw,
 con valores iniciales 32h, 15Dh y 1A4Bh, respectivamente.</p>
 
 <p class="exercise"> Ejecuta el programa y observa el valor de las celdas 5h a Ah.
-¿Qué sucede cuando ponemos un valor chico, como 32h, en una variable de 2 bytes?
+¿Qué sucede cuando ponemos un valor chico, como 32h, en una variable de 2_ bytes?
 ¿Cómo se rellena la parte más significativa? </p>
 
 
@@ -178,7 +179,7 @@ las celdas 9h y 10h.</p>
 )
 
 
-,TutorialStep("Ubicación de las variables con <code>db</code> y <code>dw</code> "
+,TutorialStep("Ubicación de las variables con db y dw "
 ,"""
 <p> Hemos definido varias variables de uno y dos bytes por separado. ¿Qué sucede si las combinamos?</p>
 
@@ -186,14 +187,22 @@ las celdas 9h y 10h.</p>
 <p class="exercise"> Ejecuta el programa del editor, en donde se definen distintos tipos de variables.</p>
 
 <p class="exercise"> ¿Cuál es la dirección de comienzo de cada variable? ¿Qué celdas de memoria ocupa cada variable? </p>
+<div class="answer">
+<ul> 
+<li>La variable precipitaciones comienza en la dirección 5h y ocupa las celdas 5h y 6h.</li>
+<li>La variable nubes comienza en la dirección 7h y ocupa la celda 7h.</li>
+<li>La variable temperatura comienza en la dirección 8h y ocupa las celdas 8h y 9h.</li>
+<li>La variable viento comienza en la dirección 0Ah y ocupa la celda 0Ah.</li>
+</ul>
+</div>
 
 """,UIConfig.enableAll,Some("org 5h\nprecipitaciones dw 134h\nnubes db 45h\ntemperatura dw 2Ah\nviento db 8Ah\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("El rol del <code>org</code>"
+,TutorialStep("El rol del org"
 ,"""
 <p> Hasta ahora las variables que definimos se ubicaban a partir de la dirección 5h,
-debido a que estaban debajo de un <code> org 5h</code></p>
+debido a que estaban debajo de un <code> org 5h</code>.</p>
 
 <p class="exercise"> Cambia el 5h en la línea <code> org 5h</code> por 12h. Ejecuta el programa.
 Verifica que las variables ahora se ubican a partir de la dirección 12h.</p>
@@ -201,10 +210,10 @@ Verifica que las variables ahora se ubican a partir de la dirección 12h.</p>
 """,UIConfig.enableAll,Some("org 5h\nprecipitaciones dw 134h\nnubes db 45h\ntemperatura dw 2Ah\nviento db 8Ah\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Utilizando varios <code>org</code>"
+,TutorialStep("Utilizando varios org"
 ,"""
 <p>¿Qué podemos hacer si queremos que algunas variables se ubican a partir del 5h, y
-otras a partir del 12h? Utilizamos dos sentencias <code>org</code>.</p>
+otras a partir del 12h? Utilizamos dos sentencias org.</p>
 
 <p class="exercise"> Lee y ejecuta el programa del editor. 
 ¿Qué direcciones tienen las variables <code>precipitaciones</code> y <code>nubes</code>? 
@@ -217,19 +226,19 @@ y el tercero para el código, a partir de la dirección 2000h.</p>
 """,UIConfig.enableAll,Some("org 5h\nprecipitaciones dw 134h\nnubes db 45h\norg 12h\ntemperatura dw 2Ah\nviento db 8Ah\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Valores decimales para la dirección del <code>org</code>"
+,TutorialStep("Valores decimales para la dirección del org"
 ,"""
 <p>En algunos casos puede ser más fácil especificar la dirección de memoria en decimal.
 Supongamos que queremos ubicar variables a partir de la dirección de memoria 12. En tal caso,
 en lugar de tener que convertirla a hexadecimal, podemos escribir el 12 sin la <em>h</em> en
-la instrucción <code>org</code>.</p>
+la instrucción org.</p>
 
 <p class="exercise"> Lee y ejecuta el programa del editor. Las variables se ubican a partir
 de la dirección 12h.</p>
 
 <p class="exercise"> Quita el <em>h</em> de la sentencia <code>org 12h</code> y ejecuta
 el programa. ¿Dónde se ubican las variables ahora?</p> 
-<p class="answer">Las variables se ubican a partir de la dirección 12, o sea Bh.</p>
+<p class="answer">Las variables se ubican a partir de la dirección 12, o sea 0Bh.</p>
 """,UIConfig.enableAll,Some("org 12h\ntemperatura dw 2Ah\nviento db 8Ah\norg 2000h\nhlt\nend")
 )
 
@@ -237,7 +246,7 @@ el programa. ¿Dónde se ubican las variables ahora?</p>
 ,TutorialStep("Valores decimales para inicializar las variables"
 ,"""
 <p> Si bien la memoria muestra los valores de las celdas en formato hexadecimal, debido a
-que es lo más común, en verdad lo que se guarda en cada celda son 8 bits, un byte,
+que es lo más común, en verdad lo que se guarda en cada celda son 8_ bits, un byte,
 que codifican un número utilizando el sistema binario. </p>
 
 <p> Hasta ahora hemos inicializado las variables con un valor codificado en hexadecimal, pero al
@@ -247,7 +256,7 @@ cargarse en la memoria en verdad se guarda en formato binario.</p>
 escribir los valores de forma más cómoda.</p>
 
 <p> También podemos escribirlos con un valor codificado en decimal, como hicimos con la 
-dirección del <code>org</code>. 
+dirección del org. 
 Para ello, recordemos que simplemente debemos no poner una <em>h</em> al final del valor.</p>
 
 <p class="exercise"> Agrega la línea <code>peso db 25</code> para definir la variable peso con valor 25 (decimal). 
@@ -263,13 +272,13 @@ Ejecuta el programa y busca el valor de la celda de memoria donde se cargó</p>
 ,TutorialStep("Valores máximos"
 ,"""
 
-<p>Las variables de tipo <code>db</code> tienen un rango de 0 a 255 para valores sin signo,
- ya que disponen de 8 bits.</p>
+<p>Las variables de tipo db tienen un rango de 0 a 255 para valores sin signo,
+ ya que disponen de 8_ bits.</p>
 
 <p class="exercise"> Intenta poner un valor mayor a 255 en la variable edad. ¿Qué sucede? </p>
 
-<p>Las variables de tipo <code>dw</code> tienen un rango de 0 a 65536 para valores sin signo,
- ya que disponen de 16 bits.</p>
+<p>Las variables de tipo dw tienen un rango de 0 a 65536 para valores sin signo,
+ ya que disponen de 16_ bits.</p>
 
 <p class="exercise"> Intenta poner un valor mayor a 65536 en la variable distancia. ¿Qué sucede? </p>
 
@@ -288,7 +297,7 @@ Ejecuta el programa y busca el valor de la celda de memoria donde se cargó</p>
 el programa. ¿Qué se almacena en la memoria en la dirección 5h? ¿Por qué?</p>
 
 <p class="answer"> Se almacena el valor F6h, o sea 11110110b, que es la codificación
-en Complemento a 2 (CA2) del número -10. Hay que tener en cuenta que tanto el número
+en Complemento a 2_ (CA2) del número -10. Hay que tener en cuenta que tanto el número
 119 como el número -10 se codifican como 11110110b. Por ende es el programador quien
 debe saber de antemano como interpretar esa cadena de bits, si en CA2 o en BSS. </p>
 
@@ -299,11 +308,11 @@ debe saber de antemano como interpretar esa cadena de bits, si en CA2 o en BSS. 
 ,"""
 
 <p>Como se utiliza el sistema CA2 para los números negativos, el valor
-mínimo para las variables de tipo <code>db</code> es de -128.</p>
+mínimo para las variables de tipo db es de -128.</p>
 
 <p class="exercise"> Intenta poner un valor menor a -128 en la variable edad. ¿Qué sucede? </p>
 
-<p>Por otro lado, las variables de tipo <code>dw</code> tienen como valor mínimo el -32768.</p>
+<p>Por otro lado, las variables de tipo dw tienen como valor mínimo el -32768.</p>
 
 <p class="exercise"> Intenta poner un valor menor a -32768 en la variable distancia. ¿Qué sucede? </p>
 
@@ -326,17 +335,20 @@ Ejecuta el programa y verifica que la celda de memoria con dirección 6h tiene e
 ,TutorialStep("Variables sin valor"
 ,"""
 
-<p>También podemos declarar variables sin valor. Para ello ponemos <em>?</em> en lugar del valor.</p>
+<p>También podemos declarar variables sin valor. Para ello ponemos <span class="value">?</span> en lugar del valor.</p>
 
-<p class="exercise"> Define la variable <code>peso</code> de tipo <code>db</code> con valor <em>?</em>.
+<p class="exercise"> Define la variable <code>peso</code> de tipo db con valor <span class="value">?</span>.
 Antes de ejecutar el código, anota el valor de la celda de memoria 5h. Luego ejecuta el código. ¿Qué
 valor tiene ahora esta celda? </p>
+
+<p class="answer"> La variable se define con el código <code>peso db ?</code>. El valor final
+de la celda debería ser igual al valor anterior de la misma.</p>
 
 """,UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
 
-,TutorialStep("Vectores de <code>db</code>"
+,TutorialStep("Vectores de db"
 ,"""
 <p>También puedes declarar una variable una variable con varios valores, es decir, un vector.
  En ese caso la sintaxis es <code>nombre tipo valor1, valor2, valor3, ...</code> </p>
@@ -345,21 +357,21 @@ valor tiene ahora esta celda? </p>
 <p class="exercise">Leer y ejecutar el código del editor. ¿En qué celdas de memoria se guardan
 los valores? ¿Cuántas celdas ocupan en total? </p>
 
-<p class="answer"> Ocupan 6 celdas, una por elemento; la 5h, 6h, 7h, 8h, 9h y Ah.</p>
+<p class="answer"> Ocupan 6_ celdas en total, una celda por número. Sus direcciones son 5h, 6h, 7h, 8h, 9h y 0Ah.</p>
 
 """,UIConfig.enableAll,Some("org 5h\ntabla db 1,3,5,7,9,11\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Vectores de <code>dw</code>"
+,TutorialStep("Vectores de dw"
 ,"""
-<p>Recién definimos un vector donde cada elemento era de tipo <code>db</code>.</p>
-<p> Si ahora los elementos son de tipo <code>dw</code> entonces cada elemento ocupará
+<p>Recién definimos un vector donde cada elemento era de tipo db.</p>
+<p> Si ahora los elementos son de tipo dw entonces cada elemento ocupará
 dos bytes de memoria.</p>
 
 <p class="exercise">Ejecutar el código del editor. ¿En qué celdas de memoria se guardan
 los valores? ¿Cuántas celdas ocupan en total? </p>
 
-<p class="answer"> Ocupan 12 celdas, dos por cada elemento; de la 5h a la 10h.</p>
+<p class="answer"> Ocupan 12_ celdas, dos por cada elemento; de la 5h a la 10h.</p>
 
 """,UIConfig.enableAll,Some("org 5h\ntabla dw 1,3,5,7,9,11\norg 2000h\nhlt\nend")
 )
@@ -368,7 +380,7 @@ los valores? ¿Cuántas celdas ocupan en total? </p>
 ,"""
 <p>También se pueden declarar strings o cadenas de caracteres. Recuerda que los caracteres en 
 verdad se almacenan como códigos; los mismos se obtienen del 
-<a href="https://es.wikipedia.org/wiki/ASCII#Caracteres_imprimibles_ASCII">estándar ASCII</a>.</p>
+<a href="https://es.wikipedia.org_/wiki/ASCII#Caracteres_imprimibles_ASCII">estándar ASCII</a>.</p>
 <p> Por ejemplo, la letra <em>A</em> se codifica con el número 41h, y la letra <em>a</em> con el 
 número 61h.</p> 
 <p> Entonces, como assembly es un lenguaje de bajo nivel, en realidad lo que declararemos es un vector
@@ -400,8 +412,8 @@ Cambia el contenido de la cadena de caracteres de "hola" a "123#!   wubba lubba 
 ejecuta el programa. ¿Cómo se codifica el "123"?¿Y los caracteres "#!"?¿Y los espacios?</p>
 
 <div class="answer">
-<p>La cadena "123" contiene tres caracteres, el 1, con código ASCII 31h, el 2 con código 32h
-y el 3 con código 33h. Ten cuidado, ya que el código de un número (32h) difiere del valor 
+<p>La cadena "123" contiene tres caracteres, el "1", con código ASCII 31h, el "2" con código 32h
+y el "3" con código 33h. Ten cuidado, ya que el código de un número (32h) difiere del valor 
 del mismo (2).</p>
 <p> Los caracteres "#" y "!" también tienen un código asociado, en este caso
 el 23h y 21h, así como "?,.-+*" y otros símbolos.</p> 
@@ -413,11 +425,11 @@ habrá la misma cantidad de códigos 20h en la memoria.
 """,UIConfig.enableAll,Some("org 5h\ncadena db \"hola\"\norg 2000h\nhlt\nend")
 )
 
-,TutorialStep("Las cadenas de caracteres son sólo de tipo <code>db</code>"
+,TutorialStep("Las cadenas de caracteres son sólo de tipo db"
 ,"""
-<p>Las cadenas de caracteres sólo pueden ser de tipo <code>db</code>.</p>
+<p>Las cadenas de caracteres sólo pueden ser de tipo db.</p>
 
-<p class="exercise"> Modifica el código del editor, reemplazando el tipo <code>db</code> por <code>dw</code>.
+<p class="exercise"> Modifica el código del editor, reemplazando el tipo db por dw.
 ¿Qué sucede? </p>
 
 <p class="answer"> El compilador detecta el error y no compila el programa.
@@ -428,7 +440,7 @@ habrá la misma cantidad de códigos 20h en la memoria.
 
 ,TutorialStep("Variables vs Etiquetas "
 ,"""
-<p>Cuando tenemos una variable de tipo <code>dw</code>, reservamos dos celdas de memoria
+<p>Cuando tenemos una variable de tipo dw, reservamos dos celdas de memoria
 para guardar un valor. Por ejemplo, en el programa del editor, las celdas 5h y 6h
 contienen el valor de la variable distancia.</p>
 
@@ -438,7 +450,7 @@ contienen el valor de la variable distancia.</p>
 a qué nos referimos, si a la dirección de la primer celda, de la última, de todas, etc.</p>
 
 <p>Por eso, se define la <strong>dirección</strong> de una variable como la dirección de su 
-primera celda, sin importar cuantas ocupe (1 para <code>db</code>, 2 para <code>dw</code>, 
+primera celda, sin importar cuantas ocupe (1_ para db, 2_ para dw, 
 o varias para un vector).</p>
 
 <p class="exercise"> Lee y ejecuta el código del editor. ¿Cuáles son las direcciones de las variables declaradas?</p>
@@ -508,13 +520,13 @@ que llamamos <strong>declarar variables</strong> aunque su significado sea algo
 diferente del de otros lenguajes de programación.</p>
 
 <p>Para ello primero debemos establecer la dirección donde se comienzan a ubicar las variables
-con la sentencia <code>org</code>.</p>
+con la sentencia org.</p>
 
 <p>Luego podemos definir variables. La sintaxis para definir variables es
 <code>nombre tipo valor1, valor2, ...</code></p>
 
-<p> Hay dos tipos de variables: <code>db</code>, si ocupan un byte,
-o <code>dw</code> si ocupan 2 bytes. </p>
+<p> Hay dos tipos de variables: db, si ocupan un byte,
+o dw si ocupan 2_ bytes. </p>
 
 <p>Las variables tienen un nombre o etiqueta, que luego nos servirá como referencia para accederlas o modificarlas
 </p>
@@ -522,7 +534,7 @@ o <code>dw</code> si ocupan 2 bytes. </p>
 <p>Las variables se ubican secuencialmente en la memoria, es decir, donde termina una empieza la siguiente.
 </p>
 
-<p>Los valores pueden ingresarse en hexadecimal (Bh), en binario (00001011b) o en decimal (11).
+<p>Los valores pueden ingresarse en hexadecimal (4Bh), en binario (00001011b) o en decimal (11).
 Los números positivos se codifican en el sistema BSS. Además, se pueden ingresar números negativos, que
 se codifican con el sistema CA2.
 </p>

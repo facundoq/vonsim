@@ -24,6 +24,10 @@ import vonsim.assembly.CompilationError
 import scala.collection.mutable.ListBuffer
 import vonsim.webapp.tutorials.Tutorial
 import vonsim.assembly.lexer.Token
+import vonsim.assembly.lexer.AL
+import vonsim.assembly.lexer.RegisterToken
+import vonsim.assembly.lexer.DW
+import vonsim.assembly.lexer.DB
 
 
 class TutorialUIControl(s: VonSimState,val tutorial:Tutorial,tutorialUpdated:Function0[Unit]) extends VonSimUI(s) {
@@ -113,29 +117,48 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
   }
   def preprocessContent(content:String)={
       var result=content
-      result=preprocessRegisters(result)
+      val exceptedRegisters=List(AL())
+      val registers=Token.registers.filter(r => !exceptedRegisters.contains(r))
+      result=preprocessContentForTokens(result,registers,"register","")
+      result=preprocessContentForTokens(result,exceptedRegisters,"register","_")
       result=preprocessValues(result)
-      
+      result=preprocessContentForTokens(result,Token.ops,"instruction","")
+      result=preprocessContentForTokens(result,List(DB(),DW()),"type","")
       result
   }
   def preprocessValues(content:String)={
     val valueClass="value"
     var result=content
-    
-    result=result.replaceAll("([0-9][0-9A-Faf]*h)(?!_)","""<span class="value">$1</span>""")
-    result=result.replaceAll("([0-1]+b)(?!_)","""<span class="value">$1</span>""")
-    result=result.replaceAll("""(-?[0-9]+)([\b\s.,<])(?!_)""","""<span class="value">$1</span>$2""")
+
+    result=result.replaceAll(boundary+"([0-9][0-9A-Faf]*h)(?!_)","""$1<span class="value">$2</span>""")
+    result=result.replaceAll(boundary+"([0-1]+b)(?!_)","""$1<span class="value">$2</span>""")
+    result=result.replaceAll(boundary+"""(-?[0-9]+)([\b\s.,<])(?!_)""","""$1<span class="value">$2</span>$3""")
+    result=result.replaceAll("""(-?[0-9]+)(_)""","""$1""")
     result
   }
-  def preprocessRegisters(content:String)={
+  def tokenToKeyword(l:List[Token])=l.map(r => {
+      val s=r.toString().toLowerCase()
+      val l=s.length()
+      s.subSequence(0, l-2)
+      })
+  def boundary= """([,.=+?¿()]|\b)"""
+  def preprocessContentForTokens(content:String,tokens:List[Token],cls:String,prefix:String)={
     var result=content
-    val keywords=Token.registers.map(r => r.toString().toLowerCase().subSequence(0, 2))
+    
+    val registers=tokens
+    val keywords = tokenToKeyword(registers)
+    
     for (keyword <- keywords){
-      val replacement=s"""<span class="register">$keyword</span>"""
-      result=result.replaceAll("_"+keyword, replacement)  
+      val replacement="<span class=\""+cls+"\">$2</span>"
+      val pattern =boundary+prefix+"("+keyword.toString()+")"+boundary
+      result=result.replaceAll(pattern, "$1"+replacement+"$3")
+      val patternNeg=boundary+prefix+"("+keyword.toString()+")(_)"+boundary
+      result=result.replaceAll(patternNeg, "$1$2$4")
     }
+    
     result
   }
+  
   def displayTutorialStep(){
     
     subtitle.innerHTML=preprocessContent(tutorial.current.title)
