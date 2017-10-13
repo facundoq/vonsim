@@ -106,7 +106,8 @@ object Compiler {
     val unlabeledInstructions = unlabelInstructions(ins)
 
     //Transform from parser.Instruction to simulator.Instruction 
-    // Note that at this point the jump and memory addresses are actually dummy values    
+    // Note that at this point the jump and memory addresses are actually dummy values
+    println("Performing first pass of compilation..")
     val firstPassResult = compileInstructions(unlabeledInstructions, firstPassResolver, rawInstructions)
 
     if (firstPassResult.allRight && globalErrors.isEmpty) {
@@ -119,18 +120,22 @@ object Compiler {
       }
 
       //Build a db of information after getting correctly parsed instructions
+      println("Performing second pass of compilation..")
       val secondPassResolver = new SecondPassResolver(firstPassInstructions, firstPassResolver)
       //println("Memory"+memory)
       //println("Vardef address" + vardefLineToAddress)
       //println("executable" + executableLineToAddress)
       val secondPassResult = compileInstructions(unlabeledInstructions, secondPassResolver, rawInstructions)
+      if (secondPassResult.allRight){ 
+        val secondPassInstructions = secondPassResult.rights()
 
-      val secondPassInstructions = secondPassResult.rights()
-
-      val (variablesMemory, instructionsMemory) = getMemory(secondPassInstructions, secondPassResolver.executableLineToAddress)
-      val executableInstructions = secondPassInstructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
-      val addressToInstruction = executableInstructions.map(x => (secondPassResolver.executableLineToAddress(x.line), x)).toMap
-      Right(new SuccessfulCompilation(secondPassInstructions, addressToInstruction, variablesMemory, instructionsMemory, warnings.toList))
+        val (variablesMemory, instructionsMemory) = getMemory(secondPassInstructions, secondPassResolver.executableLineToAddress)
+        val executableInstructions = secondPassInstructions.filter(_.instruction.isInstanceOf[ExecutableInstruction])
+        val addressToInstruction = executableInstructions.map(x => (secondPassResolver.executableLineToAddress(x.line), x)).toMap
+        Right(new SuccessfulCompilation(secondPassInstructions, addressToInstruction, variablesMemory, instructionsMemory, warnings.toList))
+      }else{
+        Left(new FailedCompilation(secondPassResult, globalErrors.toList))
+      }
     } else {
       Left(new FailedCompilation(firstPassResult, globalErrors.toList))
     }
@@ -324,11 +329,11 @@ object Compiler {
 
       case x: parser.VarDef => {
         val undefinedLabels = x.values.collect { case Right(e) => resolver.undefinedLabels(e) }.flatten
-
+        val a=x.values
         if (!undefinedLabels.isEmpty) {
           semanticError(x, language.labelsUndefined(undefinedLabels))
         } else {
-
+          
           val values = x.values.map(_ match {
             case Right(e) => {
               resolver.expression(e)
@@ -338,14 +343,21 @@ object Compiler {
               case t: lexer.DW => 65536
             })
           })
+          println("Values in def: "+values)
           val optionValues = values.map(ComputerWord.minimalWordFor)
+          println(optionValues)
+          println(optionValues.map(_.isEmpty).fold(false)(_ || _))
           if (optionValues.map(_.isEmpty).fold(false)(_ || _)) {
+            println("I HAVE A SEMANTIC ERROR (DONT FIT IN 16bits) IM SHITTING ON:"+x)
             semanticError(x, language.dontFitIn16Bits)
           } else {
+            println("LIKING THIS ON:"+x)
             val values = optionValues.filter(_.isDefined).map(_.get)
             x.t match {
               case t: lexer.DB => {
+                println(i.toString()+" "+values.mkString(" "))
                 if (!values.map(_.isInstanceOf[Word]).fold(true)(_ && _)) {
+                  println("I HAVE ANOTHER SEMANTIC ERROR (DONT FIT IN 8bits) IM SHITTING ON:"+x)
                   semanticError(x, language.dontFitIn8Bits)
                 } else {
                   successfulTransformation(x, WordDef(x.label, resolver.vardefLabelAddress(x.label), values.asInstanceOf[List[Word]]))
