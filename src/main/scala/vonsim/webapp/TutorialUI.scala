@@ -115,6 +115,7 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
 //    title.textContent=tutorial.title
     displayTutorialStep()  
   }
+  
   def preprocessContent(content:String)={
       var result=content
       val exceptedRegisters=List(AL())
@@ -126,6 +127,7 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
       result=preprocessContentForTokens(result,List(DB(),DW()),"type","")
       result
   }
+  
   def preprocessValues(content:String)={
     val valueClass="value"
     var result=content
@@ -136,11 +138,13 @@ class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends
     result=result.replaceAll("""(-?[0-9]+)(_)""","""$1""")
     result
   }
+  
   def tokenToKeyword(l:List[Token])=l.map(r => {
       val s=r.toString().toLowerCase()
       val l=s.length()
       s.subSequence(0, l-2)
-      })
+  })
+      
   def boundary= """([,.=+?¿()]|\b)"""
   def preprocessContentForTokens(content:String,tokens:List[Token],cls:String,prefix:String)={
     var result=content

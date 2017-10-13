@@ -22,18 +22,35 @@ abstract class VarDefInstruction extends NonExecutableInstruction{
   def label:String
   def address:Int
   def bytes:Int
-  def values:List[ComputerWord]
+  def values:List[Option[ComputerWord]]
+  def size:Int
 }
 
-case class WordDef(label:String,address:Int,val values:List[Word]) extends VarDefInstruction{
+case class WordDef(label:String,address:Int,val values:List[Option[Word]]) extends VarDefInstruction{
   def bytes()={
-    if (values.isEmpty)  0 else values.length*values.last.bytes  
+    var r=0
+    for (i <- values){
+      i match{
+        case Some(v)=> r=r+v.bytes
+        case None => r=r+Word(0).bytes
+      }
+    }
+    r
   }
+  def size=1
 }
-case class DWordDef(label:String,address:Int,values:List[DWord]) extends VarDefInstruction{
+case class DWordDef(label:String,address:Int,values:List[Option[DWord]]) extends VarDefInstruction{
   def bytes()={
-    if (values.isEmpty)  0 else values.length*values.last.bytes  
+    var r=0
+    for (i <- values){
+      i match{
+        case Some(v)=> r=r+v.bytes
+        case None => r=r+DWord(0).bytes
+      }
+    }
+    r  
   }
+  def size=2
 }
 
 case class Mov(binaryOperands:BinaryOperands) extends ExecutableInstruction  

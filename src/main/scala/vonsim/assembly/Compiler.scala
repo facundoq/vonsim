@@ -109,7 +109,7 @@ object Compiler {
     // Note that at this point the jump and memory addresses are actually dummy values
 //    println("Performing first pass of compilation..")
     val firstPassResult = compileInstructions(unlabeledInstructions, firstPassResolver, rawInstructions)
-
+//    print("FP: "+firstPassResult)
     if (firstPassResult.allRight && globalErrors.isEmpty) {
       //      println(s"Instructions $r")
       val firstPassInstructions = firstPassResult.rights
@@ -260,10 +260,11 @@ object Compiler {
     instructions.foreach(f =>
       f.instruction match {
         case v: VarDefInstruction =>
-          setMemory(variablesMemory, v.address, v.values)
+          setMemory(variablesMemory, v)
 
         case x: ExecutableInstruction => {
-          setMemory(instructionsMemory, executableLineToAddress(f.line), Simulator.encode(x))
+          
+          setMemory(instructionsMemory, executableLineToAddress(f.line),Simulator.encode(x))
         }
         case other =>
 
@@ -271,14 +272,27 @@ object Compiler {
 
     (variablesMemory.toMap, instructionsMemory.toMap)
   }
-  def setMemory(memory: mutable.Map[MemoryAddress, Int], baseAddress: Int, values: List[ComputerWord]) {
+  def setMemory(memory: mutable.Map[MemoryAddress, Int], v:VarDefInstruction) {
+    var address = v.address
+
+    v.values.foreach(cw =>
+    cw match{
+        case None => address += v.size
+        
+        case Some(value) => value.toByteList().foreach(b => {
+          memory(address) = b.toInt
+          address += 1
+        })
+    })
+  }
+  def setMemory(memory: mutable.Map[MemoryAddress, Int],baseAddress:Int,values:List[Word]) {
     var address = baseAddress
 
-    values.foreach(cw =>
-      cw.toByteList().foreach(b => {
-        memory(address) = b.toInt
-        address += 1
-      }))
+    values.foreach(word =>{
+          memory(address) = word.toInt
+          address += 1
+   })
+    
   }
 
   def unlabelInstructions(instructions: ParsingResult): ParsingResult = {
@@ -336,31 +350,41 @@ object Compiler {
           
           val values = x.values.map(_ match {
             case Right(e) => {
-              resolver.expression(e)
+              Some(resolver.expression(e))
             }
-            case Left(u) => new Random().nextInt(x.t match {
-              case t: lexer.DB => 256
-              case t: lexer.DW => 65536
-            })
+            case Left(u) => None 
+//              new Random().nextInt(x.t match {
+//              case t: lexer.DB => 256
+//              case t: lexer.DW => 65536
+//            })
           })
 //          println("Values in def: "+values)
-          val optionValues = values.map(ComputerWord.minimalWordFor)
+          val optionValues = values.map(_ match{
+            case None => Some(None)
+            case Some(v) => ComputerWord.minimalWordFor(v).map(Some(_))
+            }
+            )
+          
 //          println(optionValues)
+          
           if (optionValues.map(_.isEmpty).fold(false)(_ || _)) {
             semanticError(x, language.dontFitIn16Bits)
           } else {
             val values = optionValues.filter(_.isDefined).map(_.get)
             x.t match {
               case t: lexer.DB => {
-                println(i.toString()+" "+values.mkString(" "))
-                if (!values.map(_.isInstanceOf[Word]).fold(true)(_ && _)) {
+//                println(i.toString()+" "+values.mkString(" "))
+                val fitInWord=values.map(_.fold(true)(_.isInstanceOf[Word]))
+                if (! fitInWord.fold(true)(_ && _) ) {
                   semanticError(x, language.dontFitIn8Bits)
                 } else {
-                  successfulTransformation(x, WordDef(x.label, resolver.vardefLabelAddress(x.label), values.asInstanceOf[List[Word]]))
+                  val wordValues = values.asInstanceOf[List[Option[Word]]]
+                  val addresses  = resolver.vardefLabelAddress(x.label)
+                  successfulTransformation(x, WordDef(x.label, addresses,wordValues))
                 }
               }
               case t: lexer.DW => {
-                successfulTransformation(x, DWordDef(x.label, resolver.vardefLabelAddress(x.label), values.map(_.toDWord)))
+                successfulTransformation(x, DWordDef(x.label, resolver.vardefLabelAddress(x.label), values.map(_.map(_.toDWord))))
               }
             }
 
