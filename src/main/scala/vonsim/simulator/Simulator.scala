@@ -273,7 +273,12 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
       val instruction=info.instruction
       cpu.jump(cpu.ip+ Simulator.instructionSize(instruction))
       state=SimulatorProgramExecuting
+      try{
       execute(info)
+      }catch{
+        case e:InvalidMemoryAddress => stopExecutionForError(language.invalidMemoryAddress(e.address)) 
+      }
+     
     }else{
       stopExecutionForError(instructionInfo.left.get)
     }
@@ -345,7 +350,7 @@ class Simulator(val cpu: CPU, val memory: Memory, var instructions: Map[Int, Ins
         cpu.set(MBR,memory.getBytes(x.address))
       }
       case DWordIndirectMemoryAddress =>{
-        val address=cpu.get(BX).toInt
+        val address=cpu.get(BX).toUnsignedInt
         cpu.set(MAR,address)
         cpu.set(MBR,memory.getBytes(address))
       }

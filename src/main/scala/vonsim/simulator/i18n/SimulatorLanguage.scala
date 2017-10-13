@@ -12,6 +12,7 @@ abstract class SimulatorLanguage {
   def code:String
   def memoryCellAsInstruction:String
   def modifyingReadOnlyMemory(address:Int):String
+  def invalidMemoryAddress(address:Int):String
   def instructionNotImplemented(instruction:String):String
   def instructionErrorMessage(i:InstructionInfo):String
   def reason:String

@@ -326,17 +326,28 @@ object Memory{
 }
 
 class MemoryAccessViolation(val address:Int)
+case class InvalidMemoryAddress(val address:Int) extends Exception() 
 
 class Memory(var values:Array[Word],var readOnlyAddresses:List[Int]=List()) {
   
-  
+  def validAddress(address:Int)=address>=0 && address<values.length
+  def checkAddress(address:Int){
+    if (!validAddress(address)){
+      throw new InvalidMemoryAddress(address)
+    }
+  }
   def getByte(address: Int) = {
+    checkAddress(address)
     values(address)
+    
   }
   def getBytes(address: Int): DWord = {
+    checkAddress(address)
+    checkAddress(address+1)
     DWord(values(address), values(address + 1))
   }
   def setByte(address: Int, v: Word)={
+    checkAddress(address)
 //    println(s"setting $address to $v ($readOnlyAddresses)")
     if (readOnlyAddresses.contains(address)){
       Some(new MemoryAccessViolation(address))
@@ -347,6 +358,8 @@ class Memory(var values:Array[Word],var readOnlyAddresses:List[Int]=List()) {
     
   }
   def setBytes(address: Int, v: DWord)={
+    checkAddress(address)
+    checkAddress(address+1)
 //    println(s"setting $address to $v ($readOnlyAddresses)")
     if (readOnlyAddresses.contains(address) ){
       Some(new MemoryAccessViolation(address))
