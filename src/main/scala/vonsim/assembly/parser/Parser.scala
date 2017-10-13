@@ -11,6 +11,7 @@ import vonsim.assembly.Location
 import scala.util.parsing.input.Positional
 import vonsim.assembly.i18n.English
 import vonsim.assembly.i18n.CompilerLanguage
+import scala.util.Random
 
 
 object Parser extends MyParsers {
@@ -109,9 +110,15 @@ object Parser extends MyParsers {
     (CALL() ~ identifier ) ^^ {case CALL() ~ IDENTIFIER(i) => Call(i)}
   }
   def vardef = positioned {
-    val ints= (identifier ~ (DB() | DW() ) ~ varDefInts  )  ^^ {
-      case IDENTIFIER(id)~ (t:VarType) ~ (e:List[Either[Undefined.type,Expression]]) => VarDef(id,t,e)}
-    val str = (identifier ~ DB() ~ literalString ) ^^ {case IDENTIFIER(id)~ DB() ~ LITERALSTRING(s) => VarDef(id,DB(),stringToIntList(s))}
+    val r = new scala.util.Random(31)
+    val ints= ((identifier?) ~ (DB() | DW() ) ~ varDefInts  )  ^^ {
+      case Some(IDENTIFIER(id))~ (t:VarType) ~ (e:List[Either[Undefined.type,Expression]]) => VarDef(id,t,e)
+      case None~ (t:VarType) ~ (e:List[Either[Undefined.type,Expression]]) => VarDef(Random.alphanumeric.take(30).mkString,t,e)
+     }
+    val str = ((identifier ?) ~ DB() ~ literalString ) ^^ {
+      case Some(IDENTIFIER(id))~ DB() ~ LITERALSTRING(s) => VarDef(id,DB(),stringToIntList(s))
+      case None ~ DB() ~ LITERALSTRING(s) => VarDef(Random.alphanumeric.take(30).mkString,DB(),stringToIntList(s))
+      }
     str | ints 
   }
   
