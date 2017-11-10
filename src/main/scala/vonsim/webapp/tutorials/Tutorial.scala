@@ -20,7 +20,9 @@ object Tutorial{
   val bt=new BasicTutorial()
   val st=new CodeTutorial()
   val vt=new VariablesTutorial()
-  val tutorials=Map(bt.id -> bt,st.id -> st,vt.id -> vt)
+  val vst=new VonSimTutorial()
+  val wat=new WhyAssemblyTutorial()
+  val tutorials=Map(bt.id -> bt,st.id -> st,vt.id -> vt,vst.id -> vst, wat.id ->wat)
 }
 
 abstract class Tutorial{
