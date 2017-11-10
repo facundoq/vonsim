@@ -17,7 +17,16 @@ end
   
   val steps=List(
 
-            TutorialStep("Introducción"
+             TutorialStep("Variables en VonSim"
+,"""<p><strong>Objetivos:</strong> Aprender a definir variables e inicializarlas en VonSim.</p> 
+
+<p><strong>Conocimientos previos:</strong> Uso del simulador VonSim. Estructura básica de un programa
+en assembly. Conocimientos básicos de organización y arquitectura de computadoras.</p>
+  
+""",UIConfig.disableAll,None
+)
+
+,TutorialStep("Introducción"
 ,"""<p>Sabiendo ya como escribir y ejecutar programas con VonSim, y la estructura básica de un 
   programa en assembly, vamos a comenzar a ver funcionan las variables en Assembly.</p> 
 

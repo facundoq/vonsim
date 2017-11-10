@@ -100,7 +100,7 @@
         <xsd:simpleType name="stringType">
                 <xsd:restriction base="xsd:string"/>
         </xsd:simpleType>
-        
+
         <xsd:simpleType name="prerequisiteStringType">
                 <xsd:restriction base="xsd:string">
                    <xsd:maxLength value="200"/>

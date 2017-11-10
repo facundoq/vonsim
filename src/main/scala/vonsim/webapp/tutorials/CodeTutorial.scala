@@ -17,7 +17,17 @@ end
   
   val steps=List(
 
-            TutorialStep("Introducción"
+       TutorialStep("Instrucciones y registros de VonSim"
+,"""<p><strong>Objetivos:</strong> Conocer los registros del VonSim y las instrucciones para
+  manipularlos </p> 
+
+<p><strong>Conocimientos previos:</strong> Uso del simulador VonSim. Estructura básica de un programa
+en assembly. Conocimientos básicos de organización y arquitectura de computadoras.</p>
+  
+""",UIConfig.disableAll,None
+)
+
+,TutorialStep("Introducción"
 ,"""<p>Sabiendo ya como escribir y ejecutar programas con VonSim, y la estructura básica de un 
   programa en assembly, vamos a comenzar a ver las instrucciones más usuales de assembly y las 
   formas de guardar información.</p> 
