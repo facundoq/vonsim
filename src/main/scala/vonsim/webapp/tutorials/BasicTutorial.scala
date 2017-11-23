@@ -50,11 +50,12 @@ se ubicará en memoria el código binario de la instrucción <code>hlt</code>.<p
 ,TutorialStep("Ubicando las instrucciones con <code>org</code>"
 ,"""<p>La sentencia <code>org</code> nos permite indicar donde se van 
   a cargar las instrucciones en la memoria.</p>
-  <p>Su sintaxis es <code>org <strong>dirección<strong></code><p>
-  <p>Por ejemplo, <code>org 2000h</code><p>
+  <p>Su sintaxis es <code>org <strong>dirección</strong></code></p>
+  <p>Al código generalmente lo ubicamos en la dirección 2000h, entonces en ese caso
+  pondríamos <code>org 2000h</code>.</p>
   <p> En VonSim el h al final de un número se utiliza para que 
 se interprete como hexadecimal. En general, las direcciones de memoria las escribiremos en hexadecimal.</p>
-""",UIConfig.enableAll,Some("end"))
+""",UIConfig.enableAll,Some("hlt\nend"))
 
 ,TutorialStep("Ubicando la instrucción <code>hlt</code>"
 ,"""<p>Para ubicar la instrucción <code>hlt</code> en la memoria, debemos agregar un <code>org</code>
@@ -74,14 +75,14 @@ Puedes escribir esta dirección en el buscador de la memoria para encontrarla m�
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend"))
 
 ,TutorialStep("La dirección de comienzo"
-,"""<p>La dirección 2000h es especial ya que es ahí donde el procesador comienza a buscar instrucciones
+,"""<p>La dirección 2000h es especial ya que es allí donde el procesador comienza a buscar instrucciones
   para ejecutar por defecto. Si en la dirección inicial (2000h) no hay instrucciones el programa 
   generará un mensaje de error. </p>
   
 <p class="exercise">Cambia el 2000h por otra dirección (por ejemplo 20h). Ejecuta el programa.<p> 
 
 <p> Ocurrirá un error nuevamente, ya que el simulador quiere comenzar a ejecutar las instrucciones que 
-están en la dirección 2000h, pero ahí no hay realmente nada ya que las mismas están en la 20h. Por ende 
+están en la dirección 2000h, pero allí no hay realmente nada ya que las mismas están en la 20h. Por ende 
 es muy importante que las instrucciones de un programa se ubiquen después de la 2000h</p>
 
 <p> No obstante, la instrucción <code>hlt</code> se sigue codificando y copiando a la memoria, sólo que no en la 
@@ -97,7 +98,7 @@ el valor 45h, el código binario del <code>hlt</code> </p>
 
 <p> Llamamos sentencias a <code>org 2000h</code> y <code>end</code> porque no son realmente instrucciones
 que el procesador ejecuta.</p> 
-<p> En verdad, son directivas del compilador que lo ayudan a generar código binario del programa, 
+<p> En verdad, son directivas del compilador que lo ayudan a generar el código binario del programa, 
 por eso no se guardan en la memoria ni tienen forma de ser codificadas en binario.</p>
 """,UIConfig.enableAll,Some("org 2000h\nhlt\nend"))
 

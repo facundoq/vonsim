@@ -34,7 +34,7 @@ deberíamos conocer exactamente el código binario de cada
 instrucción del procesador, lo cual resultaría engorroso y propenso a errores.</p>
  
 <p>El lenguaje assembly le da nombres a estos códigos, de manera que para sumar 
-podamos escribir <code>and</code> en lugar de <code>00000101</code>, por ejemplo.
+podamos escribir <code>add</code> (<em>add</em> significa <em>sumar</em> en inglés) en lugar de <code>00000101</code>, por ejemplo.
 Por ende, assembly es el lenguaje de programación de más bajo nivel de abstracción que existe, 
 ya que es solo una pequeña capa de abstracción sobre los códigos de instrucción del procesador.</p>
 """,UIConfig.disableAll)
@@ -121,35 +121,51 @@ a assembly y verlo en este lenguaje de bajo nivel.</p>
         ,"""
 
 <div class="exercise">
-<p>Indique si las siguientes afirmaciones son verdaderas o falsas:</p>
+<p>Decida si las siguientes afirmaciones son verdaderas o falsas.
+Anote los resultados y luego verifique las respuestas:</p>
 
 <ol>
-  <li></li>
+  <li>Assembly es un lenguaje de alto nivel.</li>
+  <li>La programación en assembly suele usarse para desarrollar algunas funciones de los
+  sistemas operativos.</li>
+  <li>Las aplicaciones modernas suelen desarrollarse en Assembly</li>
+  <li>La programación en Assembly suele ser más lenta que en otros lenguajes.</li>
+  <li>Es necesario saber Assemby para comprender cómo se ejecutan 
+  realmente las sentencias de un lenguaje de programación en el procesador. </li>
 </ol>
 
 </div>
 
-<p class="answer"> 
-
-
-</p>
+<div class="answer">
+<ol> 
+<li>Falso, es un lenguaje de <strong>bajo</strong> nivel, de hecho, el más bajo.</li>
+<li>Verdadero, para acceder a algunas funciones del hardware específicas.</li>
+<li>Falso, programar en Assembly suele ser más difícil que en otros lenguajes, ya que
+lleva más tiempo y es más fácil cometer errores.</li>
+<li>Verdadero, generalmente por cada línea de un lenguaje de código de alto nivel 
+como Python o Java, tenemos que escribir varias instruccciones en Assembly.</li>
+<li> Verdadero. En última instancia, cualquier programa, de cualquier otro lenguaje,
+se termina traduciendo a Assembly (o a código de máquina).</li>
+</ol>
+</div>
 """,UIConfig.disableAll)
 
 ,TutorialStep("Resumen"
 ,"""
-  <p>Assembly es un lenguaje programación que le pone nombres 
+  <p>Assembly es un lenguaje de programación que le pone nombres 
   a los códigos binarios de la máquina.</p>
- <p>Es un lenguaje programación de bajo nivel.</p>
+ <p>Es un lenguaje de programación de bajo nivel.</p>
  <p>Las instrucciones en assembly se asemejan a las de código de máquina pero son 
  más fáciles de leer y escribir.</p>
-
+<p>Si bien no suele usarse actualmente para desarrollar programas típicos, si sirve
+ para algunas aplicaciones particulares como el desarrollo de sistemas operativos.</p>
 """,UIConfig.disableAll,Some(""))
 
 
 ,TutorialStep("A continuación"
 ,"""
- <p>Ahora que sabés por qué es interesante aprender Assembly, podés <a href="?tutorial=vonsim">
- aprender a utilizar el simulador VonSim</a>.</p>
+ <p>Ahora que sabes por qué es interesante conocer más sobre Assembly, 
+ puedes <a href="?tutorial=vonsim"> aprender a utilizar el simulador VonSim</a>.</p>
  
 """,UIConfig.disableAll,Some(""))
 

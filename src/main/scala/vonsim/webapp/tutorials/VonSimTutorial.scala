@@ -69,26 +69,47 @@ La diferencia que tienen es que si bien la primera tiene mucho más espacio, es 
 
 ,TutorialStep("¿Cómo ejecutar programas?"
 ,"""<p class="exercise">La forma más simple de ejecutar un programa es simplemente presionar el botón "Ejecución Rápida". Prueba hacerlo.</p>
+  
 <p>Se ejecutará el programa de ejemplo que está en el editor, y la dirección de memoria 0002 tomará el valor 1A.</p>
 
 <p>Si todo sale bien, en el panel de ejecución aparecerá el mensaje "Ejecución Finalizada" en verde.</p>
-<p> Ten en cuenta que si el programa contiene errores, no podrás cargarlo y ejecutarlo.</p>
 
 <p>Por ahora, no utilizaremos los botones "Depurar", "Finalizar" o "Paso".</p>
 
+<p class="exercise">Verifica que el registro AX tenga el valor hexadecimal A3F2. Dicho registro 
+se encuentra en "Registros de propósito general", dentro de "CPU".</p>
+
 """,UIConfig.enableAll,Some("""org 2000h
-mov ax, 15
+mov ax, A3F2h
 hlt
 end
 """))
 
 ,TutorialStep("Errores de compilación"
-,"""<p class="exercise">La forma más simple de ejecutar un programa es simplemente presionar el botón "Ejecución Rápida". Prueba hacerlo.</p>
-<p>Se ejecutará el programa de ejemplo que está en el editor, y la dirección de memoria 0002 tomará el valor 1A.</p>
+,"""
+  
+<p>Cuando un programa tiene errores, el editor de texto mostrará una <strong>x</strong> roja a la izquierda
+de la instrucción que está generando el error.</p>  
+<p> Ten en cuenta que si el programa contiene errores, no podrás cargarlo y ejecutarlo.
+En ese caso deberás corregirlo para que pueda ejecutarse.</p>
+
+<div class="exercise">
+<p>
+Corrige el programa que está en el editor.
+</p> 
+
+<p>En la línea que dice:  <code>mov ap, 8</code>, hubo una confusión, se debe
+ escribir ax en lugar de <code>ap</code>
+</p>
+<p>Luego, ejecuta el programa.
+</p>
+
+</div>
+  
 
 
 """,UIConfig.enableAll,Some("""org 2000h
-mov ap, 15
+mov ap, 8
 hlt
 end
 """))
@@ -96,8 +117,9 @@ end
 ,TutorialStep("Resumen"
 ,"""
   <p>VonSim es un simulador para la ejecución del lenguaje Assembly en una computadora.</p>
- <p></p>
- <p></p>
+ <p>Los controles permiten ejecutar un programa.</p>
+ <p>El editor permite escribir un programa y nos indica si este tiene errores de compilación.</p>
+ <p>La visualización nos permite observar el resultado de la ejecución de un programa.</p>
 
 """,UIConfig.disableAll,Some(""))
 
@@ -105,7 +127,7 @@ end
 ,TutorialStep("A continuación"
 ,"""
  <p>Ahora que sabes utilizar la interfaz de VonSim, puedes aprender sobre
- <a href="?tutorial=variables">la estructura de los programas en assembly</a>.</p>
+ <a href="?tutorial=basic">la estructura de los programas en assembly</a>.</p>
  
 """,UIConfig.disableAll,Some(""))
 
