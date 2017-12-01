@@ -102,8 +102,8 @@ class HeaderUI(s: VonSimState) extends VonSimUI(s) {
       , img(id := "icon", alt := "Von Sim Icon", title := s.uil.iconTitle, src := "img/icon.png")
       , controlsUI.root
       ,span(id:="headerSeparator")
-      , languageButtonsContainer
-      , helpUIButton
+      //, languageButtonsContainer
+      //, helpUIButton
       )).render
   
   def disableControls(){
