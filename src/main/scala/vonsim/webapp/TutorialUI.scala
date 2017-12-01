@@ -30,6 +30,9 @@ import vonsim.assembly.lexer.DW
 import vonsim.assembly.lexer.DB
 
 
+
+
+
 class TutorialUIControl(s: VonSimState,val tutorial:Tutorial,tutorialUpdated:Function0[Unit]) extends VonSimUI(s) {
   
   def buttonFactory(text:String,iconClass:String)=a(cls:="tutorialButton btn btn-primary"
@@ -43,7 +46,11 @@ class TutorialUIControl(s: VonSimState,val tutorial:Tutorial,tutorialUpdated:Fun
   val current=span().render
   val total=span().render
   
-  val tutorialIndexUI=new TutorialIndexUI(s,tutorial)
+  val tutorialIndexUI=new TutorialIndexUI(s,tutorial,(stepSelected:Int)=>{
+    tutorial.goto(stepSelected)
+    update()
+    tutorialUpdated.apply()
+  })
   
   val tutorialTitle=span(id := "tutorialTitle"
       ,a(cls:="helpButton"
@@ -102,7 +109,7 @@ class TutorialUIControl(s: VonSimState,val tutorial:Tutorial,tutorialUpdated:Fun
   
 }
 
-class TutorialIndexUI(s:VonSimState,tutorial:Tutorial) extends ModalUI(s,"tutorialIndexModal"){
+class TutorialIndexUI(s:VonSimState,tutorial:Tutorial,selectStep:Function1[Int,Unit]) extends ModalUI(s,"tutorialIndexModal"){
   
   def getHeader()={
     div(cls:="modal-header-help",img(cls:= "modal-icon", alt := "Von Sim Icon", title := s.uil.iconTitle, src := "img/icon.png")
@@ -111,17 +118,24 @@ class TutorialIndexUI(s:VonSimState,tutorial:Tutorial) extends ModalUI(s,"tutori
     ).render
   }
   def getBody()={
-    val body=div(cls:=""
-      ,h2(tutorial.title)
-      ,h3("Indice")
-      
-    ).render
-    val stepList=ul().render
+ 
+    val stepList=ol(cls:="list-group").render
     
-    for (step <- tutorial.steps){
-      stepList.appendChild(li(a(step.title)).render)
+    for ((step,i) <- tutorial.steps.zipWithIndex){
+      val indexItem=a().render
+      indexItem.innerHTML=step.title
+      
+      indexItem.onclick = (e:Any)=>{
+        selectStep(i)
+        close()
+        
+      }
+      stepList.appendChild(li(cls:="list-group-item",indexItem).render)
     }
-    body.appendChild(stepList)
+    val body=div(cls:=""
+      ,h3("Índice")
+      ,stepList
+    ).render
     body
   }
   

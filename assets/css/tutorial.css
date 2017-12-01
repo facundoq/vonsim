@@ -123,3 +123,19 @@ pre,code{
 	color:black;
 	font-weight: bold;
 }
+.list-group-item{
+	list-style: decimal inside;
+    display: list-item;    
+    color:black;
+}
+#tutorialIndexModal h3{
+	color:black;
+	margin-bottom: 10px;
+}
+#tutorialIndexModal{
+ text-align: left;	
+}
+
+#tutorialIndexModal a{
+	cursor: pointer;
+}

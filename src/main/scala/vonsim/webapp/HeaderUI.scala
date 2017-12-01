@@ -28,6 +28,10 @@ abstract class ModalUI(s:VonSimState,modalID:String) extends VonSimUI(s){
   def getHeader():HTMLElement
   def getBody():HTMLElement
   def getFooter():HTMLElement
+  def close(){
+    import org.querki.jquery._
+    $(root).find(".close").click()
+  }
 }
 
 class HelpUI(s:VonSimState) extends ModalUI(s,"helpModal"){

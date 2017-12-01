@@ -95,12 +95,12 @@ class EditorUI(s: VonSimState, defaultCode: String, onchange: () => Unit) extend
   }
   
   def disableTextArea(){
-    container.disabled=true
+    container.classList.add("disabled")
     editor.setReadOnly(true)
   }
   
   def enableTextArea(){
-    container.disabled=false
+    container.classList.remove("disabled")
     editor.setReadOnly(false)
   }
   

@@ -144,8 +144,8 @@ object Compiler {
     instructions.mapRightEither(x => {
       val compiled = parserToSimulatorInstruction(x, resolver)
       val line = x.location.line
-      compiled.right.map(i => new InstructionInfo(line, i, rawInstructions(line)))
-
+      val a=compiled.right.map(i => new InstructionInfo(line, i, rawInstructions(line-1)))
+      a
     })
 
   }

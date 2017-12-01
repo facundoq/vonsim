@@ -119,12 +119,12 @@ class MemoryUI(s: VonSimState) extends MainboardItemUI(s,"img/mainboard/ram.png"
     if (addressString.length > 0){
       try{
         val address=  Integer.parseInt(addressString, 16)
-        addressSearchButton.disabled=false 
+        addressSearchButton.classList.remove("disabled") 
       }catch {
-        case e:NumberFormatException => addressSearchButton.disabled=true  
+        case e:NumberFormatException => addressSearchButton.classList.add("disabled")  
       }
     }else{
-      addressSearchButton.disabled=true  
+      addressSearchButton.classList.add("disabled")
     }
     
   }

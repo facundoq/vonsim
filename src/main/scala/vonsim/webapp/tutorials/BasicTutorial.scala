@@ -135,7 +135,7 @@ se escriben en hexadecimal, de modo que siempre terminan con h.<p>
 
 ,TutorialStep("A continuación"
 ,"""
- <p>Ahora que has dado los primeros paso en Assembly con VonSim, podés avanzar
+ <p>Ahora que has dado los primeros pasos en Assembly con VonSim, podés avanzar
  más con el <a href="?tutorial=variables">tutorial sobre variables en assembly</a>.</p>
  
 """,UIConfig.disableAll,Some(""))

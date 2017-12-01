@@ -40,17 +40,27 @@ class Languages(val uiLanguage:UILanguage,val compilerLanguage:CompilerLanguage,
   
 }
 
-object Main extends JSApp {
+object URLParametersParser{
+  def apply(url:String)={
+     
 
-  def getParameters()={
-    val parametersTuple=dom.window.location.search
-                   .substring(1)
+    val parameters=url
+                   .substring(1).trim()
                    .split("&")
-                   .map(js.URIUtils.decodeURIComponent)
+                   .map(_.trim())
+                   .filter(_.length()>0)
+                   .filter(_.contains("="))  
+            
+    val parametersTuple=parameters.map(js.URIUtils.decodeURIComponent)
                    .map(q => q.split("="))
                    .map { q => (q(0),q(1)) }
     parametersTuple.toMap
   }
+}
+object Main extends JSApp {
+
+  def getParameters()=URLParametersParser(dom.window.location.search)
+  
   val codeURLKey="url"
   val cookieLanguageKey="lang"
   val tutorialKey="tutorial"
@@ -87,13 +97,17 @@ object Main extends JSApp {
     }
   }
   def main(): Unit = {
+    println("Getting language code")
     val languageCode=getLanguageCode()
+    println("Getting language")
     val languages=getLanguages(languageCode)
-    
+    println("Getting parameters")
     val parameters = getParameters()
+    println("Getting tutorial")
     val tutorial = getTutorial(parameters)
     getInitialCode(languages,parameters, code => {
-      initializeUI(code,languages,tutorial) 
+      println(code)
+      initializeUI("",languages,tutorial) 
     })
 
     
