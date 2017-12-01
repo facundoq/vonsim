@@ -32,6 +32,7 @@ abstract class Tutorial{
   def id:String
   var step=0
   def hasNext=step<steps.length-1
+  def fullscreen=false
 
   def canForward(s:VonSimState)={
     steps(step).canForward(s) && hasNext

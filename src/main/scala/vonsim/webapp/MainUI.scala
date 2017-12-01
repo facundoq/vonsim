@@ -63,17 +63,27 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Opt
   val mainboardUI = new MainboardUI(s)
   val headerUI=new HeaderUI(s)
   val tutorialUI = tutorial.map(t => new TutorialUI(s,t,this))
-  
+  println("checking mode:..")
   val leftPanelId="leftWrap"
   val leftPanel=tutorialUI match {
     case None => div(id:=leftPanelId
         ,editorUI.root)
     case Some(t) => {
+      if (t.tutorial.fullscreen){
+        println("fullscreen mode")
       div(id:=leftPanelId
+        ,editorUI.root)
+        
+      }else{
+        div(id:=leftPanelId
         ,t.root
         ,editorUI.root)
+      }
     }
   }
+ 
+  
+  
   
   val sim = div(id := "main",
     leftPanel,
@@ -83,6 +93,18 @@ class MainUI(s: VonSimState, defaultCode: String,saveCodeKey:String,tutorial:Opt
       ,headerUI.root 
       ,sim).render
 
+  tutorialUI match{
+    case Some(t) =>{
+      if (t.tutorial.fullscreen){
+        println("fullscreen mode")
+        val tutorialDiv=div(cls:="fullscreenDiv",t.root).render
+        t.root.classList.add("fullscreenTutorial")
+        root.appendChild(tutorialDiv)   
+       
+      }
+    }
+    case None =>
+  }
   
   bindkey(root,s.uil.controlsQuickHotkey,() => {
     if (s.canLoadOrQuickRun()){

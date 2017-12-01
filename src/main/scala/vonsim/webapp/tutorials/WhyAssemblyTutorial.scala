@@ -5,6 +5,8 @@ import vonsim.webapp.UIConfig
 class WhyAssemblyTutorial extends Tutorial {
   val title="Assembly"
   
+  override def fullscreen=true
+  
   val initialCode="""
 org 2000h
 ; código aquí

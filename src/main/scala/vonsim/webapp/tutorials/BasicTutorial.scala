@@ -5,6 +5,7 @@ import vonsim.webapp.UIConfig
 class BasicTutorial extends Tutorial {
   val title="Estructura de un programa en Assembler con VonSim"
   
+  
   val initialCode="""
 org 2000h
 ; código aquí
