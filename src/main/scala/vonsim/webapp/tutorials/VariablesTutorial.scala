@@ -555,17 +555,14 @@ También podemos declarar vectores de caracteres o strings, escribiendo un texto
 """,UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 )
 
-
-,TutorialStep("A continuación"
-,"""
- <p>Ahora que sabes más sobre cómo se codifican los datos en assembly y cómo definir variables,
-  puedes avanzar más con el <a href="?tutorial=code">tutorial sobre 
-  registros e instrucciones simples</a>.</p>
- 
-""",UIConfig.disableAll,Some(""))
+//,TutorialStep("A continuación"
+//,"""
+// <p>Ahora que sabes más sobre cómo se codifican los datos en assembly y cómo definir variables,
+//  puedes avanzar más con el <a href="?tutorial=code">tutorial sobre 
+//  registros e instrucciones simples</a>.</p>
+// 
+//""",UIConfig.disableAll,Some(""))
+    
 )
-
-
-
 
 }

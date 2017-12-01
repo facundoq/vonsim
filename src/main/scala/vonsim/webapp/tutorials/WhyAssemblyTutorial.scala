@@ -164,12 +164,12 @@ se termina traduciendo a Assembly (o a código de máquina).</li>
 """,UIConfig.disableAll,Some(""))
 
 
-,TutorialStep("A continuación"
-,"""
- <p>Ahora que sabes por qué es interesante conocer más sobre Assembly, 
- puedes <a href="?tutorial=vonsim"> aprender a utilizar el simulador VonSim</a>.</p>
- 
-""",UIConfig.disableAll,Some(""))
+//,TutorialStep("A continuación"
+//,"""
+// <p>Ahora que sabes por qué es interesante conocer más sobre Assembly, 
+// puedes <a href="?tutorial=vonsim"> aprender a utilizar el simulador VonSim</a>.</p>
+// 
+//""",UIConfig.disableAll,Some(""))
 
 )
 }

@@ -76,11 +76,11 @@ La diferencia que tienen es que si bien la primera tiene mucho más espacio, es 
 
 <p>Por ahora, no utilizaremos los botones "Depurar", "Finalizar" o "Paso".</p>
 
-<p class="exercise">Verifica que el registro AX tenga el valor hexadecimal A3F2. Dicho registro 
+<p class="exercise">Verifica que el registro AX tenga el valor hexadecimal 3AF2. Dicho registro 
 se encuentra en "Registros de propósito general", dentro de "CPU".</p>
 
 """,UIConfig.enableAll,Some("""org 2000h
-mov ax, A3F2h
+mov ax, 3AF2h
 hlt
 end
 """))
@@ -124,12 +124,12 @@ end
 """,UIConfig.disableAll,Some(""))
 
 
-,TutorialStep("A continuación"
-,"""
- <p>Ahora que sabes utilizar la interfaz de VonSim, puedes aprender sobre
- <a href="?tutorial=basic">la estructura de los programas en assembly</a>.</p>
- 
-""",UIConfig.disableAll,Some(""))
+//,TutorialStep("A continuación"
+//,"""
+// <p>Ahora que sabes utilizar la interfaz de VonSim, puedes aprender sobre
+// <a href="?tutorial=basic">la estructura de los programas en assembly</a>.</p>
+// 
+//""",UIConfig.disableAll,Some(""))
 
 )
 }
