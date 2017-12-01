@@ -106,8 +106,7 @@ object Main extends JSApp {
     println("Getting tutorial")
     val tutorial = getTutorial(parameters)
     getInitialCode(languages,parameters, code => {
-      println(code)
-      initializeUI("",languages,tutorial) 
+      initializeUI(code,languages,tutorial) 
     })
 
     
