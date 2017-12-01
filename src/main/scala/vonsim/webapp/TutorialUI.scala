@@ -42,8 +42,20 @@ class TutorialUIControl(s: VonSimState,val tutorial:Tutorial,tutorialUpdated:Fun
   val previousButton=buttonFactory("Anterior","fa-previous")
   val current=span().render
   val total=span().render
-  val tutorialTitle=span(id:="tutorialTitle",tutorial.title).render
   
+  val tutorialIndexUI=new TutorialIndexUI(s,tutorial)
+  
+  val tutorialTitle=span(id := "tutorialTitle"
+      ,a(cls:="helpButton"
+      ,data("toggle"):="modal"
+      ,data("target"):="#tutorialIndexModal"
+      ,tutorial.title
+      )
+      ,tutorialIndexUI.root
+      ).render
+  
+  
+   
   val root=div(id:="tutorialControls"
       ,tutorialTitle
       ,div(id:="tutorialControlsInner"
@@ -90,6 +102,44 @@ class TutorialUIControl(s: VonSimState,val tutorial:Tutorial,tutorialUpdated:Fun
   
 }
 
+class TutorialIndexUI(s:VonSimState,tutorial:Tutorial) extends ModalUI(s,"tutorialIndexModal"){
+  
+  def getHeader()={
+    div(cls:="modal-header-help",img(cls:= "modal-icon", alt := "Von Sim Icon", title := s.uil.iconTitle, src := "img/icon.png")
+              ,h4(cls:="modal-title",tutorial.title)
+              ,button(`type`:="button",cls:="close", data("dismiss"):="modal",i(cls:="fa fa-close"))
+    ).render
+  }
+  def getBody()={
+    val body=div(cls:=""
+      ,h2(tutorial.title)
+      ,h3("Indice")
+      
+    ).render
+    val stepList=ul().render
+    
+    for (step <- tutorial.steps){
+      stepList.appendChild(li(a(step.title)).render)
+    }
+    body.appendChild(stepList)
+    body
+  }
+  
+  def getFooter()={
+    div(cls:=""
+    
+    ).render
+  }
+  
+  def simulatorEvent() {
+  }
+  
+  def simulatorEvent(i:InstructionInfo) {
+  }
+  def compilationEvent(){
+  }
+  
+}
 class TutorialUI(s: VonSimState,val tutorial:Tutorial,val mainUI:MainUI) extends VonSimUI(s) {
 
   

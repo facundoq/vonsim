@@ -5,11 +5,11 @@ import vonsim.assembly.Compiler.CompilationResult
 import org.scalajs.dom.raw.HTMLElement
 import vonsim.webapp.i18n.UILanguage
 
-abstract class ModalUI(s:VonSimState) extends VonSimUI(s){
+abstract class ModalUI(s:VonSimState,modalID:String) extends VonSimUI(s){
   val root = div(
       cls:="modal fade"
       ,role:="dialog"
-      ,id:="helpModal"
+      ,id:=modalID
 //      ,style:="display:none"
       ,div(cls:="modal-dialog"
         ,div(cls:="modal-content"
@@ -30,7 +30,7 @@ abstract class ModalUI(s:VonSimState) extends VonSimUI(s){
   def getFooter():HTMLElement
 }
 
-class HelpUI(s:VonSimState) extends ModalUI(s){
+class HelpUI(s:VonSimState) extends ModalUI(s,"helpModal"){
   
   def getHeader()={
     div(cls:="modal-header-help",img(cls:= "modal-icon", alt := "Von Sim Icon", title := s.uil.iconTitle, src := "img/icon.png")
