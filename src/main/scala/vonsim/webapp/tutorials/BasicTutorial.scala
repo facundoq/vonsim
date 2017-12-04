@@ -115,6 +115,42 @@ de minúscula a mayúscula o viceversa y vuelve a ejecutar el programa. En todos
 """,UIConfig.enableAll,Some("oRg 2000h\nHLt\nEnD")
 )
 
+,TutorialStep("Autoevaluación"
+,"""
+<ol>
+  
+<li><p class="exercise">¿Es hlt una instrucción? ¿o una sentencia?</p>
+<p class="answer">Es una instrucción. </p></li>  
+
+<li><p class="exercise">¿Cuál es la función de hlt ?</p>
+<p class="answer">La instrucción hlt detiene al procesador, 
+y por ende sirve para finalizar la ejecución de un programa. </p></li>
+
+<li><p class="exercise">¿Es org una instrucción? ¿o una sentencia?</p>
+<p class="answer">Es una sentencia, que le indica al compilador de assembly donde ubicar
+las instrucciones del programa en la memoria, pero no es ejecutada por el procesador. </p></li>
+
+<li><p class="exercise">¿Cual es la función de end ?</p>
+<p class="answer">Su función es indicarle al compilador de assembly donde ubicar
+las instrucciones del programa en la memoria, pero no es ejecutada por el procesador. </p></li>
+
+<li><p class="exercise">¿Es end una instrucción? ¿O una sentencia?</p>
+<p class="answer">Dado que no se ejecuta por el procesador, 
+y que le indica al compilador donde termina el programa,
+es una sentencia.</p></li>
+
+<li><p class="exercise">En assembly ¿Es válido escribir end? ¿y END? ¿y EnD?</p>
+<p class="answer">Las tres son sentencias válidas y significan lo mismo,
+ ya que assembly no distingue entre mayúsculas y minúsculas.</p></li>
+
+<li><p class="exercise">¿Por qué la dirección 2000h es especial en el simulador VonSim?</p>
+<p class="answer">Porque en esa dirección el simulador busca la primer instrucción del programa
+para ejecutar.</p></li>
+</ol>
+
+""",UIConfig.enableAll,None
+)
+
 
 ,TutorialStep("Resumen"
 ,"""

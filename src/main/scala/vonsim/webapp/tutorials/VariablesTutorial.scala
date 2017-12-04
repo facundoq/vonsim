@@ -2,6 +2,7 @@ package vonsim.webapp.tutorials
 
 import vonsim.webapp.UIConfig
 
+
 class VariablesTutorial extends Tutorial {
   val title="Variables en assembly"
   
@@ -521,10 +522,36 @@ En cambio, tenemos un mecanismo para <strong>inicializar celdas de memoria</stro
 //""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 //)
 
+,TutorialStep("Autoevaluación"
+,"""
+<ol>
+<!--  
+<li><p class="exercise">¿Es hlt una instrucción? ¿o una sentencia?</p>
+<p class="answer">Es una instrucción. </p></li>  
+
+<li><p class="exercise"></p>
+<p class="answer"></p></li>
+
+<li><p class="exercise"></p>
+<p class="answer"></p></li>
+
+<li><p class="exercise"></p>
+<p class="answer"></p></li>
+
+<li><p class="exercise"></p>
+<p class="answer"></p></li>
+
+<li><p class="exercise"></p>
+<p class="answer"></p></li>
+</ol>
+-->
+""",UIConfig.enableAll,None
+)
+
 
 ,TutorialStep("Resumen"
 ,"""
-<p>En resumen, en assembly se pueden etiquetar celdas de memoria e inicializar su valor,
+<p>En Assembly se pueden etiquetar celdas de memoria e inicializar su valor,
 que llamamos <strong>declarar variables</strong> aunque su significado sea algo
 diferente del de otros lenguajes de programación.</p>
 

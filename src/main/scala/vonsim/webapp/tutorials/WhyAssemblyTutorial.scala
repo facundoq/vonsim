@@ -123,8 +123,7 @@ a assembly y verlo en este lenguaje de bajo nivel.</p>
         ,"""
 
 <div class="exercise">
-<p>Decida si las siguientes afirmaciones son verdaderas o falsas.
-Anote los resultados y luego verifique las respuestas:</p>
+<p>Decida si las siguientes afirmaciones son verdaderas o falsas. Luego verifique las respuestas:</p>
 
 <ol>
   <li>Assembly es un lenguaje de alto nivel.</li>
@@ -132,7 +131,7 @@ Anote los resultados y luego verifique las respuestas:</p>
   sistemas operativos.</li>
   <li>Las aplicaciones modernas suelen desarrollarse en Assembly</li>
   <li>La programación en Assembly suele ser más lenta que en otros lenguajes.</li>
-  <li>Es necesario saber Assemby para comprender cómo se ejecutan 
+  <li>Es necesario saber Assembly para comprender cómo se ejecutan 
   realmente las sentencias de un lenguaje de programación en el procesador. </li>
 </ol>
 
