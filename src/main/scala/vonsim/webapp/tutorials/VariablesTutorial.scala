@@ -19,7 +19,7 @@ end
   val steps=List(
 
              TutorialStep("Variables en VonSim"
-,"""<p><strong>Objetivos:</strong> Aprender a definir variables e inicializarlas en VonSim.</p> 
+,"""<p><strong>Objetivos:</strong> Comprender el concepto de variable y su uso en Assembly.</p> 
 
 <p><strong>Conocimientos previos:</strong> Uso del simulador VonSim. Estructura básica de un programa
 en assembly. Conocimientos básicos de organización y arquitectura de computadoras.</p>
@@ -522,29 +522,195 @@ En cambio, tenemos un mecanismo para <strong>inicializar celdas de memoria</stro
 //""",UIConfig.enableAll,Some("org 5h\n;las variables van aqui\norg 2000h\nhlt\nend")
 //)
 
-,TutorialStep("Autoevaluación"
+,TutorialStep("Autoevaluación (1/6)"
 ,"""
 <ol>
-<!--  
-<li><p class="exercise">¿Es hlt una instrucción? ¿o una sentencia?</p>
-<p class="answer">Es una instrucción. </p></li>  
 
-<li><p class="exercise"></p>
-<p class="answer"></p></li>
+<li><p class="exercise">La sentencia org sirve para ubicar las instrucciones en la memoria.
+¿Cómo se ubican las variables en la misma?</p>
+<p class="answer">También se utiliza la sentencia org para ubicar las variables.
+Generalmente para las variables se utiliza otro org, distinto al del codigo.</p></li>  
 
-<li><p class="exercise"></p>
-<p class="answer"></p></li>
+<li><p class="exercise">¿Qué tipos básicos de variables hay en Assembly?</p>
+<p class="answer">Hay dos tipos: las db, que ocupan un byte, y las dw, que ocupan dos bytes.</p></li>
 
-<li><p class="exercise"></p>
-<p class="answer"></p></li>
+<li><p class="exercise">¿Hay otros tipos de datos, como booleanos, caracteres, strings, 
+arreglos y otros en Assembly?</p>
+<p class="answer">No, no existen formalmente esos tipos de datos en el lenguaje. 
+No obstante, se pueden <em>representar</em> valores de esos tipos utilizando
+el código binario. </p></li>
 
-<li><p class="exercise"></p>
-<p class="answer"></p></li>
 
-<li><p class="exercise"></p>
-<p class="answer"></p></li>
+<li><p class="exercise">Las variables de Assembly ¿funcionan como en otros lenguajes tradicionales,
+tales como Pascal, C, Java o Python?</p>
+<p class="answer">No, funcionan en realidad como una forma de inicializar la memoria,
+y ponerle un nombre (<em>etiqueta</em>) a ciertas direcciones de memoria. </p></li>
+
+
+
+
 </ol>
--->
+
+
+
+""",UIConfig.enableAll,None
+)
+
+,TutorialStep("Autoevaluación (2/6)"
+,"""
+<ol>
+
+<li><p class="exercise">¿Qué se le agrega a un valor para que sea considerado 
+como un valor en hexadecimal? De un ejemplo con el valor 3B5</p>
+<p class="answer">Se agrega una h al final del número. Por ejemplo,
+el valor 3B5 se escribiría como 3B5h. </p></li>
+
+<li><p class="exercise">Si queremos escribir el valor hexadecimal A3F2 en Assembly,
+¿qué <strong>dos</strong> cosas debemos agregarle para que el lenguaje lo reconozca como tal? </p>
+<p class="answer">Se debe agregar una h al final del número, como antes,
+pero como el valor comienza con una letra (la <strong>A</strong>), debe agregarse
+también un 0 al comienzo. Entonces el valor se debería ingresar como 0A3F2h.
+De esta manera se evita confundir al compilador, que sino pensaría que estamos
+intentando utilizar la variable con nombre <strong>A3F2h</strong>.</p></li>
+
+<li><p class="exercise">¿Cómo se escribe el valor binario 0100010 en Assembly?</p>
+<p class="answer">Se escribe 0100010b, agregando una <strong>b</strong> al final
+para distinguirlo del número decimal 100010.</p></li>
+
+<li><p class="exercise">¿Cómo se escribe el valor decimal 28 en Assembly? ¿y el valor decimal
+101 ?.</p>
+<p class="answer">Se escriben directamente como 28 y 101.</p>
+</li>
+
+</ol>
+
+
+
+""",UIConfig.enableAll,None
+)
+
+,TutorialStep("Autoevaluación (3/6)"
+,"""
+<ol>
+
+<li><div class="exercise"><p>Decidir si es válida la forma de 
+escribir los siguientes valores en Assembly:</p>
+<ol style="text-align:left;">
+  <li><p>12h</p></li>
+  <li><p><span class="value"> 5B2_</span> </p></li>
+  <li><p>0010b</p></li>
+  <li><p><span class="value">13b</span></p></li>
+  <li><p><span class="value"> B2h</span> </p></li>
+  <li><p>1101</p></li>
+</ol>  
+</div>
+<div class="answer" style="text-align:left;">
+<ol>
+  <li><p>12h :   Válido, es un valor en hexadecimal.</p></li>
+  <li><p>5B2_ :  Inválido, falta una <strong>h</strong> al final para ser un valor hexadecimal válido.</p></li>
+  <li><p>0010b : Válido, es un valor binario.</p></li>
+  <li><p>13b :   Inválido, el <strong>b</strong> sólo puede usarse si hay digitos 0 o 1.</p></li>
+  <li><p>B2h:    Inválido, falta el 0 adelante para distinguirlo de una variable.</p></li>
+  <li><p>1101 :  Válido, es un valor en decimal</p></li>
+</ol>   
+</div>
+</li>
+
+</ol>
+""",UIConfig.enableAll,None
+)
+
+,TutorialStep("Autoevaluación (4/6)"
+,"""
+<ol>
+
+<li><p class="exercise">¿Se puede ingresar números negativos en Assembly?.</p>
+<p class="answer">Si, solo basta poner el signo - adelante.</p>
+</li>
+
+<li><p class="exercise">¿Cómo se codifican los números positivos en la memoria?</p>
+<p class="answer">Se codifican con el sistema Binario sin signo (BSS).</p>
+</li>
+
+<li><p class="exercise">¿Cómo se codifican los números negativos en la memoria?</p>
+<p class="answer">Se codifican con el sistema Complemento a 2 (CA2). En dicho
+sistema los números negativos tienen el bit más significativo (el de más a la izquierda)
+en 1.</p>
+</li>
+
+<li><p class="exercise">Si un byte en la memoria tiene el bit más significativo (el 
+de más a la izquierda) en 1, ¿qué significa?</p>
+<p class="answer"> Puede significar dos cosas. Si interpretamos el número en 
+CA2, entonces significa que es negativo. Sino, significa que es un número mayor o igual a 128. </p>
+</li>
+
+</ol>
+""",UIConfig.enableAll,None
+)
+
+
+,TutorialStep("Autoevaluación (5/6)"
+,"""
+<ol>
+
+<li><p class="exercise">¿Cuáles son los valores mínimos y máximos para una variable de
+tipo db? </p>
+<p class="answer"> En BSS, el mínimo es 0 y el máximo es 255 (2^8).
+En CA2, el mínimo es -128 (-2^7) y el máximo es 127 (2^7-1).</p>
+</li>
+
+<li><p class="exercise">¿Cuáles son los valores mínimos y máximos para una variable de
+tipo dw? </p>
+<p class="answer"> En BSS, el mínimo es 0 y el máximo es 65535 (2^16).
+En CA2, el mínimo es -32768 (-2^15) y el máximo es 32767 (2^15-1).</p>
+</li>
+
+<li><p class="exercise">¿Se puede definir una variable sin valor inicial? </p>
+<p class="answer"> Si, poniendo <code>?</code> como valor de la variable.</p>
+</li>
+
+<li><p class="exercise">¿Qué función cumpliría una variable sin valor inicial? </p>
+<p class="answer"> Dicho mecanismo nos permite reservar espacio para la variable,
+y luego especificar su valor en el programa.</p>
+</li>
+
+</ol>
+
+""",UIConfig.enableAll,None
+)
+
+,TutorialStep("Autoevaluación (6/6)"
+,"""
+<ol>
+
+<li><p class="exercise"> ¿Cómo se define un vector de valores en Assembly? </p>
+<div class="answer"> <p>Se especifica el nombre y el tipo de una variable normalmente,
+pero luego se agregan varios valores separados por una coma. Por ejemplo:</p> 
+<pre><code>temperaturas dw 15, 29, -5, 99, 1500</code></pre>
+</div>
+</li>
+
+
+<li><p class="exercise"> La línea <code>mensaje db "Hola"</code> define un string 
+con etiqueta <em>mensaje</em>. ¿Podríamos utilizar dw en lugar de db? </p>
+<p class="answer"> No, ya que cada caracter se codifica con el código ASCII,
+y por ende ocupa un byte.</p> 
+
+<li><div class="exercise"> <p>¿Cómo se ubican en la memoria los valores de un vector?.
+Indicar las direcciones de los valores de la variable temperaturas  </p> 
+<pre><code>org 5
+temperaturas db 15, 29, -5</code></pre>
+</div>
+<p class="answer">
+El valor 15 queda almacenado en la celda de memoria con dirección 5.
+El 29 en la celda con dirección 6, y el -5 en la celda 7. 
+</p>
+
+</li>
+
+
+</ol>
+
 """,UIConfig.enableAll,None
 )
 

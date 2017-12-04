@@ -19,9 +19,9 @@ end
   val steps=List(
 
 
-TutorialStep("Estructura de un programa en Assembler con VonSim"
-,"""<p><strong>Objetivo:</strong> Aprender a escribir programas básicos en Assembly con el simulador
-  VonSim.</p> 
+TutorialStep("Estructura de un programa en Assembly con VonSim"
+,"""<p><strong>Objetivo:</strong> Comprender la estructura
+   básica de un programa en Assembly.</p> 
 
 <p><strong>Conocimientos previos:</strong> Uso del simulador VonSim.
 Conocimientos elementales de organización y arquitectura de computadoras y programación.</p>

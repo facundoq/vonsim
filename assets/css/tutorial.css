@@ -7,8 +7,9 @@
 	border-radius:10px;
 	padding-top:0px;	
 
-	height:50%;
-	overflow-y:auto;
+	height:49%;
+	max-height:49%;
+	overflow-y:scroll;
     
     display: flex;
     align-items: center;

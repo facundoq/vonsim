@@ -18,8 +18,8 @@ end
   val steps=List(
 
        TutorialStep("Instrucciones y registros de VonSim"
-,"""<p><strong>Objetivos:</strong> Conocer los registros del VonSim y las instrucciones para
-  manipularlos </p> 
+,"""<p><strong>Objetivos:</strong> Comprender el concepto de registro 
+  y las operaciones para manipularlo. </p> 
 
 <p><strong>Conocimientos previos:</strong> Uso del simulador VonSim. Estructura básica de un programa
 en assembly. Conocimientos básicos de organización y arquitectura de computadoras.</p>
