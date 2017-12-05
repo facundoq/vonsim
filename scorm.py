@@ -38,7 +38,7 @@ print("Output path set to: '{}'".format(output_folder))
 print("#1# Calling deploy script\n\n")
 
 from subprocess import call
-# call(["./deploy.py", output_folder])
+call(["./deploy.py", output_folder])
 resources=list_files_recursive(output_folder)
 
 resources_string=""
