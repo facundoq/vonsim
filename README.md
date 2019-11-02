@@ -1,3 +1,11 @@
+# IMPORTANT 
+We've moved to https://github.com/vonsim/vonsim
+
+The new url for trying out VonSim is 
+http://vonsim.github.io/
+
+
+
 # VonSim
 
 VonSim is a simulator for the x8088 Intel processor in the spirit of the good old [MSX88](http://e-spacio.uned.es/fez/eserv/taee:congreso-1994-1055/S2C05.pdf), widely used for teaching in various spanish-speaking universities.
